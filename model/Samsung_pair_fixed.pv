@@ -37,8 +37,8 @@ const poolsize: bitstring.
 (* tables used to pass data between steps *)
 table p0s(bitstring, bitstring, public_key).
 table p0p(bitstring, bitstring, private_key, public_key).
-table p1c(bt_addr, key, bitstring, bitstring, bitstring).
-table p1p(bt_addr, key, bitstring, bitstring, bitstring).
+table p1c(bt_addr, bitstring).
+table p1p(bt_addr, bitstring).
 table p2c(bt_addr, bitstring).
 table p2p(bt_addr, bitstring).
 
@@ -55,6 +55,7 @@ event send_peripheral(bitstring).
 (* Type conversion helper functions *)
 fun bitstring2iv(bitstring): iv[typeConverter].
 fun nonce2bitstring(nonce): bitstring [typeConverter].
+fun btaddr2bitstring(bt_addr): bitstring [typeConverter].
 
 (* Concatenation helper functions *)
 fun concat(bitstring, bitstring): bitstring.
@@ -98,11 +99,12 @@ fun derive_prikey_from_sn(bitstring): private_key.
 fun derive_hashed_sn(bitstring): bitstring.
 
 (* Calculate all id *)
+(* privId = AES(key: privacyKey, iv: iv, mes: seed) *)
 fun get_id(key, bitstring, bitstring, bitstring): bitstring.
-
 
 (* set input/output as precise as described *)
 set preciseActions = true.
+
 
 (* 0. initial setting module *)
 let step0s() = (
@@ -179,7 +181,8 @@ let step1c() = (
 		let encrypted_time = AES_enc(time_sync, link_key, bitstring2iv(nonce2bitstring(n2))) in
 		out(open_ch, (encrypted_iv, encrypted_seed, encrypted_poolsize, encrypted_time));
 		let privacy_key = derive_key(encryption_key, privacy) in
-		insert p1c(addrB, privacy_key, privacy_iv, privacy_seed, privacy_poolsize)
+		let id = get_id(privacy_key, privacy_iv, privacy_seed, privacy_poolsize) in
+		insert p1c(addrB, id)
 		)
 ).
 
@@ -210,15 +213,15 @@ let step1p() = (
 		let privacy_poolsize = AES_dec(encrypted_poolsize, link_key, bitstring2iv(nonce2bitstring(n2))) in
 		let time_sync = AES_dec(encrypted_time, link_key, bitstring2iv(nonce2bitstring(n2))) in
 		let privacy_key = derive_key(encryption_key, privacy) in
-		insert p1p(addrA, privacy_key, privacy_iv, privacy_seed, privacy_poolsize)
+		let id = get_id(privacy_key, privacy_iv, privacy_seed, privacy_poolsize) in
+		insert p1p(addrA, id)
 	)
 ).
 
 
 (* 2. user checking module *)
 let step2c() = (
-	get p1c(=addrB, privacy_key, privacy_iv, privacy_seed, privacy_poolsize) in
-	let id = get_id(privacy_key, privacy_iv, privacy_seed, privacy_poolsize) in
+	get p1c(=addrB, id) in
 	out(central_user_data_out, id);
 	in(central_user_ui, confirm: confirmation);
 	if confirm = yes_confirm then
@@ -226,8 +229,7 @@ let step2c() = (
 ).
 
 let step2p() = (
-	get p1p(=addrA, privacy_key, privacy_iv, privacy_seed, privacy_poolsize) in
-	let id = get_id(privacy_key, privacy_iv, privacy_seed, privacy_poolsize) in
+	get p1p(=addrA, id) in
 	out(peripheral_user_data_out, id);
 	in(peripheral_user_ui, confirm: confirmation);
 	if confirm = yes_confirm then
@@ -273,6 +275,7 @@ let step3p() = (
 	event send_peripheral(id);
 	out(open_ch, SHA256(concat(id, salt2)))
 ).
+
 
 
 (* authenticity properties *)
