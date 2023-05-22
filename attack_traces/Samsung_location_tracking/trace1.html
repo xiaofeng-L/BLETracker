@@ -1,0 +1,45 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+                      <html>
+                    <head>
+                    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+                    <title>ProVerif: trace for query 1</title>
+                    <link rel="stylesheet" href="cssproverif.css">
+                                                                           </head>
+                                                                         <body>
+                                                                         <H1>Trace</H1>
+<span class="keyword">new</span> <span class="name">id</span>: <span class="type">bitstring</span> creating <span class="name">id_5</span> at <a href="process_1.html#occ2" target="process" class="occ">{2}</a><br>
+<br>
+<span class="keyword">new</span> <span class="name">sign_key</span>: <span class="type">key</span> creating <span class="name">sign_key_4</span> at <a href="process_1.html#occ3" target="process" class="occ">{3}</a><br>
+<br>
+<span class="keyword">out</span>(<span class="name">pre_app_ch1</span>, <span class="fun"></span>(<span class="name">owner</span>,<span class="name">id_5</span>,<span class="fun">NoE2E</span>,<span class="name">sign_key_4</span>)) at <a href="process_1.html#occ4" target="process" class="occ">{4}</a> received at <a href="process_1.html#occ9" target="process" class="occ">{9}</a><br>
+<br>
+<span class="keyword">out</span>(<span class="name">cloud_ch</span>, <span class="fun"></span>(<span class="var">~M</span>,<span class="var">~M_1</span>,<span class="var">~M_2</span>,<span class="var">~M_3</span>)) with <span class="var">~M</span> = <span class="name">owner</span>, <span class="var">~M_1</span> = <span class="name">id_5</span>, <span class="var">~M_2</span> = <span class="fun">NoE2E</span>, <span class="var">~M_3</span> = <span class="name">sign_key_4</span> at <a href="process_1.html#occ10" target="process" class="occ">{10}</a><br>
+<br>
+<span class="keyword">insert</span> <span class="fun">pkeyitem</span>(<span class="name">owner</span>,<span class="name">id_5</span>,<span class="fun">NoE2E</span>,<span class="name">sign_key_4</span>,<span class="fun">none</span>,<span class="fun">none</span>,<span class="fun">none</span>) at <a href="process_1.html#occ16" target="process" class="occ">{16}</a><br>
+<br>
+<span class="keyword">insert</span> <span class="fun">padv</span>(<span class="name">id_5</span>,<span class="fun">NoE2E</span>,<span class="fun">AES_enc</span>(<span class="fun">concat</span>(<span class="name">id_5</span>,<span class="fun">NoE2E</span>),<span class="name">sign_key_4</span>,<span class="fun">zero_iv</span>)) at <a href="process_1.html#occ6" target="process" class="occ">{6}</a><br>
+<br>
+<span class="keyword">insert</span> <span class="fun">plost</span>(<span class="name">lost</span>) at <a href="process_1.html#occ7" target="process" class="occ">{7}</a><br>
+<br>
+<span class="keyword">insert</span> <span class="fun">pid</span>(<span class="name">owner</span>,<span class="name">id_5</span>,<span class="fun">NoE2E</span>,<span class="name">sign_key_4</span>) at <a href="process_1.html#occ8" target="process" class="occ">{8}</a><br>
+<br>
+<span class="keyword">get </span><span class="fun">plost</span>(<span class="name">lost</span>) at <a href="process_1.html#occ28" target="process" class="occ">{28}</a><br>
+<br>
+<span class="keyword">get </span><span class="fun">padv</span>(<span class="name">id_5</span>,<span class="fun">NoE2E</span>,<span class="fun">AES_enc</span>(<span class="fun">concat</span>(<span class="name">id_5</span>,<span class="fun">NoE2E</span>),<span class="name">sign_key_4</span>,<span class="fun">zero_iv</span>)) at <a href="process_1.html#occ27" target="process" class="occ">{27}</a><br>
+<br>
+<span class="keyword">new</span> <span class="name">exp_f</span>: <span class="type">exponent</span> creating <span class="name">exp_f_1</span> at <a href="process_1.html#occ17" target="process" class="occ">{17}</a><br>
+<br>
+<span class="keyword">get </span><span class="fun">pkeyitem</span>(<span class="name">owner</span>,<span class="name">id_5</span>,<span class="fun">NoE2E</span>,<span class="name">sign_key_4</span>,<span class="fun">none</span>,<span class="fun">none</span>,<span class="fun">none</span>) at <a href="process_1.html#occ39" target="process" class="occ">{39}</a><br>
+<br>
+<span class="keyword">out</span>(<span class="name">pre_app_ch2</span>, <span class="fun"></span>(<span class="name">id_5</span>,<span class="fun">NoE2E</span>,<span class="fun">AES_enc</span>(<span class="fun">concat</span>(<span class="name">id_5</span>,<span class="fun">NoE2E</span>),<span class="name">sign_key_4</span>,<span class="fun">zero_iv</span>),<span class="name">location</span>)) at <a href="process_1.html#occ26" target="process" class="occ">{26}</a> received at <a href="process_1.html#occ34" target="process" class="occ">{34}</a><br>
+<br>
+<span class="keyword">out</span>(<span class="name">cloud_ch</span>, <span class="fun"></span>(<span class="var">~M_4</span>,<span class="var">~M_5</span>,<span class="var">~M_6</span>,<span class="var">~M_7</span>)) with <span class="var">~M_4</span> = <span class="name">id_5</span>, <span class="var">~M_5</span> = <span class="fun">NoE2E</span>, <span class="var">~M_6</span> = <span class="fun">AES_enc</span>(<span class="fun">concat</span>(<span class="name">id_5</span>,<span class="fun">NoE2E</span>),<span class="name">sign_key_4</span>,<span class="fun">zero_iv</span>), <span class="var">~M_7</span> = <span class="name">location</span> at <a href="process_1.html#occ35" target="process" class="occ">{35}</a><br>
+<br>
+<span class="keyword">insert</span> <span class="fun">pfound</span>(<span class="name">found</span>) at <a href="process_1.html#occ37" target="process" class="occ">{37}</a><br>
+<br>
+<span class="keyword">insert</span> <span class="fun">ploc</span>(<span class="name">owner</span>,<span class="name">location</span>,<span class="fun">none</span>,<span class="fun">none</span>,<span class="fun">none</span>) at <a href="process_1.html#occ38" target="process" class="occ">{38}</a><br>
+<br>
+The attacker has the message <span class="var">~M_7</span> = <span class="name">location</span>.<br>
+A trace has been found.<br>
+</body>
+</html>
