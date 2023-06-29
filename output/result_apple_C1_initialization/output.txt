@@ -1,0 +1,90 @@
+Completing equations...
+Completing equations...
+-- Process 1-- Query not attacker(s[]) in process 1
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 175 rules (46 with conclusion selected). Queue: 50 rules.
+400 rules inserted. Base: 294 rules (51 with conclusion selected). Queue: 58 rules.
+select attacker(AES_CCM(C1_2,AES_CMAC(AES_CMAC(AES_CMAC(HMAC_SHA256(p224(p224(gen,pri_C[]),pri_P[]),concat(concat(concat(concat(na[pk_B = p224(gen,pri_P[])],nb_1[pk_A_1 = p224(gen,pri_C[])]),btlk),addr_A[]),addr_B[])),SALT),brle),concat(*skds_2,skdm[eb = HMAC_SHA256(p224(p224(gen,pri_C[]),pri_P[]),concat(concat(concat(concat(concat(nb_1[pk_A_1 = p224(gen,pri_C[])],na[pk_B = p224(gen,pri_P[])]),zero),iocap_B[]),addr_B[]),addr_A[])),nb = nb_1[pk_A_1 = p224(gen,pri_C[])],cb = HMAC_SHA256(nb_1[pk_A_1 = p224(gen,pri_C[])],concat(concat(p224(gen,pri_P[]),p224(gen,pri_C[])),zero)),pk_B = p224(gen,pri_P[])])),concat(*ivs_2,ivm[eb = HMAC_SHA256(p224(p224(gen,pri_C[]),pri_P[]),concat(concat(concat(concat(concat(nb_1[pk_A_1 = p224(gen,pri_C[])],na[pk_B = p224(gen,pri_P[])]),zero),iocap_B[]),addr_B[]),addr_A[])),nb = nb_1[pk_A_1 = p224(gen,pri_C[])],cb = HMAC_SHA256(nb_1[pk_A_1 = p224(gen,pri_C[])],concat(concat(p224(gen,pri_P[]),p224(gen,pri_C[])),zero)),pk_B = p224(gen,pri_P[])])))/-5000
+600 rules inserted. Base: 369 rules (70 with conclusion selected). Queue: 127 rules.
+select attacker(AES_CCM(C1_2,AES_CMAC(AES_CMAC(AES_CMAC(HMAC_SHA256(p224(p224(gen,pri_P[]),pri_C[]),concat(concat(concat(concat(na[pk_B = p224(gen,pri_P[])],nb_1[pk_A_1 = p224(gen,pri_C[])]),btlk),addr_A[]),addr_B[])),SALT),brle),concat(*skds_2,skdm[eb = HMAC_SHA256(p224(p224(gen,pri_P[]),pri_C[]),concat(concat(concat(concat(concat(nb_1[pk_A_1 = p224(gen,pri_C[])],na[pk_B = p224(gen,pri_P[])]),zero),iocap_B[]),addr_B[]),addr_A[])),nb = nb_1[pk_A_1 = p224(gen,pri_C[])],cb = HMAC_SHA256(nb_1[pk_A_1 = p224(gen,pri_C[])],concat(concat(p224(gen,pri_P[]),p224(gen,pri_C[])),zero)),pk_B = p224(gen,pri_P[])])),concat(*ivs_2,ivm[eb = HMAC_SHA256(p224(p224(gen,pri_P[]),pri_C[]),concat(concat(concat(concat(concat(nb_1[pk_A_1 = p224(gen,pri_C[])],na[pk_B = p224(gen,pri_P[])]),zero),iocap_B[]),addr_B[]),addr_A[])),nb = nb_1[pk_A_1 = p224(gen,pri_C[])],cb = HMAC_SHA256(nb_1[pk_A_1 = p224(gen,pri_C[])],concat(concat(p224(gen,pri_P[]),p224(gen,pri_C[])),zero)),pk_B = p224(gen,pri_P[])])))/-5000
+800 rules inserted. Base: 504 rules (74 with conclusion selected). Queue: 149 rules.
+1000 rules inserted. Base: 585 rules (74 with conclusion selected). Queue: 139 rules.
+1200 rules inserted. Base: 590 rules (74 with conclusion selected). Queue: 124 rules.
+select attacker(AES_CCM(C1_2,AES_CMAC(AES_CMAC(AES_CMAC(HMAC_SHA256(p224(p224(gen,pri_C[]),*x),concat(concat(concat(concat(na[pk_B = p224(gen,*x)],*nb_2),btlk),addr_A[]),addr_B[])),SALT),brle),concat(*skds_2,skdm[eb = HMAC_SHA256(p224(p224(gen,pri_C[]),*x),concat(concat(concat(concat(concat(*nb_2,na[pk_B = p224(gen,*x)]),zero),iocap_B[]),addr_B[]),addr_A[])),nb = *nb_2,cb = HMAC_SHA256(*nb_2,concat(concat(p224(gen,*x),p224(gen,pri_C[])),zero)),pk_B = p224(gen,*x)])),concat(*ivs_2,ivm[eb = HMAC_SHA256(p224(p224(gen,pri_C[]),*x),concat(concat(concat(concat(concat(*nb_2,na[pk_B = p224(gen,*x)]),zero),iocap_B[]),addr_B[]),addr_A[])),nb = *nb_2,cb = HMAC_SHA256(*nb_2,concat(concat(p224(gen,*x),p224(gen,pri_C[])),zero)),pk_B = p224(gen,*x)])))/-5000
+select attacker(AES_CCM(C1_2,AES_CMAC(AES_CMAC(AES_CMAC(HMAC_SHA256(p224(gen,pri_C[]),concat(concat(concat(concat(na[pk_B = gen],*nb_2),btlk),addr_A[]),addr_B[])),SALT),brle),concat(*skds_2,skdm[eb = HMAC_SHA256(p224(gen,pri_C[]),concat(concat(concat(concat(concat(*nb_2,na[pk_B = gen]),zero),iocap_B[]),addr_B[]),addr_A[])),nb = *nb_2,cb = HMAC_SHA256(*nb_2,concat(concat(gen,p224(gen,pri_C[])),zero)),pk_B = gen])),concat(*ivs_2,ivm[eb = HMAC_SHA256(p224(gen,pri_C[]),concat(concat(concat(concat(concat(*nb_2,na[pk_B = gen]),zero),iocap_B[]),addr_B[]),addr_A[])),nb = *nb_2,cb = HMAC_SHA256(*nb_2,concat(concat(gen,p224(gen,pri_C[])),zero)),pk_B = gen])))/-5000
+1400 rules inserted. Base: 632 rules (83 with conclusion selected). Queue: 119 rules.
+select attacker(AES_CCM(C1_2,AES_CMAC(AES_CMAC(AES_CMAC(HMAC_SHA256(p224(p224(gen,*y),pri_C[]),concat(concat(concat(concat(na[pk_B = p224(gen,*y)],*nb_2),btlk),addr_A[]),addr_B[])),SALT),brle),concat(*skds_2,skdm[eb = HMAC_SHA256(p224(p224(gen,*y),pri_C[]),concat(concat(concat(concat(concat(*nb_2,na[pk_B = p224(gen,*y)]),zero),iocap_B[]),addr_B[]),addr_A[])),nb = *nb_2,cb = HMAC_SHA256(*nb_2,concat(concat(p224(gen,*y),p224(gen,pri_C[])),zero)),pk_B = p224(gen,*y)])),concat(*ivs_2,ivm[eb = HMAC_SHA256(p224(p224(gen,*y),pri_C[]),concat(concat(concat(concat(concat(*nb_2,na[pk_B = p224(gen,*y)]),zero),iocap_B[]),addr_B[]),addr_A[])),nb = *nb_2,cb = HMAC_SHA256(*nb_2,concat(concat(p224(gen,*y),p224(gen,pri_C[])),zero)),pk_B = p224(gen,*y)])))/-5000
+1600 rules inserted. Base: 763 rules (94 with conclusion selected). Queue: 140 rules.
+1800 rules inserted. Base: 839 rules (98 with conclusion selected). Queue: 148 rules.
+2000 rules inserted. Base: 938 rules (101 with conclusion selected). Queue: 139 rules.
+2200 rules inserted. Base: 987 rules (105 with conclusion selected). Queue: 141 rules.
+2400 rules inserted. Base: 1063 rules (110 with conclusion selected). Queue: 151 rules.
+2600 rules inserted. Base: 1168 rules (135 with conclusion selected). Queue: 202 rules.
+2800 rules inserted. Base: 1232 rules (147 with conclusion selected). Queue: 236 rules.
+3000 rules inserted. Base: 1381 rules (148 with conclusion selected). Queue: 226 rules.
+3200 rules inserted. Base: 1446 rules (149 with conclusion selected). Queue: 215 rules.
+3400 rules inserted. Base: 1488 rules (154 with conclusion selected). Queue: 199 rules.
+3600 rules inserted. Base: 1549 rules (157 with conclusion selected). Queue: 194 rules.
+3800 rules inserted. Base: 1632 rules (159 with conclusion selected). Queue: 186 rules.
+4000 rules inserted. Base: 1660 rules (161 with conclusion selected). Queue: 180 rules.
+4200 rules inserted. Base: 1688 rules (163 with conclusion selected). Queue: 169 rules.
+4400 rules inserted. Base: 1756 rules (167 with conclusion selected). Queue: 165 rules.
+4600 rules inserted. Base: 1717 rules (169 with conclusion selected). Queue: 152 rules.
+select attacker(p224(gen,x))/-5000
+4800 rules inserted. Base: 1740 rules (181 with conclusion selected). Queue: 178 rules.
+5000 rules inserted. Base: 1833 rules (181 with conclusion selected). Queue: 152 rules.
+5200 rules inserted. Base: 1922 rules (187 with conclusion selected). Queue: 179 rules.
+5400 rules inserted. Base: 2041 rules (191 with conclusion selected). Queue: 192 rules.
+5600 rules inserted. Base: 2158 rules (193 with conclusion selected). Queue: 191 rules.
+5800 rules inserted. Base: 2281 rules (201 with conclusion selected). Queue: 240 rules.
+6000 rules inserted. Base: 2399 rules (236 with conclusion selected). Queue: 226 rules.
+6200 rules inserted. Base: 2536 rules (252 with conclusion selected). Queue: 204 rules.
+6400 rules inserted. Base: 2624 rules (274 with conclusion selected). Queue: 231 rules.
+6600 rules inserted. Base: 2638 rules (287 with conclusion selected). Queue: 231 rules.
+6800 rules inserted. Base: 2685 rules (292 with conclusion selected). Queue: 231 rules.
+7000 rules inserted. Base: 2672 rules (299 with conclusion selected). Queue: 207 rules.
+7200 rules inserted. Base: 2685 rules (315 with conclusion selected). Queue: 209 rules.
+7400 rules inserted. Base: 2678 rules (321 with conclusion selected). Queue: 216 rules.
+7600 rules inserted. Base: 2728 rules (323 with conclusion selected). Queue: 187 rules.
+7800 rules inserted. Base: 2760 rules (323 with conclusion selected). Queue: 188 rules.
+8000 rules inserted. Base: 2823 rules (323 with conclusion selected). Queue: 181 rules.
+8200 rules inserted. Base: 2862 rules (323 with conclusion selected). Queue: 158 rules.
+8400 rules inserted. Base: 2978 rules (323 with conclusion selected). Queue: 158 rules.
+8600 rules inserted. Base: 2980 rules (323 with conclusion selected). Queue: 150 rules.
+8800 rules inserted. Base: 2994 rules (323 with conclusion selected). Queue: 138 rules.
+9000 rules inserted. Base: 2953 rules (339 with conclusion selected). Queue: 110 rules.
+9200 rules inserted. Base: 2968 rules (339 with conclusion selected). Queue: 102 rules.
+9400 rules inserted. Base: 3019 rules (339 with conclusion selected). Queue: 104 rules.
+9600 rules inserted. Base: 2938 rules (341 with conclusion selected). Queue: 92 rules.
+9800 rules inserted. Base: 2760 rules (351 with conclusion selected). Queue: 90 rules.
+10000 rules inserted. Base: 2634 rules (355 with conclusion selected). Queue: 72 rules.
+10200 rules inserted. Base: 2582 rules (355 with conclusion selected). Queue: 50 rules.
+10400 rules inserted. Base: 2616 rules (355 with conclusion selected). Queue: 44 rules.
+10600 rules inserted. Base: 2657 rules (359 with conclusion selected). Queue: 28 rules.
+10800 rules inserted. Base: 2578 rules (373 with conclusion selected). Queue: 18 rules.
+11000 rules inserted. Base: 2647 rules (377 with conclusion selected). Queue: 14 rules.
+11200 rules inserted. Base: 2680 rules (377 with conclusion selected). Queue: 20 rules.
+11400 rules inserted. Base: 2649 rules (383 with conclusion selected). Queue: 11 rules.
+Starting query not attacker(s[])
+goal reachable: begin(@p_act(@occ127[],p1p(addr_A[],get_id(add_G(p224(gen,s1_2),p224(gen,s2_1)),concat(r1_6,r2_7))))) && begin(@p_act(@occ129[],get_id(add_G(p224(gen,s1_2),p224(gen,s2_1)),concat(r1_6,r2_7)))) && begin(@p_act(@occ128[],get_id(add_G(p224(gen,s1_2),p224(gen,s2_1)),concat(r1_6,r2_7)))) && begin(@p_act(@occ118[],yes_confirm[])) && begin(@p_act(@occ109[],(AES_CCM(p224(gen,s2_1),AES_CMAC(AES_CMAC(AES_CMAC(HMAC_SHA256(p224(gen,pri_P[]),concat(concat(concat(concat(na_2,nb_2),btlk),addr_A[]),addr_B[])),SALT),brle),concat(skds_2,skdm_2)),concat(ivs_2,ivm_2)),AES_CCM(r2_7,AES_CMAC(AES_CMAC(AES_CMAC(HMAC_SHA256(p224(gen,pri_P[]),concat(concat(concat(concat(na_2,nb_2),btlk),addr_A[]),addr_B[])),SALT),brle),concat(skds_2,skdm_2)),concat(ivs_2,ivm_2))))) && begin(@p_act(@occ50[],(AES_CCM(s1_2,AES_CMAC(AES_CMAC(AES_CMAC(HMAC_SHA256(p224(gen,pri_C[]),concat(concat(concat(concat(na_3,nb_3),btlk),addr_A[]),addr_B[])),SALT),brle),concat(skds_3,skdm_3)),concat(ivs_3,ivm_3)),AES_CCM(r1_6,AES_CMAC(AES_CMAC(AES_CMAC(HMAC_SHA256(p224(gen,pri_C[]),concat(concat(concat(concat(na_3,nb_3),btlk),addr_A[]),addr_B[])),SALT),brle),concat(skds_3,skdm_3)),concat(ivs_3,ivm_3))))) && attacker(skdm_2) && begin(@p_act(@occ99[],(skdm_2,ivm_2))) && begin(@p_act(@occ81[],HMAC_SHA256(p224(gen,pri_P[]),concat(concat(concat(concat(concat(na_2,nb_2),zero),iocap_A[]),addr_A[]),addr_B[])))) && attacker(na_2) && begin(@p_act(@occ74[],na_2)) && begin(@p_act(@occ63[],gen)) && attacker(ivm_2) && begin(@p_act(@occ44[],AES_CCM(SHA256(concat(s1_2,r1_6)),AES_CMAC(AES_CMAC(AES_CMAC(HMAC_SHA256(p224(gen,pri_C[]),concat(concat(concat(concat(na_3,nb_3),btlk),addr_A[]),addr_B[])),SALT),brle),concat(skds_3,skdm_3)),concat(ivs_3,ivm_3)))) && attacker(skds_3) && attacker(ivs_3) && begin(@p_act(@occ40[],(skds_3,ivs_3))) && begin(@p_act(@occ22[],HMAC_SHA256(p224(gen,pri_C[]),concat(concat(concat(concat(concat(nb_3,na_3),zero),iocap_B[]),addr_B[]),addr_A[])))) && begin(@p_act(@occ13[],nb_3)) && attacker(nb_3) && begin(@p_act(@occ11[],HMAC_SHA256(nb_3,concat(concat(gen,p224(gen,pri_C[])),zero)))) && begin(@p_act(@occ5[],gen)) && begin(@p_act(@occ122[],p1c(addr_B[],get_id(add_G(p224(gen,s1_2),p224(gen,s2_1)),concat(r1_6,r2_7))))) -> attacker(s[])
+Abbreviations:
+nb_2 = nb_1[pk_A_1 = gen]
+s1_2 = s1_1[ivm_1 = ivm_2,skdm_1 = skdm_2,ea_1 = HMAC_SHA256(p224(gen,pri_P[]),concat(concat(concat(concat(concat(na_2,nb_2),zero),iocap_A[]),addr_A[]),addr_B[])),na_1 = na_2,pk_A_1 = gen]
+r1_6 = r1_5[ivm_1 = ivm_2,skdm_1 = skdm_2,ea_1 = HMAC_SHA256(p224(gen,pri_P[]),concat(concat(concat(concat(concat(na_2,nb_2),zero),iocap_A[]),addr_A[]),addr_B[])),na_1 = na_2,pk_A_1 = gen]
+na_3 = na[pk_B = gen]
+skdm_3 = skdm[eb = HMAC_SHA256(p224(gen,pri_C[]),concat(concat(concat(concat(concat(nb_3,na_3),zero),iocap_B[]),addr_B[]),addr_A[])),nb = nb_3,cb = HMAC_SHA256(nb_3,concat(concat(gen,p224(gen,pri_C[])),zero)),pk_B = gen]
+ivm_3 = ivm[eb = HMAC_SHA256(p224(gen,pri_C[]),concat(concat(concat(concat(concat(nb_3,na_3),zero),iocap_B[]),addr_B[]),addr_A[])),nb = nb_3,cb = HMAC_SHA256(nb_3,concat(concat(gen,p224(gen,pri_C[])),zero)),pk_B = gen]
+s2_1 = s2[C1e = AES_CCM(SHA256(concat(s1_2,r1_6)),AES_CMAC(AES_CMAC(AES_CMAC(HMAC_SHA256(p224(gen,pri_C[]),concat(concat(concat(concat(na_3,nb_3),btlk),addr_A[]),addr_B[])),SALT),brle),concat(skds_3,skdm_3)),concat(ivs_3,ivm_3)),ivs = ivs_3,skds = skds_3,eb = HMAC_SHA256(p224(gen,pri_C[]),concat(concat(concat(concat(concat(nb_3,na_3),zero),iocap_B[]),addr_B[]),addr_A[])),nb = nb_3,cb = HMAC_SHA256(nb_3,concat(concat(gen,p224(gen,pri_C[])),zero)),pk_B = gen]
+r2_7 = r2_2[C1e = AES_CCM(SHA256(concat(s1_2,r1_6)),AES_CMAC(AES_CMAC(AES_CMAC(HMAC_SHA256(p224(gen,pri_C[]),concat(concat(concat(concat(na_3,nb_3),btlk),addr_A[]),addr_B[])),SALT),brle),concat(skds_3,skdm_3)),concat(ivs_3,ivm_3)),ivs = ivs_3,skds = skds_3,eb = HMAC_SHA256(p224(gen,pri_C[]),concat(concat(concat(concat(concat(nb_3,na_3),zero),iocap_B[]),addr_B[]),addr_A[])),nb = nb_3,cb = HMAC_SHA256(nb_3,concat(concat(gen,p224(gen,pri_C[])),zero)),pk_B = gen]
+skds_2 = skds_1[ea_1 = HMAC_SHA256(p224(gen,pri_P[]),concat(concat(concat(concat(concat(na_2,nb_2),zero),iocap_A[]),addr_A[]),addr_B[])),na_1 = na_2,pk_A_1 = gen]
+ivs_2 = ivs_1[ea_1 = HMAC_SHA256(p224(gen,pri_P[]),concat(concat(concat(concat(concat(na_2,nb_2),zero),iocap_A[]),addr_A[]),addr_B[])),na_1 = na_2,pk_A_1 = gen]
+RESULT not attacker(s[]) is false.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query not attacker(s[]) is false.
+
+--------------------------------------------------------------
+

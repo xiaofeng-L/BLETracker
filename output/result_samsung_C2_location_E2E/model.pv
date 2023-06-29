@@ -1,0 +1,247 @@
+(* For privacy, cloud is equipment to open channel for data communication between finder device and owner device. *)
+(* For security, cloud channel is private. *)
+(* If there is account verification while communicating with the cloud, then use account channel. *)
+free open_ch: channel.
+free cloud_ch: channel.
+
+free pre_app_ch1: channel [private].
+free pre_app_ch2: channel [private].
+
+(* type defination *)
+type public_key.
+type random_num.
+type private_key.
+type dhkey.
+type key.
+type iv.
+type nonce.
+type sealedbox.
+type PIN_Code.
+
+type status.
+free lost: status.
+free found: status.
+
+type account.
+free owner: account [private].
+free finder: account.
+
+const zero_iv: iv.
+const none: bitstring.
+(* E2EMode *)
+const E2E: bitstring.
+const NoE2E: bitstring.
+
+(* cloud, owner and owner device *)
+table pid(account, bitstring, bitstring, key).
+(* cloud *)
+table ploc(account, bitstring, bitstring, public_key, nonce).
+(* cloud *)
+table pkeyitem(account, bitstring, bitstring, key, bitstring, public_key, nonce).
+(* owner *)
+table ppassword(account, PIN_Code).
+(* owner and finder *)
+table padv(bitstring, bitstring, bitstring).
+(* status *)
+table plost(status).
+table pfound(status).
+
+(* sensitive data, length < 16 bytes *)
+free location: bitstring [private].
+
+
+(* Type conversion helper functions *)
+fun random_num2key(random_num): key [typeConverter].
+fun random_num2private_key(random_num): private_key [typeConverter].
+fun dhkey2key(dhkey): key [typeConverter].
+fun bitstring2key(bitstring): key [typeConverter].
+fun key2bitstring(key): bitstring [typeConverter].
+fun bitstring2iv(bitstring): iv[typeConverter].
+fun iv2bitstring(iv): bitstring [typeConverter].
+fun bitstring2nonce(bitstring): nonce [typeConverter].
+fun nonce2bitstring(nonce): bitstring [typeConverter].
+fun nonce2iv(nonce): iv [typeConverter].
+fun bitstring2random_num(bitstring): random_num [typeConverter].
+fun random2bitstring(random_num): bitstring [typeConverter].
+fun bitstring2pubkey(bitstring): public_key [typeConverter].
+fun pubkey2bitstring(public_key): bitstring [typeConverter].
+fun dhkey2bitstring(dhkey): bitstring [typeConverter].
+fun bitstring2dhkey(bitstring): dhkey [typeConverter].
+fun private_key2bitstring(private_key): bitstring [typeConverter].
+fun bitstring2private_key(bitstring): private_key [typeConverter].
+fun sealedbox2bitstring(sealedbox): bitstring [typeConverter].
+fun bitstring2sealedbox(bitstring): sealedbox [typeConverter].
+
+
+(* Concatenation helper functions *)
+fun concat(bitstring, bitstring): bitstring.
+fun first_part(bitstring): bitstring.
+fun last_part(bitstring): bitstring.
+equation forall b1: bitstring, b2: bitstring; first_part(concat(b1, b2)) = b1.
+equation forall b1: bitstring, b2: bitstring; last_part(concat(b1, b2)) = b2.
+fun first16bytes(bitstring): bitstring.
+fun last16bytes(bitstring): bitstring.
+
+(* ECIES: org.bouncycastle.jce.provider.BouncyCastleProvider *)
+fun IES_enc_with_kdf(bitstring, dhkey): sealedbox.
+fun IES_dec_with_kdf(sealedbox, dhkey): bitstring.
+equation forall m: bitstring, dhkey_ab: dhkey; IES_dec_with_kdf(IES_enc_with_kdf(m, dhkey_ab), dhkey_ab) = m.
+
+fun AES_enc(bitstring, key, iv): bitstring.
+fun AES_dec(bitstring, key, iv): bitstring.
+equation forall k: key, v: iv, mes: bitstring; AES_dec(AES_enc(mes, k, v), k, v) = mes.
+
+(* Hash function *)
+fun HMAC_SHA256(key, bitstring): bitstring.
+fun SHA256(bitstring): bitstring.
+
+(* ECDH key exchange *)
+type G.
+type exponent.
+const gen: G.
+fun Secp256k1(G, exponent): G.
+equation forall x: exponent, y: exponent; Secp256k1(Secp256k1(gen, x), y) = Secp256k1(Secp256k1(gen, y), x).
+
+fun exponent2private_key(exponent): private_key [typeConverter].
+fun private_key2exponent(private_key): exponent [typeConverter].
+fun G2public_key(G): public_key [typeConverter].
+fun public_key2G(public_key): G [typeConverter].
+fun G2dhkey(G): dhkey [typeConverter].
+
+(* private key to public key *)
+letfun get_pub_key(pri_k: private_key) = G2public_key(Secp256k1(gen, private_key2exponent(pri_k))).
+
+(* dhkey calculation *)
+letfun get_dhkey(pub_k: public_key, pri_k: private_key) = G2dhkey(Secp256k1(public_key2G(pub_k), private_key2exponent(pri_k))).
+
+(* derive symmetric key from PIN_Code *)
+fun derive_key_from_pin(PIN_Code): key.
+
+
+(* set input/output as precise as described *)
+set preciseActions = true.
+
+(* 1. pairing module *)
+let step0oE2E() = (
+	let E2EMode = E2E in
+	(* id sharing during initialization phase *)
+	new id: bitstring;
+	new sign_key: key;
+	out(pre_app_ch1, (owner, id, E2EMode, sign_key));
+
+	(* set E2EMode is E2E, and store the password 6-digit PIN code *)
+	new exp_o: exponent;
+	let pri_o = exponent2private_key(exp_o) in
+	let pub_o = get_pub_key(pri_o) in
+	new pin: PIN_Code;
+	insert ppassword(owner, pin);
+	let p_symkey = derive_key_from_pin(pin) in
+	new n: nonce;
+	let enc_pri_o = AES_enc(private_key2bitstring(pri_o), p_symkey, nonce2iv(n)) in
+	out(pre_app_ch1, (owner, enc_pri_o, pub_o, n));
+	let signature = AES_enc(concat(id, E2EMode), sign_key, zero_iv) in
+	insert padv(id, E2EMode, signature);
+	insert plost(lost);
+	insert pid(owner, id, E2EMode, sign_key)
+).
+
+let step0oNoE2E() = (
+	let E2EMode = NoE2E in
+	(* id sharing during initialization phase *)
+	new id: bitstring;
+	new sign_key: key;
+	out(pre_app_ch1, (owner, id, E2EMode, sign_key));
+	let signature = AES_enc(concat(id, E2EMode), sign_key, zero_iv) in
+	insert padv(id, E2EMode, signature);
+	insert plost(lost);
+	insert pid(owner, id, E2EMode, sign_key)
+).
+
+let step0s() = (
+	in(pre_app_ch1, (user: account, id: bitstring, E2EMode: bitstring, sign_key: key));
+	out(cloud_ch, (user, id, E2EMode, sign_key));
+	if E2EMode = E2E then (
+		in(pre_app_ch1, (user1: account, enc_pri_o: bitstring, pub_o: public_key, n: nonce));
+		out(cloud_ch, (user1, enc_pri_o, pub_o, n));
+		if user = user1 then
+			insert pkeyitem(user, id, E2EMode, sign_key, enc_pri_o, pub_o, n)
+	)
+	else
+		insert pkeyitem(user, id, E2EMode, sign_key, none, bitstring2pubkey(none), bitstring2nonce(none))
+).
+
+
+(* 1. tracking module *)
+let step1f() = (
+	get plost(=lost) in
+	get padv(id, E2EMode, signature) in
+	new exp_f: exponent;
+	let pri_f = exponent2private_key(exp_f) in
+	if E2EMode = E2E then (
+		out(pre_app_ch2, id);
+		in(pre_app_ch2, pub_o: public_key);
+		let pub_f = get_pub_key(pri_f) in
+		let dhkey_of = get_dhkey(pub_o, pri_f) in
+		let sealedbox_loc = IES_enc_with_kdf(location, dhkey_of) in
+		out(pre_app_ch2, (id, E2EMode, signature, concat(pubkey2bitstring(pub_f), sealedbox2bitstring(sealedbox_loc))))
+	)
+	else (
+		out(pre_app_ch2, (id, E2EMode, signature, location))
+	)
+		
+).
+
+let step1s() = (
+	get pkeyitem(owner1, id, E2EMode, sign_key, enc_pri_o, pub_o, n) in
+	(if E2EMode = E2E then (
+			in(pre_app_ch2, id1: bitstring);
+			out(cloud_ch, id1);
+			if id = id1 then (
+				out(pre_app_ch2, pub_o)
+			)
+		)) |
+	(in(pre_app_ch2, (id2: bitstring, E2EMode_p: bitstring, signature: bitstring, loc: bitstring));
+		out(cloud_ch, (id2, E2EMode_p, signature, loc));
+		if (signature = AES_enc(concat(id, E2EMode), sign_key, zero_iv)) && (id = id2) then (
+			insert pfound(found);
+			insert ploc(owner1, loc, enc_pri_o, pub_o, n)
+		))
+).
+
+
+(* 2. querying module *)
+let step2o() = (
+	get pfound(=found) in
+	get pid(=owner, id, E2EMode, sign_key) in
+	out(pre_app_ch1, owner);
+	in(pre_app_ch1, (loc: bitstring, enc_pri_o: bitstring, pub_o: public_key, n: nonce));
+	if E2EMode = E2E then (
+		let pub_f = bitstring2pubkey(first_part(loc)) in
+		let sealedbox_loc = bitstring2sealedbox(last_part(loc)) in
+		get ppassword(=owner, pin) in
+		let p_symkey = derive_key_from_pin(pin) in
+		let pri_o = bitstring2private_key(AES_dec(enc_pri_o, p_symkey, nonce2iv(n))) in
+		let dhkey_fo = get_dhkey(pub_f, pri_o) in
+		let locE2E = IES_dec_with_kdf(sealedbox_loc, dhkey_fo) in
+		if locE2E = location then
+			0
+	)
+).
+
+let step2s() = (
+	get ploc(owner1, loc, enc_pri_o, pub_o, n) in
+	in(pre_app_ch1, user: account);
+	out(cloud_ch, user);
+	if (user = owner1) then
+		out(pre_app_ch1, (loc, enc_pri_o, pub_o, n))
+).
+
+
+(* confidentiality properties *)
+(* (step0oE2E()) | (step0s()) | (step1f()) | (step1s()) | (step2o()) | (step2s()) *)
+(* (step0oNoE2E()) | (step0s()) | (step1f()) | (step1s()) | (step2o()) | (step2s()) *)
+
+query attacker(location).
+
+process
+(step0oE2E()) | (step0s()) | (step1f()) | (step1s()) | (step2o()) | (step2s())

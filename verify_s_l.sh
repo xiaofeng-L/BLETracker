@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Tested with ProVerif version 2.04
-pv=proverif
+pv="/data/xiaofeng/tools/proverif2.04/proverif"
 
 title="sl"
-sp="./model/Samsung_location.pv"
+sp="./model/C2_Samsung_location.pv"
 
 prepare () {
 	curr_num="$1"
@@ -25,7 +25,7 @@ analyze () {
 	grep "RESULT.*false" $out_f | while read -r line ; do
 		# property=$(echo $line | awk -F '[([]' '{ print $2 }')
 		if [[ $line == *"attacker(location[])"* ]]; then
-			property="C1"
+			property="C2"
 		fi
 	done
 

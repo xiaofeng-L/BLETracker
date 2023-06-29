@@ -1,0 +1,21 @@
+Completing equations...
+Completing equations...
+-- Process 1-- Query not attacker(location[]) in process 1
+Translating the process into Horn clauses...
+Completing...
+select mess(pre_app_ch2[],pub_o_6)/-5000
+Termination warning: mess(pre_app_ch2[],id1_1) && begin(@p_act(@occ39[],id1_1)) && begin(@p_act(@occ21[],(owner[],id[],E2E,sign_key[]))) && begin(@p_act(@occ18[],(owner[],id[],E2E,sign_key[]))) && begin(@p_act(@occ48[],pkeyitem(owner[],id[],E2E,sign_key[],id[],E2E,sign_key[]))) -> attacker(id1_1)
+Selecting 0
+Termination warning: mess(pre_app_ch2[],id1_1) && begin(@p_act(@occ39[],id1_1)) && begin(@p_act(@occ21[],(owner[],AES_enc(exp_o[],derive_key_from_pin(pin[]),n[]),Secp256k1(gen,exp_o[]),n[]))) && begin(@p_act(@occ18[],(owner[],id[],E2E,sign_key[]))) && begin(@p_act(@occ48[],pkeyitem(owner[],id[],E2E,sign_key[],AES_enc(exp_o[],derive_key_from_pin(pin[]),n[]),Secp256k1(gen,exp_o[]),n[]))) -> attacker(id1_1)
+Selecting 0
+200 rules inserted. Base: 187 rules (86 with conclusion selected). Queue: 16 rules.
+Starting query not attacker(location[])
+RESULT not attacker(location[]) is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query not attacker(location[]) is true.
+
+--------------------------------------------------------------
+

@@ -1,0 +1,15 @@
+Completing equations...
+Completing equations...
+-- Process 1-- Query not attacker(location[]) in process 1
+Translating the process into Horn clauses...
+Completing...
+Starting query not attacker(location[])
+RESULT not attacker(location[]) is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query not attacker(location[]) is true.
+
+--------------------------------------------------------------
+

@@ -10,3 +10,5 @@ bash ./verify_a_p.sh
 bash ./verify_s_l.sh
 
 bash ./verify_s_p.sh
+
+bash ./verify_anonymity.sh

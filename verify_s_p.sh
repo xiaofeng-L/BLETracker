@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Tested with ProVerif version 2.04
-pv=proverif
-
+# pv=proverif
+pv="/data/xiaofeng/tools/proverif2.04/proverif"
 title="sp"
-sp_f="./model/Samsung_pair.pv"
-sp_f_fixed="./model/Samsung_pair_fixed.pv"
+sp_f="./model/C1_Samsung_pair.pv"
+sp_f_fixed="./model/C1_Samsung_pair_fixed.pv"
 
 
 prepare () {
@@ -24,11 +24,8 @@ analyze () {
 
 	grep "RESULT.*false" $out_f | while read -r line ; do
 		# property=$(echo $line | awk -F '[([]' '{ print $2 }')
-		if [[ $line == *"event(recv_peripheral(id)) ==> event(send_central(id))"* ]]; then
-			property="A1"
-		fi
-		if [[ $line == *"event(recv_central(id)) ==> event(send_peripheral(id))"* ]]; then
-			property="A2"
+		if [[ $line == *"attacker(s[])"* ]]; then
+			property="C1"
 		fi
 	done
 

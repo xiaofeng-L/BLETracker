@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Tested with ProVerif version 2.04
-pv=proverif
+pv="/data/xiaofeng/tools/proverif2.04/proverif"
 
 title="al"
-sp_f="./model/Apple_location.pv"
+sp_f="./model/C2_Apple_location.pv"
 
 
 prepare () {
@@ -22,12 +22,12 @@ prepare () {
 # Analyze the current $tmp_f file and store the results;
 # query attacker(location).
 analyze () {
-	time $pv $options $tmp_f | tee $out_f | grep RESULT
+	time $pv $options $tmp_f | tee $out_f | grep RESULT2
 
 	grep "RESULT.*false" $out_f | while read -r line ; do
 		# property=$(echo $line | awk -F '[([]' '{ print $2 }')
 		if [[ $line == *"attacker(location[])"* ]]; then
-			property="C1"
+			property="C2"
 		fi
 	done
 

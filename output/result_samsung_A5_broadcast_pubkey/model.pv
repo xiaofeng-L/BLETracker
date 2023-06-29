@@ -1,0 +1,15 @@
+free ch: channel.
+
+(* type defination *)
+type public_key.
+
+let pubkey_rotation(p: public_key) = (
+  let pi = p in
+  (* Observational equivalence: real-or-random secrecy *)
+  new random: public_key;
+  out(ch, choice[pi, random])
+).
+
+process
+new p: public_key;
+!pubkey_rotation(p)
