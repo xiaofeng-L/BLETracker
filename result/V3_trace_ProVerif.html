@@ -1,0 +1,27 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+                      <html>
+                    <head>
+                    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+                    <title>ProVerif: trace for query 1</title>
+                    <link rel="stylesheet" href="cssproverif.css">
+                                                                           </head>
+                                                                         <body>
+                                                                         <H1>Trace</H1>
+<span class="keyword">new</span> <span class="name">p_1</span>: <span class="type">bitstring</span> creating <span class="name">p</span> at <a href="process_0.html#occ1" target="process" class="occ">{1}</a><br>
+<br>
+<span class="keyword">new</span> <span class="name">random_1</span>: <span class="type">bitstring</span> creating <span class="name">random</span> at <a href="process_0.html#occ3" target="process" class="occ">{3}</a> in copy <span class="name">a</span><br>
+<br>
+<span class="keyword">out</span>(<span class="name">att</span>, <span class="var">~M</span>) with <span class="var">~M</span> = <span class="keyword">choice</span>[<span class="name">p</span>,<span class="name">random</span>] at <a href="process_0.html#occ4" target="process" class="occ">{4}</a> in copy <span class="name">a</span><br>
+<br>
+<span class="keyword">new</span> <span class="name">random_1</span>: <span class="type">bitstring</span> creating <span class="name">random_2</span> at <a href="process_0.html#occ3" target="process" class="occ">{3}</a> in copy <span class="name">a_1</span><br>
+<br>
+<span class="keyword">out</span>(<span class="name">att</span>, <span class="var">~M_1</span>) with <span class="var">~M_1</span> = <span class="keyword">choice</span>[<span class="name">p</span>,<span class="name">random_2</span>] at <a href="process_0.html#occ4" target="process" class="occ">{4}</a> in copy <span class="name">a_1</span><br>
+<br>
+The attacker tests whether<br>
+<span class="var">~M_1</span> = <span class="keyword">choice</span>[<span class="name">p</span>,<span class="name">random_2</span>]<br>
+is equal to<br>
+<span class="var">~M</span> = <span class="keyword">choice</span>[<span class="name">p</span>,<span class="name">random</span>].<br>
+The result in the left-hand side is different from the result in the right-hand side.<br>
+A trace has been found.<br>
+</body>
+</html>
