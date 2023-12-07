@@ -17,9 +17,6 @@ The **model** folder contains our models implemented in SAPIC+.
 - **model/Samsung_location_E2E.spthy** contains the model of Samsung location tracking protocol (E2E).
 - **model/Samsung_location_NoE2E.spthy** contains the model of Samsung location tracking protocol (NoE2E).
 
-- **model/C1_Apple_pair_fixed.pv** contains the model of the fixed Apple initialization protocol.
-- **model/C1_Samsung_pair_fixed.pv** contains the model of the fixed Samsung initialization protocol.
-
 
 The ***.sh** scripts under the root folder contain the verification scripts of the corresponding protocol and the fixed protocol.
 - **TODO**
