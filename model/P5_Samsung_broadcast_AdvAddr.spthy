@@ -1,0 +1,27 @@
+theory Samsung_SmartTag
+
+begin
+
+functions:
+	padding(bitstring) : bitstring,
+	AES_enc(bitstring, key):bitstring,
+	AES_dec(bitstring, key):bitstring [destructor]
+	
+equations:
+	AES_dec(AES_enc(mes, k), k) = mes
+	
+	
+//////////////////Anonymity///////////////////
+
+diffEquivLemma:
+!(
+	new ~prand : bitstring;
+	new ~IRK : key;
+	
+	let localHash : bitstring = AES_enc(padding(~prand), ~IRK) in
+	/* Observational Equivlence: real-or-random secrecy */
+	new ~random : bitstring;
+	out( diff(localHash, ~random))
+)
+
+end

@@ -1,0 +1,15 @@
+theory Samsung_SmartTag
+
+begin
+	
+diffEquivLemma:
+!(
+	new ~p;
+
+	/* Observational Equivlence: real-or-random secrecy */
+	new ~random;
+	out(diff(~p, ~random))
+	
+)
+
+end

@@ -1,0 +1,350 @@
+/*
+(* For privacy, cloud is equipment to open channel for data communication between finder device and owner device. *)
+(* For security, cloud channel is private. *)
+(* If there is account verification while communicating with the cloud, then use account channel. *)
+*/
+
+
+
+
+theory Samsung_SmartTag
+
+begin
+
+builtins: diffie-hellman
+
+functions:
+
+	//Constant
+	zero_iv_const/0, gen/0, lost/0, found/0, finder/0, Mode_E2E/0, Mode_NoE2E/0,
+	/* Concatenation helper functions */
+	first16bytes/1, last16bytes/1,
+	/* ECDH key exchange */
+	Secp256k1/2,
+	/* ECIES: org.bouncycastle.jce.provider.BouncyCastleProvider */
+	IES_enc/2, IES_dec/2 [destructor],
+	AES_enc/3, AES_dec/3 [destructor],
+	/* Hash function */
+	HMAC_SHA256/2, SHA256/1,
+	derive_key_from_pin/1
+
+
+	
+equations:
+	//Secp256k1(Secp256k1(gen, x), y) = Secp256k1(Secp256k1(gen, y), x),
+	AES_dec(AES_enc(mes, k, v), k, v) = mes,
+	IES_dec(IES_enc(m, dhkey_ab), dhkey_ab) = m
+
+	
+	
+/* set input/output as precise as described */
+export queries:
+"
+set preciseActions = true.
+query x:bitstring; event(Secret(x)) && (attacker(x)).
+"
+
+/* 1. pairing module */
+let step0o(~pre_app_ch1, ~owner, ~ppassword) = 
+
+	// in(E2EMode);
+	
+	let E2EMode = Mode_E2E in
+	
+	lock ~ppassword;
+	lookup ~ppassword as ppassword_item_temp in
+	lock ~padv;
+	lookup ~padv as padv_item_temp in
+	lock ~plost;
+	lookup ~plost as plost_item_temp in
+	lock ~pid;
+	lookup ~pid as pid_item_temp in
+	
+	if (E2EMode = Mode_E2E) then 
+	(
+		
+		/* id sharing during initialization phase */
+		new ~id;
+		
+		event Secret(~id);
+		
+		new ~sign_key;
+		out(~pre_app_ch1, <~owner, ~id, E2EMode, ~sign_key>);
+
+		/* set E2EMode is E2E, and store the password 6-digit PIN code */
+		new ~exp_o;
+		let pri_o = ~exp_o in
+		let pub_o = gen ^ pri_o in
+		new ~pin;
+		
+		insert ~ppassword, <~owner, ~pin>;
+		unlock ~ppassword;
+
+		let p_symkey = derive_key_from_pin(~pin) in
+		new ~n;
+		let enc_pri_o = AES_enc(pri_o, p_symkey, ~n) in
+		out(~pre_app_ch1, <~owner, enc_pri_o, pub_o, ~n>);
+		
+		let signature = AES_enc(<~id, E2EMode>, ~sign_key, zero_iv_const) in
+		
+		insert ~padv, <~id, E2EMode, signature>;
+		unlock ~padv;
+		insert ~plost, 'lost';
+		unlock ~plost;
+		insert ~pid, <~owner, ~id, E2EMode, ~sign_key>;
+		unlock ~pid;
+		
+		event Step0oEnd();
+		event Step0oE2EMode(~owner, ~id, E2EMode, ~sign_key, enc_pri_o, pub_o, ~n)
+		
+	) else if (E2EMode = Mode_NoE2E) then 
+	(
+		/* id sharing during initialization phase */
+		new ~id;
+		new ~sign_key;
+		
+		event Secret(~owner);
+
+		out(~pre_app_ch1, <~owner, ~id, E2EMode, ~sign_key>);
+		
+		let signature = AES_enc(<~id, E2EMode>, ~sign_key, zero_iv_const) in
+		
+		insert ~padv, <~id, E2EMode, signature>;
+		unlock ~padv;
+		insert ~plost, 'lost';
+		unlock ~plost;
+		insert ~pid, <~owner, ~id, E2EMode, ~sign_key>;
+		unlock ~pid;
+		
+		event Step0oEnd();
+		event Step0oNoE2EMode(~owner, ~id, E2EMode, ~sign_key,'None', 'None', 'None')
+	) 
+
+let step0s(~pre_app_ch1, ~cloud_ch, ~pkeyitem) = 
+	in(~pre_app_ch1, user_data);
+	let <user, id, E2EMode, sign_key> = user_data in
+	out(~cloud_ch, user_data);
+	
+	lock ~pkeyitem;
+	lookup ~pkeyitem as pkeyitem_temp in 
+	
+	if E2EMode = Mode_E2E then (
+		in(~pre_app_ch1, user_id_info);
+		let <user1, enc_pri_o, pub_o, n> = user_id_info in
+		out(~cloud_ch, user_id_info);
+		if user = user1 then (
+			insert ~pkeyitem, <user, id, E2EMode, sign_key, enc_pri_o, pub_o, n>;
+			unlock ~pkeyitem;
+			
+			event Step0sEnd();
+			event Step0sE2EMode(user, id, E2EMode, sign_key, enc_pri_o, pub_o, n)
+		)
+	)
+	else if E2EMode = Mode_NoE2E then 
+	(
+		insert ~pkeyitem, <user, id, E2EMode, sign_key, 'None', 'None','None'>;
+		unlock ~pkeyitem;
+		
+		event Step0sEnd();
+		event Step0sNoE2EMode(user, id, E2EMode, sign_key, 'None', 'None', 'None')
+	)
+
+
+
+/* 1. tracking module */
+let step1f(~plost, ~padv, ~pre_app_ch2, ~location) = 
+	lock ~plost;
+	lookup ~plost as ll in
+	
+	(
+	if (ll = 'lost') then (
+		//lock ~padv;
+		lookup ~padv as padv_item in
+		let <id, E2EMode, signature> = padv_item in
+		
+		new ~exp_f;
+		let pri_f = ~exp_f in
+
+		if E2EMode = Mode_E2E then (
+			out(~pre_app_ch2, id);
+			in(~pre_app_ch2, pub_o);
+			let pub_f = gen ^ pri_f in
+			let dhkey_of = pub_o ^ pri_f in
+			let sealedbox_loc = IES_enc(~location, dhkey_of) in
+			
+			out(~pre_app_ch2, <id, E2EMode, signature, <pub_f, sealedbox_loc> >);
+			
+			event Step1fEnd();
+			event Step1fE2EMode(id, E2EMode, signature, pri_f, pub_f, sealedbox_loc, ~location)
+		)
+		else if E2EMode = Mode_NoE2E then (
+			out(~pre_app_ch2, <id, E2EMode, signature, ~location>);
+			
+			event Step1fEnd();
+			event Step1fNoE2EMode(id, E2EMode, signature,  ~location)
+		)
+	))
+		
+
+
+let step1s_1(~pkeyitem, ~pre_app_ch2 : channel, ~cloud_ch : channel) = 
+	lock ~pkeyitem;
+	lookup ~pkeyitem as pkey_item  in
+	
+	let <owner1, id, E2EMode, sign_key, enc_pri_o, pub_o, n> = pkey_item in
+	
+	if E2EMode = Mode_E2E then (
+		in(~pre_app_ch2, id1);
+		out(~cloud_ch, id1);
+		if id = id1 then (
+			out(~pre_app_ch2, pub_o)
+		
+		)
+	)
+
+
+let step1s_2(~pkeyitem, ~pfound, ~ploc, ~pre_app_ch2 : channel, ~cloud_ch : channel) =
+	lock ~pkeyitem;
+	lookup ~pkeyitem as pkey_item  in
+	
+	lock ~pfound;
+	lookup ~pfound as pfounditem_temp in
+	
+	lock ~ploc;
+	lookup ~ploc as plocitem_temp in
+	
+
+	let <owner1, id, E2EMode, sign_key, enc_pri_o, pub_o, n> = pkey_item in
+	in(~pre_app_ch2, <id2, E2EMode_p, signature, loc>);
+	out(~cloud_ch, <id2, E2EMode_p, signature, loc>);
+	if (signature = AES_enc(<id, E2EMode>, sign_key, zero_iv_const) & (id = id2)) then (
+		insert ~pfound, 'found';
+		unlock ~pfound;
+		
+		insert ~ploc ,<owner1, loc, enc_pri_o, pub_o, n>;
+		unlock ~ploc;
+		
+		event Step1sEnd();
+		event Step1sE2EMode(owner1, id, E2EMode, signature, loc, sign_key, enc_pri_o, pub_o, n)
+	)
+
+
+/* 2. querying module */
+
+let step2s(~ploc, ~pre_app_ch1 : channel, ~cloud_ch : channel) = 
+	lock ~ploc;
+	lookup ~ploc as ploc_item in
+	let <owner1, loc, enc_pri_o, pub_o, n> = ploc_item in
+
+	in(~pre_app_ch1, user);
+	out(~cloud_ch, user);
+	
+	if (user = owner1) then (
+		out(~pre_app_ch1, <loc, enc_pri_o, pub_o, n>);
+		
+		event Step2sEnd();
+		event Step2sE2EMode(owner1, loc, enc_pri_o, pub_o, n);
+		event Step2sNoE2EMode(owner1, loc, enc_pri_o, pub_o, n)
+	)
+
+
+let step2o(~pfound, ~pid, ~ppassword, ~owner, ~pre_app_ch1 : channel, ~location) = 
+	lock ~pfound;
+	lookup ~pfound as ff in
+	
+	if (ff = 'found') then (
+		lock ~pid;
+		lookup ~pid as pid_item  in
+		let <=~owner, id, E2EMode, sign_key> = pid_item in
+		
+		out(~pre_app_ch1, ~owner);
+		in(~pre_app_ch1, <loc, enc_pri_o, pub_o, n>);
+		
+		event Step2oEnd1();
+		event Step2oNoE2EMode(~owner, id, E2EMode, sign_key, loc, enc_pri_o, pub_o, n, ~location);
+		
+		if E2EMode = Mode_E2E then (
+			let <pub_f_bitstr, sealedbox_loc_bitstr> = loc in
+			let pub_f = pub_f_bitstr in
+			let sealedbox_loc = sealedbox_loc_bitstr in
+			
+			lock ~ppassword;
+			lookup ~ppassword as ppassword_item in
+			
+			let <=~owner, pin> = ppassword_item in
+			let p_symkey = derive_key_from_pin(pin) in
+			let pri_o = AES_dec(enc_pri_o, p_symkey, n) in
+			let dhkey_fo = pub_f ^ pri_o in
+			let locE2E = IES_dec(sealedbox_loc, dhkey_fo) in
+			if locE2E = ~location then
+				event Step2oEnd2();
+				event Step2oE2EMode(~owner, id, E2EMode, sign_key, loc, enc_pri_o, pub_o, n, ~location)
+		)
+	)
+
+
+
+
+process:
+
+	// Public Channel 
+	new ~open_ch: channel;
+	new ~cloud_ch: channel;
+	out(~open_ch);
+	out(~cloud_ch);
+
+	// Private Channel
+	new ~pre_app_ch1: channel;
+	new ~pre_app_ch2: channel;
+	
+!(
+	
+	//Private Terms
+	new ~owner;
+	
+	/* sensitive data, length < 16 bytes */
+	new ~location;
+	event Secret(~location);
+	
+	/* cloud, owner and owner device */
+	new ~pid;
+	insert ~pid, 'init';
+	
+	new ~ploc;
+	insert ~ploc, 'init';
+	
+	new ~pkeyitem;
+	insert ~pkeyitem, 'init';
+	
+	new ~ppassword;
+	insert ~ppassword, 'init';
+	
+	new ~padv;
+	insert ~padv, 'init';
+	
+	new ~plost;
+	insert ~plost, 'init';
+	
+	new ~pfound;
+	insert ~pfound, 'init';
+	
+	(
+		(step0o(~pre_app_ch1, ~owner, ~ppassword)) | 
+		(step0s(~pre_app_ch1, ~cloud_ch, ~pkeyitem)) |
+		(step1f(~plost, ~padv, ~pre_app_ch2, ~location)) | 
+		(step1s_1(~pkeyitem, ~pre_app_ch2, ~cloud_ch)) |
+		(step1s_2(~pkeyitem, ~pfound, ~ploc, ~pre_app_ch2, ~cloud_ch)) |
+		(step2s(~ploc, ~pre_app_ch1, ~cloud_ch)) |
+		(step2o(~pfound, ~pid, ~ppassword, ~owner, ~pre_app_ch1, ~location))
+	)
+)
+
+
+lemma confidentiality [ output=[spthy] ]:
+"
+	( 
+		All x #i. (Secret(x) @ i ==> not (Ex #k. KU(x) @ k))
+	)
+"
+
+end
