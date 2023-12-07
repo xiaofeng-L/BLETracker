@@ -1,0 +1,56 @@
+theory Samsung_SmartTag
+
+begin
+
+functions:
+	zero_const() : bitstring,
+	
+	privacy_const() : bitstring,
+	signing_const() : bitstring,
+	
+	first4bytes(bitstring) : bitstring,
+	first8bytes(bitstring) : bitstring,
+	
+	derive_key(bitstring, bitstring) : key,
+	
+	AES_enc(bitstring, key, iv):bitstring,
+	AES_dec(bitstring, key, iv):bitstring [destructor]
+	
+equations:
+	AES_dec(AES_enc(mes, k, v), k, v) = mes
+	
+	
+	
+diffEquivLemma:
+	new ~status : bitstring;
+	new ~aging : bitstring;
+	new ~state : bitstring;
+	
+	out(~status);
+	out(~aging);
+	out(~state);
+	
+!(
+	new ~encryption_key : bitstring;
+	new ~seed : bitstring;
+	new ~privacyIV : iv;
+	
+
+	
+	new ~r2 : bitstring;
+	let privacyKey:key = derive_key(~encryption_key, privacy_const) in
+	let seedi = <<~r2, ~seed>, ~r2> in
+	let IDi = first8bytes(AES_enc(seedi, privacyKey, ~privacyIV)) in
+	
+	let content = <~status, <~aging, <IDi, <~state, zero_const>>>> in
+	
+	let signingKey = derive_key(~encryption_key, signing_const) in
+	let signature = first4bytes(AES_enc(content, signingKey, ~privacyIV)) in
+	
+	/* Observational Equivlence: real-or-random secrecy */
+	new ~random : bitstring;
+	out( diff(signature, ~random))
+	
+)
+
+end

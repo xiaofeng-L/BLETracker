@@ -1,0 +1,34 @@
+theory Samsung_SmartTag
+
+begin
+
+functions:
+	privacy_const() : bitstring,
+	first8bytes(bitstring) : bitstring,
+	derive_key(bitstring, bitstring) : key,
+	AES_enc(bitstring, key, iv):bitstring,
+	AES_dec(bitstring, key, iv):bitstring [destructor]
+	
+equations:
+	AES_dec(AES_enc(mes, k, v), k, v) = mes
+	
+	
+	
+diffEquivLemma:
+!(
+	new ~encryption_key : bitstring;
+	new ~seed : bitstring;
+	new ~privacyIV : iv;
+	
+	new ~r2 : bitstring;
+	let privacyKey:key = derive_key(~encryption_key, privacy_const) in
+	let seedi = <<~r2, ~seed>, ~r2> in
+	let IDi = first8bytes(AES_enc(seedi, privacyKey, ~privacyIV)) in
+	
+	/* Observational Equivlence: real-or-random secrecy */
+	new ~random : bitstring;
+	out(diff(IDi, ~random))
+	
+)
+
+end

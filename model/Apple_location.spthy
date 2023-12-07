@@ -1,0 +1,204 @@
+theory Samsung_SmartTag
+
+begin
+
+builtins: diffie-hellman
+
+functions: 
+
+	lost_const/0,
+	found_const/0,
+	/* Concatenation helper functions */
+	first16bytes/1, last16bytes/1,
+	location/0 [private], 
+	
+	/* KDF: derive symmetric key. ANSI_X_963_KDF_SHA256 */
+	/* shared_secret, entropy */
+	kdf/2,
+	
+	/* Hash function */
+	SHA256/1,
+
+	/* AES-GCM with sealedbox. sealedbox: concat(ciphertext, tag) */
+	AES_GCM_enc/3,
+	AES_GCM_dec/3 [destructor]
+	
+equations:
+	AES_GCM_dec(AES_GCM_enc(mes, k, v), k, v) = mes
+	
+export queries:
+"
+set preciseActions = true.
+query attacker(location).
+"
+
+options: enableStateOpt, compress-events,
+translation-allow-pattern-lookups
+
+/* 0. pairing module */
+let step0o(~pkeyitem, ~pid, ~padv) = 
+	new ~exp_o;
+	let pri_o = ~exp_o in
+	let pub_o = 'g' ^ pri_o in
+	
+	lock ~pkeyitem;
+	lookup ~pkeyitem as pkeyitem_item_temp in
+	lock ~pid;
+	lookup ~pid as pid_item_temp in
+	lock ~padv;
+	lookup ~padv as padv_item_temp in
+	/*
+	lock ~plost;
+	lookup ~plost as plost_item_temp in
+	
+	insert plost(lost_const);
+	unlock ~plost;	
+	*/
+	
+	insert ~pkeyitem, pri_o;
+	unlock ~pkeyitem;
+	
+
+	insert ~pid, pub_o;
+	unlock ~pid;
+
+
+	insert ~padv, pub_o;
+	unlock ~padv
+
+	
+	
+/* 1. tracking module */
+let step1f(ss, ~pre_app_ch1, ~padv) = 
+	
+	if(ss = lost_const) then (
+		lock ~padv;
+		lookup ~padv as pub_o in
+
+		
+		new ~exp_f;
+		
+		let pri_f = ~exp_f in
+		let pub_f = 'g' ^ pri_f in
+		let index1 = SHA256(pub_o) in
+		let dhkey_of = pub_o ^ pri_f in
+		let symkey = kdf(dhkey_of,pub_f) in
+		let sealedbox_loc = AES_GCM_enc(location, first16bytes(symkey), last16bytes(symkey)) in
+		
+		event SourcePreAppItems(index1, pub_f, sealedbox_loc);
+		out(~pre_app_ch1, <index1, pub_f, sealedbox_loc>)
+	)
+
+let step1s(ss, ~pre_app_ch1, ~cloud_ch, ~ploc) = 
+	if(ss = lost_const) then (
+		lock ~ploc;
+		lookup ~ploc as pl in
+		
+		in(~pre_app_ch1, <index1, pub_f, sealedbox_loc>);
+		
+		event RecvPreAppItems(index1, pub_f, sealedbox_loc);
+		out(~cloud_ch, <index1, pub_f, sealedbox_loc>);
+		insert ~ploc, <index1, pub_f, sealedbox_loc>;
+		unlock ~ploc
+	)
+
+/* 2. querying module */
+let step2o(sf, ~pre_app_ch2, ~pkeyitem, ~pid) = 
+	if(sf = found_const) then (
+		lock ~pkeyitem;
+		lookup ~pkeyitem as pri_o in
+		lock ~pid;
+		lookup ~pid as pub_o in
+
+		let index2 = SHA256(pub_o) in
+		out(~pre_app_ch2, index2);
+		event SourcePreAppItems2(index2);
+		in(~pre_app_ch2, <index1, pub_f, sealedbox_loc>);
+		let dhkey_fo = pub_f ^ pri_o in
+		let symkey = kdf(dhkey_fo, pub_f) in
+		let loc = AES_GCM_dec(sealedbox_loc,first16bytes(symkey), last16bytes(symkey)) in
+		if loc = location then
+			0
+	)
+	
+let step2s(~ploc, ~pre_app_ch2, ~cloud_ch) = 
+	lock ~ploc;
+	lookup ~ploc as pl in
+	let <index1, pub_f, sealedbox_loc> = pl in
+	in(~pre_app_ch2, index2);
+	event RecvPreAppItems2(index2);
+	out(~cloud_ch, index2);
+	if index1 = index2 then
+		out(~pre_app_ch2, <index1, pub_f, sealedbox_loc>)
+
+
+
+	
+process:
+	/* For privacy, cloud is equipment to open channel for data communication between finder device and owner device. */
+	/* For security, cloud channel is private. */
+	new ~cloud_ch: channel;
+	out(~cloud_ch);
+	
+	new ~pre_app_ch1: channel;
+	new ~pre_app_ch2: channel;
+	
+	/* sensitive data, length < 16 bytes 
+	new ~location;*/
+	event Secret(location);
+	
+	
+	/* owner and owner device */
+	new ~pid;
+	insert ~pid, 'init';
+	
+	/* cloud */
+	new ~ploc;
+	insert ~ploc, 'init';
+	
+	/* owner */
+	new ~pkeyitem;
+	insert ~pkeyitem, 'init';
+	
+	/* owner and finder */
+	new ~padv;
+	insert ~padv, 'init';
+	
+	/* status 
+	new ~plost;
+	insert ~plost, 'init';
+	
+	new ~pfound;
+	insert ~pfound, 'init';
+	*/
+	(
+		(step0o(~pkeyitem, ~pid, ~padv)) |
+		(step1f(lost_const, ~pre_app_ch1, ~padv)) |
+		(step1s(lost_const, ~pre_app_ch1, ~cloud_ch, ~ploc)) |
+		(step2o(found_const, ~pre_app_ch2, ~pkeyitem, ~pid)) |
+		(step2s(~ploc, ~pre_app_ch2, ~cloud_ch))
+	)
+	
+	
+lemma confidentiality [ output=[spthy] ]:
+"
+	( 
+		All x #i. (Secret(x) @ i ==> not (Ex #k. KU(x) @ k))
+	)
+"
+
+lemma pre_app_sources_1[sources, output=[spthy]]:
+"
+	All e1 e2 e3 #i. RecvPreAppItems(e1, e2, e3) @ i ==> (
+		(Ex #t. SourcePreAppItems(e1, e2, e3) @ t & t < i) 
+	)
+"
+
+lemma pre_app_sources_2[sources, output=[spthy]]:
+"
+	All e1 #i. RecvPreAppItems2(e1) @ i ==> (
+		(Ex #t. SourcePreAppItems2(e1) @ t & t < i) 
+	)
+"
+
+end
