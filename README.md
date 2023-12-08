@@ -4,13 +4,14 @@
 The **model** folder contains our models implemented in SAPIC+.
 
 - **model/Apple_initialization.spthy** contains the model of Apple initialization protocol.
+- **model/Apple_initialization_Authentication.spthy** contains the model of Apple initialization protocol for authentication.
 - **model/P12_P13_Apple_broadcast.spthy** contains the model of the Apple location tracking protocol for anonymity.
 - **model/Apple_location.spthy** contains the model of Apple location tracking protocol.
-- **model/Apple_initialization_Authentication.spthy** contains the model of Apple initialization protocol for authentication.
 
-- **model/Samsung_initialization_Confidentiality.spthy** contains the model of Samsung initialization protocol.
-- **model/Samsung_initialization_Authentication.spthy** contains the model of the Samsung broadcast protocol (BLE advertisement address).
-- **model/Samsung_initialization_Authentication_fixed_V1.spthy** contains the model of the Samsung broadcast protocol (BLE advertisement address).
+
+- **model/Samsung_initialization_Confidentiality.spthy** contains the model of the Samsung initialization protocol.
+- **model/Samsung_initialization_Authentication.spthy** contains the model of the Samsung initialization protocol for authentication.
+- **model/Samsung_initialization_Authentication_fixed_V1.spthy** contains the model of the Samsung broadcast protocol for authentication after fixing V1.
 - **model/P2_Samsung_broadcast_ID.spthy** contains the model of the location tracking protocol for the anonymity of SmartTag's ID.
 - **model/P5_Samsung_broadcast_AdvAddr.spthy** contains the model of the Samsung location tracking protocol for the anonymity of SmartTag's BLE MAC address.
 - **model/P6_Samsung_broadcast_pubkey.pv** contains the model of the Samsung location tracking protocol for the anonymity of SmartTag's public key.
