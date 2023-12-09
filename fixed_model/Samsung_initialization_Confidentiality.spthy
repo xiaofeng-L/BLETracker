@@ -1,0 +1,300 @@
+theory Samsung_SmartTag
+
+
+begin
+
+builtins: diffie-hellman
+
+functions:
+
+	sv/0 [private], //Secrecy Value
+
+	/* constant value */
+	smartthings_const/0,
+	bleAuthentication_const/0,
+	privacy_const/0,
+	poolsize_const/0,
+	bound_const/0,
+	unbound_const/0,
+	
+	yes_confirm_const/0,
+    no_confirm_const/0,
+	
+	serial_number_const/0,
+	/* device bt addresses */
+	addrA_const/0,
+	addrB_const/0,
+	
+	/* ECDH key exchange 
+	gen/0,
+	*/
+	
+	SHA256/1,
+	AES_enc/3, AES_dec/3 [destructor],
+	
+	/* Samsung SmartTag key calculation */
+	derive_encryption_key/2,
+	kdf2/2,
+	
+	/* modify and derive private key from bt_addr */
+	derive_prikey_from_sn/1,
+	
+	/* hash table */
+	derive_hashed_sn/1,
+	hash_table/1 [destructor],
+	
+	/* Calculate all id */
+	get_id/4
+	
+equations:
+	AES_dec(AES_enc(mes, k, v), k, v) = mes,
+	hash_table(derive_hashed_sn(x)) = x
+	
+export queries:
+"
+set preciseActions = true.
+set reconstructTrace = true.
+query attacker(sv).
+"
+	
+options: enableStateOpt, compress-events,
+translation-allow-pattern-lookups
+
+
+/*
+  Mitigation: inject a random public-private key pair into SmartTag
+*/
+
+
+
+
+/* 1. pairing module */
+let server(~sec_ch, ~sn_paired, ~sn, ~pub_p) = 
+	// in(~sec_ch, <sn, hashed_sn, pub_p>);
+	in(~sec_ch, <hashed_sn_p, rand, 'pre_app1'>);
+	let sn_p = hash_table(hashed_sn_p) in
+	
+	if (sn_p = ~sn) then (
+		new ~pri_c;
+		let pub_c = 'g' ^ ~pri_c in
+		event PubkeySources(pub_c); 
+		let dhkey_PC = pub_p ^ ~pri_c in
+		let encryption_key = derive_encryption_key(dhkey_PC, rand) in
+		
+		out(~sec_ch, <encryption_key, pub_c, 'SendPubkey', 'pre_app1'>);
+		in(~sec_ch, <sn_p1, encryption_key_c, 'pre_app1'>);
+		
+		if (sn_p1 = ~sn_paired) then (
+			out(~sec_ch, <bound_const, 'pre_app1'>)
+		)
+		else (
+			out(~sec_ch, <unbound_const, 'pre_app1'>);
+			in(~sec_ch, <sn_p2, encryption_key_c, 'pre_app1'>);
+			if (sn_p2 = sn_paired) then (
+				0)
+			else(
+				if ((sn_p2 = sn_p) & (encryption_key = encryption_key_c)) then (
+				new ~secure_param;
+				event SecureParamSources(~secure_param);
+				
+				out(~sec_ch, <~secure_param, 'secure_param', 'pre_app1'>);
+				
+				let privacy_key = kdf2(encryption_key, privacy_const) in
+				let id = get_id(privacy_key, ~secure_param, ~secure_param, ~secure_param) in
+				0
+				// out(~sec_ch, <id, 'id_s'>)
+				)
+			)
+		)
+	)
+		
+
+let smartphone(~sec_ch, ~owner) = 
+	/* PK exchange */
+	in(<hashed_sn_p, 'open_ch'>);
+	new ~rand;
+	
+	
+	out(~sec_ch, <hashed_sn_p, ~rand, 'pre_app1'>);
+	in(~sec_ch, <encryption_key, pub_c, 'SendPubkey', 'pre_app1'>);
+	
+	event SendPubKey(pub_c);
+	
+	out(<~rand, pub_c, 'open_ch'>);
+
+	/* authentication */
+	let auth_key = kdf2(encryption_key, bleAuthentication_const) in
+	new ~n1;
+	out(<~n1, 'open_ch'>);
+	
+	in(<n2, 'open_ch'>);
+	let encrypted_nonce1 = AES_enc(smartthings_const, auth_key, n2) in
+	out(<encrypted_nonce1, 'open_ch'>);
+	
+	in(<encrypted_nonce2, 'open_ch'>);
+	let dec_mes_2 = AES_dec(encrypted_nonce2, auth_key, ~n1) in	
+	
+	if smartthings_const = dec_mes_2 then (
+		let link_key = kdf2(encryption_key, n2) in
+
+		
+		in(<encrypted_sn_p1, 'open_ch'>);
+		let sn_p1 = AES_dec(encrypted_sn_p1, link_key, n2) in
+		out(~sec_ch, <sn_p1, encryption_key, 'pre_app1'>);
+	
+		/* id sharing */
+		in(<encrypted_sn_p, 'open_ch'>);
+		let sn_p = AES_dec(encrypted_sn_p, link_key, n2) in
+		event ReceiveSn(sn_p);
+		
+		out(~sec_ch, <sn_p, encryption_key, 'pre_app1'>);
+		in(~sec_ch, <secure_param, 'secure_param', 'pre_app1'>);
+		
+		let encrypted_param = AES_enc(secure_param, link_key, n2) in
+
+		event SendSecureParam(secure_param, encrypted_param);
+		out(<encrypted_param, 'open_ch'>);
+		
+		
+		let privacy_key = kdf2(encryption_key, privacy_const) in
+		let id = get_id(privacy_key, secure_param, secure_param, secure_param) in
+		
+		out(~sec_ch, <id, 'id_c', 'central_user_data_out'>);
+		
+		in(~sec_ch, <confirm, 'central_user_ui'>);
+		new ~tmp;
+		if (confirm = yes_confirm_const) then (
+			out(<~tmp, AES_enc(sv, id, ~tmp), 'open_ch'>)
+		)
+	)
+
+
+let tracker(~sec_ch, ~sn, ~pri_p) = 
+	// let sn = serial_number_const in
+	let hashed_sn = derive_hashed_sn(sn) in
+	// let pri_p = derive_prikey_from_sn(sn) in
+	// let pub_p = 'g' ^ pri_p in
+	
+	// out(~sec_ch, <sn, hashed_sn, pub_p>);
+	out(<hashed_sn, 'open_ch'>);
+	// The owner bind this Tag, before the attacker acquire it.
+
+	in(<rand, pub_c, 'open_ch'>);
+	
+	let dhkey_CP = pub_c ^ pri_p in
+	let encryption_key = derive_encryption_key(dhkey_CP, rand) in
+	 
+	/* authentication stage 1 */
+	let auth_key = kdf2(encryption_key, bleAuthentication_const) in
+	new ~n2;
+	out(<~n2, 'open_ch'>);
+	
+	in(<n1, 'open_ch'>);
+	let encrypted_nonce2 = AES_enc(smartthings_const, auth_key, n1) in
+	out(<encrypted_nonce2, 'open_ch'>);
+	
+	in(<encrypted_nonce1, 'open_ch'>);
+	let dec_mes_1 = AES_dec(encrypted_nonce1, auth_key, ~n2) in
+
+	
+	if smartthings_const = dec_mes_1 then (
+		let link_key = kdf2(encryption_key, ~n2) in
+
+		/* id sharing */
+		let encrypted_sn_p = AES_enc(sn, link_key, ~n2) in
+		event SendSn(sn, encrypted_sn_p);
+		out(<encrypted_sn_p, 'open_ch'>);
+
+		out(<encrypted_sn_p, 'open_ch'>);
+		
+		in(<encrypted_param, 'open_ch'>);
+
+		let secure_param = AES_dec(encrypted_param, link_key, ~n2) in
+		
+		let privacy_key = kdf2(encryption_key, privacy_const) in
+		let id = get_id(privacy_key, secure_param, secure_param, secure_param) in
+	
+		out(~sec_ch, <id, 'id_p', 'peripheral_user_data_out'>)
+/*		
+		// event SteppEnd2()
+		in(~sec_ch, confirm);
+		if (confirm = yes_confirm_const) then (
+		in(<tmp, enc_s, 'open_ch'>);
+				in(<tmp, enc_s, 'open_ch'>);
+				let s1 = AES_dec(enc_s, id, tmp) in
+				if sv = s1 then
+					event PairSuccess(id)
+
+		)
+*/
+	)
+
+
+let user(~sec_ch : channel) = 
+	in(~sec_ch, <id_c, 'id_c', 'central_user_data_out'>);
+	in(~sec_ch, <id_p, 'id_p', 'peripheral_user_data_out'>);
+	if id_c = id_p then (
+		out(~sec_ch, <yes_confirm_const, 'central_user_ui'>);
+		out(~sec_ch, <yes_confirm_const, 'peripheral_user_ui'>)
+	) else (
+		out(~sec_ch, <no_confirm_const, 'central_user_ui'>);
+		out(~sec_ch, <no_confirm_const, 'peripheral_user_ui'>)
+	)
+
+
+
+
+process:
+	
+	new ~sec_ch : channel;
+	event SecureChannel(~sec_ch);
+	
+	event Secret(sv);
+	
+	(	
+		new ~sn;
+		// set status is unpaired
+		new ~sn_paired;
+		new ~owner;
+		new ~pri_p;
+		let pub_p = 'g' ^ pri_p in
+		(server(~sec_ch, ~sn_paired, ~sn, pub_p)) |
+		(smartphone(~sec_ch, ~owner)) |
+		(tracker(~sec_ch, ~sn, ~pri_p)) |
+		(user(~sec_ch))
+	)
+	
+	
+restriction secure_channel:
+	" All ch #i #k. ( SecureChannel(ch) @ i & KU(ch) @k ) ==> F" 
+	
+
+
+lemma pubkey_sources[sources, output=[spthy]]:
+"
+	All pkey #i. SendPubKey(pkey) @ i ==> 
+		(Ex #t. PubkeySources(pkey) @ t & t < i)
+"
+
+
+
+lemma secure_param_sources[sources, output=[spthy]]:
+"
+	All p enc_p #i. SendSecureParam(p, enc_p) @ i ==> (
+		(Ex #t. SecureParamSources(p) @ t & t < i) |
+		(Ex #t. KU(p) @ t & t < i)
+	)
+"
+
+
+/* Confidentiality */
+
+lemma confidentiality [ output=[spthy] ]:
+"
+	( 
+		All x #i. (Secret(x) @ i ==> not (Ex #k. KU(x) @ k))
+	)
+"
+	
+end
+
