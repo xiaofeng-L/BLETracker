@@ -1,15 +1,22 @@
 theory Samsung_SmartTag
 
 begin
+functions:
+	kdf/2,
+	
+equations:
+	0
 	
 diffEquivLemma:
+new ~rt;
 !(
-	new ~p;
-
+	/* Current public key p*/
+	new ~P;
+	/* Next public key */
+	let Pi = kdf(~p, rt) in
 	/* Observational Equivlence: real-or-random secrecy */
 	new ~random;
 	out(diff(~p, ~random))
-	
 )
 
 end
