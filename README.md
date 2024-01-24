@@ -78,9 +78,12 @@ We take ethical issues seriously. In this study, we used our two Samsung devices
     ```
 
 3. **Execute**
+   
     For short, you can run the "run.sh" to verify all properties.
 
+4. **Others**
     To verify a certain property, you can follow directly execute the following command.
+   
     Execute the scripts below for the export:
       -  `proverif-tamarin  ..` Translates input file with the modified tamarin-prover and runs proverif on output.
       -  `progsverif-tamarin  ..` same for gsverif
