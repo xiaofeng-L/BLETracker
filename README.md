@@ -82,6 +82,7 @@ We take ethical issues seriously. In this study, we used our two Samsung devices
     For short, you can run the "run.sh" to verify all properties.
 
 4. **Others**
+   
     To verify a certain property, you can follow directly execute the following command.
    
     Execute the scripts below for the export:
