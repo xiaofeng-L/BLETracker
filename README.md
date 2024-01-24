@@ -47,7 +47,7 @@ We perform our reverse engineering on Samsung Find My Mobile using Galaxy S7 and
 
 We take ethical issues seriously. In this study, we used our two Samsung devices and accounts for our experiments, and we took measures to minimize the impact on Samsung's services and only tested our own devices. Therefore, we provide the details of the Samsung Find My Mobile protocol and will not provide our attack scripts.
 
-- The **resources** folder contains the firmware of the SmartTag with version 01.01.26.
+- The **resources** folder contains the firmware of the SmartTag with version 01.01.26 and relevant applications.
 - The **results** folder contains part of our reverse engineering efforts.
   * The **results/Samsung_initialization_traffic.zip** file contains the traffic while registering a SmartTag with version 01.02.06.
   * The **results/advertisement_compute.py** file contains the calculation of the advertisement generation process from the register results.
