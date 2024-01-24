@@ -100,32 +100,32 @@ We take ethical issues seriously. In this study, we used our two Samsung devices
     
     Or you can use the platform
     
-        ```
-            -m --output-module[=spthy|spthytyped|msr|proverif|deepsec]  What to output:- spthy (including
-                                                                        processes),- spthy with explicit types,- pure
-                                                                        msrs (processes translated to msrs) or- DeepSec
-                                                                        or- ProVerif.
-        ```
+    ```
+        -m --output-module[=spthy|spthytyped|msr|proverif|deepsec]  What to output:- spthy (including
+                                                                    processes),- spthy with explicit types,- pure
+                                                                    msrs (processes translated to msrs) or- DeepSec
+                                                                    or- ProVerif.
+    ```
     
       other important tamarin-flags are:
     
-        ```
-            --prove[=LEMMAPREFIX*|LEMMANAME]                         Attempt to prove all lemmas that start with
-                                                                    LEMMAPREFIX or the lemma which name is
-                                                                    LEMMANAME
-            -D --defines[=STRING]                                       Define flags for pseudo-preprocessor
-            --diff                                                   Turn on observational equivalence mode using
-                                                                    diff terms
-        ```
+      ```
+          --prove[=LEMMAPREFIX*|LEMMANAME]                         Attempt to prove all lemmas that start with
+                                                                  LEMMAPREFIX or the lemma which name is
+                                                                  LEMMANAME
+          -D --defines[=STRING]                                       Define flags for pseudo-preprocessor
+          --diff                                                   Turn on observational equivalence mode using
+                                                                  diff terms
+      ```
     
     For example, you can use the ```tamarin-prover /model/Apple_initialization.spthy --prove``` to verify the **Apple_initialization.spthy** using the **tamarin-prover**.
     
     Or in this docker image, try the following command to verify the **Apple_initialization.spthy** using the **proverif** with additional parameters:
     
-      ```
-          tamarin-prover Apple_initialization.spthy -m=proverif > ex1.pv
-          proverif ex1.pv -html ./result ex1.pv 
-      ```
+    ```
+        tamarin-prover Apple_initialization.spthy -m=proverif > ex1.pv
+        proverif ex1.pv -html ./result ex1.pv 
+    ```
     
     
     You can also use the tamarin's interactive mode:
