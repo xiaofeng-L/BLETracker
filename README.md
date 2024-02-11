@@ -53,8 +53,7 @@ We take ethical issues seriously. In this study, we used our two Samsung devices
   * The **results/advertisement_compute.py** file contains the calculation of the advertisement generation process from the register results.
   * The **results/hashed_sn.py** file contains the calculation of the value field "hashed_sn" via the MAC address of a SmartTag.
 - The **Review** folder is only available for reviewers and will not be released when published in the BLETracker repository.
-  * The **Review/attack_pair_bad_ECDH.py** file contains the decryption process when sniffing the traffic of the initialization phase.
-  * The **Review/btsnoop_hci.log** file contains the BLE traffic when sniffing the traffic of the initialization phase.
+  * The **PoC_BLEtraffic.zip** file contains a **attack_pair_bad_ECDH.py** file to decrypt the entire BLE traffic for the initialization phase, which is shown in **smartTagb_s7_white_01_02_06.pcapng**.
 - The **Reverse Engineering for Samsung Find My Mobile.zip** contains the detailed process when we reverse-engineered Samsung Find My Mobile from shallow to deep.
 ## How to run
 1. **Download the Image**
