@@ -335,22 +335,19 @@ lemma e1_source [output=[spthy], sources]:
 )
 "
 
-#ifdef timed
+
 lemma confidentiality_d [ output=[spthy] ]:
 "
 	( 
 		All x #i. (Secret_d(x) @ i ==> not (Ex #k. KU(x) @ k))
 	)
 "
-#endif
 
-#ifdef timeSSS
 lemma confidentiality_SSS [ output=[spthy] ]:
 "
 	( 
 		All x #i. (Secret_SSS(x) @ i ==> not (Ex #k. KU(x) @ k))
 	)
 "
-#endif
 
 end
