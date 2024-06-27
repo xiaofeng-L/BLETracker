@@ -8,7 +8,7 @@ functions:
 	/* private value */
 	/* Apple cloud public-private key: Qe-Qd  */
 	/* 56->48: useful*/
-	/*s_d/0 [private], s_P/0 [private], s_SK/0 [private], s_SSS/0 [private], */
+	s_d/0 [private], s_P/0 [private], s_SK/0 [private], s_SSS/0 [private],
 	qe/0 [private], qa/0 [private],
 
 
@@ -159,25 +159,12 @@ let phone(~sec_ch: channel) =
 			let SK = kdf(get_point_x(P), r_all) in
 			event Secret_d(d);
 			event Secret_P(P);
-			event Secret_SK(SK)
-
-			/*
-			let id = get_id(P, SK) in
-
-			out(~sec_ch, <id, 'id_c'>);
-
-
-			in(~sec_ch, <idp, 'id_p'>);
-			if (id = idp) then (
+			event Secret_SK(SK);
+			out(AES_GCM_enc(s_SK, SK, zero_const));
 				
-				out(AES_GCM_enc(s_SK, SK, zero_const));
+			out(AES_GCM_enc(s_d, d, zero_const));
 
-				
-				out(AES_GCM_enc(s_d, d, zero_const));
-
-				out(AES_GCM_enc(s_P, P, zero_const))
-			)
-			*/
+			out(AES_GCM_enc(s_P, P, zero_const))
 	)
 	
 
@@ -186,6 +173,7 @@ let phone(~sec_ch: channel) =
 let tracker(~sec_ch: channel, ~UUID, ~token) = 
 	let Qe = pk(qe) in
 	let Qa = pk(qa) in
+	out(<Qe, Qa>);
 
 	
 		/* Data tran: id sharing */
@@ -248,17 +236,9 @@ let tracker(~sec_ch: channel, ~UUID, ~token) =
 
 			let seed_all = <SeedS, ~SeedK1> in 
 			let ServerSharedSecret = kdf(seed_all, SerialNumberProtection_const) in
-			event Secret_SSS(ServerSharedSecret)
+			event Secret_SSS(ServerSharedSecret);
+			out(AES_GCM_enc(s_SSS, ServerSharedSecret, zero_const))
 
-			/*
-			let id = get_id(P, SK) in
-			
-			out(~sec_ch, <id, 'id_p'>);
-			in(~sec_ch, <idc, 'id_c'>);
-			if (id = idc) then (
-				out(AES_GCM_enc(s_SSS, ServerSharedSecret, zero_const))
-			)
-			*/
 	)
 
 
