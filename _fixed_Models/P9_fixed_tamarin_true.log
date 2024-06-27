@@ -1,0 +1,1097 @@
+maude tool: 'maude'
+ checking version: 3.1. OK.
+ checking installation: OK.
+
+theory Apple_AirTag begin
+
+// Function signature and definition of the equational theory E
+
+builtins: diffie-hellman
+functions: AES_GCM_dec/2[destructor], AES_GCM_enc/2, SHA256/1, add/2,
+           diversify_const/0, fst/1[destructor], gen/0, kdf/2,
+           location/0[private,destructor], mul/2, pair/2, snd/1[destructor],
+           update_const/0, zero_const/0
+equations:
+    AES_GCM_dec(AES_GCM_enc(m, k), k) = m,
+    fst(<x.1, x.2>) = x.1,
+    snd(<x.1, x.2>) = x.2
+
+heuristic: p
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+lemma confidentiality [output=[spthy]]:
+  all-traces "∀ x #i. (Secret( x ) @ #i) ⇒ (¬(∃ #k. !KU( x ) @ #k))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ x #i. (Secret( x ) @ #i) ∧ ∃ #k. (!KU( x ) @ #k)"
+*/
+simplify
+solve( State_1111121( ~di, ~sec_ch ) ▶₀ #i )
+  case p_1_11
+  solve( Message( ~sec_ch, x ) ▶₁ #i )
+    case ifindexindex_0_1111211111
+    solve( Message( ~sec_ch, <index, 'query_by_index'> ) ▶₁ #vr.5 )
+      case p_1_11
+      solve( Message( ~sec_ch,
+                      <sealedbox_loc, PKs, SHA256('g'^~di), 'location_report'>
+             ) ▶₁ #vr.8 )
+        case news_0_111112111
+        solve( State_111112111( ~di.1, ~sec_ch, 'g'^~di ) ▶₀ #vr.11 )
+          case insecchchannelPiadv_1_11111211
+          solve( !KU( location ) @ #k )
+            case outindexquerybyindex_0_111121111
+            solve( Message( ~sec_ch, <index1, 'query_by_index'> ) ▶₁ #vr.19 )
+              case p_1_11
+              by contradiction /* impossible chain */
+            qed
+          next
+            case outsealedboxlocPKsindexlocationreport_0_1111211_case_1
+            solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                   ) ▶₁ #vr.19 )
+              case news_0_111112111
+              solve( (#vr.17, 0) ~~> (#k, 0) )
+                case d_0_AES_GCM_dec
+                solve( (#vr.22, 0) ~~> (#k, 0) )
+                  case location
+                  solve( State_111112111( ~di.1, ~sec_ch, Pi ) ▶₀ #vr.21 )
+                    case insecchchannelPiadv_1_11111211
+                    solve( !KU( 'g'^(~di*~s.1) ) @ #vk )
+                      case c_exp
+                      solve( !KU( ~di ) @ #vk.3 )
+                        case outindexquerybyindex_0_111121111
+                        solve( Message( ~sec_ch, <index1, 'query_by_index'> ) ▶₁ #vr.30 )
+                          case p_1_11
+                          by contradiction /* impossible chain */
+                        qed
+                      next
+                        case outsealedboxlocPKsindexlocationreport_0_1111211_case_1
+                        solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                               ) ▶₁ #vr.30 )
+                          case news_0_111112111
+                          solve( (#vr.28, 0) ~~> (#vk.1, 0) )
+                            case d_0_AES_GCM_dec
+                            by contradiction /* cyclic */
+                          qed
+                        qed
+                      next
+                        case outsealedboxlocPKsindexlocationreport_0_1111211_case_2
+                        solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                               ) ▶₁ #vr.31 )
+                          case news_0_111112111
+                          by contradiction /* impossible chain */
+                        qed
+                      next
+                        case outsealedboxlocPKsindexlocationreport_0_1111211_case_3
+                        solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                               ) ▶₁ #vr.32 )
+                          case news_0_111112111
+                          by solve( (#vr.30, 0) ~~> (#vk.1, 0) )
+                        qed
+                      qed
+                    next
+                      case outindexquerybyindex_0_111121111
+                      solve( Message( ~sec_ch, <index1, 'query_by_index'> ) ▶₁ #vr.30 )
+                        case p_1_11
+                        by solve( (#vr.28, 0) ~~> (#vk, 0) )
+                      qed
+                    next
+                      case outsealedboxlocPKsindexlocationreport_0_1111211_case_1
+                      solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                             ) ▶₁ #vr.30 )
+                        case news_0_111112111
+                        solve( (#vr.28, 0) ~~> (#vk, 0) )
+                          case d_0_AES_GCM_dec
+                          by contradiction /* cyclic */
+                        qed
+                      qed
+                    next
+                      case outsealedboxlocPKsindexlocationreport_0_1111211_case_2
+                      solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                             ) ▶₁ #vr.31 )
+                        case news_0_111112111
+                        solve( (#vr.29, 0) ~~> (#vk, 0) )
+                          case d_exp_case_1
+                          solve( (#vr.34, 0) ~~> (#vk, 0) )
+                            case exp
+                            solve( !KU( ~di ) @ #vk.1 )
+                              case outindexquerybyindex_0_111121111
+                              solve( Message( ~sec_ch, <index1, 'query_by_index'> ) ▶₁ #vr.33 )
+                                case p_1_11
+                                by contradiction /* impossible chain */
+                              qed
+                            next
+                              case outsealedboxlocPKsindexlocationreport_0_1111211_case_1
+                              solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                                     ) ▶₁ #vr.33 )
+                                case news_0_111112111
+                                solve( (#vr.31, 0) ~~> (#vk.1, 0) )
+                                  case d_0_AES_GCM_dec
+                                  by contradiction /* cyclic */
+                                qed
+                              qed
+                            next
+                              case outsealedboxlocPKsindexlocationreport_0_1111211_case_2
+                              solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                                     ) ▶₁ #vr.34 )
+                                case news_0_111112111
+                                by contradiction /* impossible chain */
+                              qed
+                            next
+                              case outsealedboxlocPKsindexlocationreport_0_1111211_case_3
+                              solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                                     ) ▶₁ #vr.35 )
+                                case news_0_111112111
+                                by solve( (#vr.33, 0) ~~> (#vk.1, 0) )
+                              qed
+                            qed
+                          qed
+                        next
+                          case d_exp_case_2
+                          by contradiction /* forbidden KD-fact */
+                        next
+                          case d_exp_case_3
+                          by contradiction /* non-normal exponentiation rule instance */
+                        next
+                          case d_exp_case_4
+                          by contradiction /* non-normal exponentiation rule instance */
+                        next
+                          case d_exp_case_5
+                          by contradiction /* non-normal exponentiation rule instance */
+                        qed
+                      qed
+                    next
+                      case outsealedboxlocPKsindexlocationreport_0_1111211_case_3
+                      solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                             ) ▶₁ #vr.32 )
+                        case news_0_111112111
+                        by solve( (#vr.30, 0) ~~> (#vk, 0) )
+                      qed
+                    qed
+                  qed
+                qed
+              qed
+            qed
+          next
+            case outsealedboxlocPKsindexlocationreport_0_1111211_case_2
+            solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                   ) ▶₁ #vr.20 )
+              case news_0_111112111
+              by contradiction /* impossible chain */
+            qed
+          next
+            case outsealedboxlocPKsindexlocationreport_0_1111211_case_3
+            solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                   ) ▶₁ #vr.21 )
+              case news_0_111112111
+              by solve( (#vr.19, 0) ~~> (#k, 0) )
+            qed
+          qed
+        qed
+      qed
+    qed
+  next
+    case news_0_111112111
+    solve( State_111112111( ~di.1, ~sec_ch, Pi ) ▶₀ #vr.2 )
+      case insecchchannelPiadv_1_11111211
+      solve( !KU( location ) @ #k )
+        case outindexquerybyindex_0_111121111
+        solve( Message( ~sec_ch, <index1, 'query_by_index'> ) ▶₁ #vr.10 )
+          case p_1_11
+          by contradiction /* impossible chain */
+        qed
+      next
+        case outsealedboxlocPKsindexlocationreport_0_1111211_case_1
+        solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+               ) ▶₁ #vr.10 )
+          case news_0_111112111
+          solve( (#vr.8, 0) ~~> (#k, 0) )
+            case d_0_AES_GCM_dec
+            solve( (#vr.13, 0) ~~> (#k, 0) )
+              case location
+              solve( State_111112111( ~di.1, ~sec_ch, Pi ) ▶₀ #vr.12 )
+                case insecchchannelPiadv_1_11111211
+                solve( !KU( 'g'^(~di*~s.1) ) @ #vk )
+                  case c_exp
+                  solve( !KU( ~di ) @ #vk.3 )
+                    case outindexquerybyindex_0_111121111
+                    solve( Message( ~sec_ch, <index1, 'query_by_index'> ) ▶₁ #vr.21 )
+                      case p_1_11
+                      by contradiction /* impossible chain */
+                    qed
+                  next
+                    case outsealedboxlocPKsindexlocationreport_0_1111211_case_1
+                    solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                           ) ▶₁ #vr.21 )
+                      case news_0_111112111
+                      solve( (#vr.19, 0) ~~> (#vk.1, 0) )
+                        case d_0_AES_GCM_dec
+                        by contradiction /* cyclic */
+                      qed
+                    qed
+                  next
+                    case outsealedboxlocPKsindexlocationreport_0_1111211_case_2
+                    solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                           ) ▶₁ #vr.22 )
+                      case news_0_111112111
+                      by contradiction /* impossible chain */
+                    qed
+                  next
+                    case outsealedboxlocPKsindexlocationreport_0_1111211_case_3
+                    solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                           ) ▶₁ #vr.23 )
+                      case news_0_111112111
+                      by solve( (#vr.21, 0) ~~> (#vk.1, 0) )
+                    qed
+                  qed
+                next
+                  case outindexquerybyindex_0_111121111
+                  solve( Message( ~sec_ch, <index1, 'query_by_index'> ) ▶₁ #vr.21 )
+                    case p_1_11
+                    by solve( (#vr.19, 0) ~~> (#vk, 0) )
+                  qed
+                next
+                  case outsealedboxlocPKsindexlocationreport_0_1111211_case_1
+                  solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                         ) ▶₁ #vr.21 )
+                    case news_0_111112111
+                    solve( (#vr.19, 0) ~~> (#vk, 0) )
+                      case d_0_AES_GCM_dec
+                      by contradiction /* cyclic */
+                    qed
+                  qed
+                next
+                  case outsealedboxlocPKsindexlocationreport_0_1111211_case_2
+                  solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                         ) ▶₁ #vr.22 )
+                    case news_0_111112111
+                    solve( (#vr.20, 0) ~~> (#vk, 0) )
+                      case d_exp_case_1
+                      solve( (#vr.25, 0) ~~> (#vk, 0) )
+                        case exp
+                        solve( !KU( ~di ) @ #vk.1 )
+                          case outindexquerybyindex_0_111121111
+                          solve( Message( ~sec_ch, <index1, 'query_by_index'> ) ▶₁ #vr.24 )
+                            case p_1_11
+                            by contradiction /* impossible chain */
+                          qed
+                        next
+                          case outsealedboxlocPKsindexlocationreport_0_1111211_case_1
+                          solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                                 ) ▶₁ #vr.24 )
+                            case news_0_111112111
+                            solve( (#vr.22, 0) ~~> (#vk.1, 0) )
+                              case d_0_AES_GCM_dec
+                              by contradiction /* cyclic */
+                            qed
+                          qed
+                        next
+                          case outsealedboxlocPKsindexlocationreport_0_1111211_case_2
+                          solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                                 ) ▶₁ #vr.25 )
+                            case news_0_111112111
+                            by contradiction /* impossible chain */
+                          qed
+                        next
+                          case outsealedboxlocPKsindexlocationreport_0_1111211_case_3
+                          solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                                 ) ▶₁ #vr.26 )
+                            case news_0_111112111
+                            by solve( (#vr.24, 0) ~~> (#vk.1, 0) )
+                          qed
+                        qed
+                      qed
+                    next
+                      case d_exp_case_2
+                      by contradiction /* forbidden KD-fact */
+                    next
+                      case d_exp_case_3
+                      by contradiction /* non-normal exponentiation rule instance */
+                    next
+                      case d_exp_case_4
+                      by contradiction /* non-normal exponentiation rule instance */
+                    next
+                      case d_exp_case_5
+                      by contradiction /* non-normal exponentiation rule instance */
+                    qed
+                  qed
+                next
+                  case outsealedboxlocPKsindexlocationreport_0_1111211_case_3
+                  solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                         ) ▶₁ #vr.23 )
+                    case news_0_111112111
+                    by solve( (#vr.21, 0) ~~> (#vk, 0) )
+                  qed
+                qed
+              qed
+            qed
+          qed
+        qed
+      next
+        case outsealedboxlocPKsindexlocationreport_0_1111211_case_2
+        solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+               ) ▶₁ #vr.11 )
+          case news_0_111112111
+          by contradiction /* impossible chain */
+        qed
+      next
+        case outsealedboxlocPKsindexlocationreport_0_1111211_case_3
+        solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+               ) ▶₁ #vr.12 )
+          case news_0_111112111
+          by solve( (#vr.10, 0) ~~> (#k, 0) )
+        qed
+      qed
+    qed
+  next
+    case p_1_11_case_1
+    solve( !KU( location ) @ #k )
+      case outindexquerybyindex_0_111121111
+      solve( Message( ~sec_ch, <index1, 'query_by_index'> ) ▶₁ #vr.6 )
+        case p_1_11
+        by contradiction /* impossible chain */
+      qed
+    next
+      case outsealedboxlocPKsindexlocationreport_0_1111211_case_1
+      solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+             ) ▶₁ #vr.6 )
+        case news_0_111112111
+        solve( (#vr.4, 0) ~~> (#k, 0) )
+          case d_0_AES_GCM_dec
+          solve( (#vr.9, 0) ~~> (#k, 0) )
+            case location
+            solve( State_111112111( ~di.1, ~sec_ch, Pi ) ▶₀ #vr.8 )
+              case insecchchannelPiadv_1_11111211
+              solve( !KU( 'g'^(~di*~s) ) @ #vk )
+                case c_exp
+                solve( !KU( ~di ) @ #vk.3 )
+                  case outindexquerybyindex_0_111121111
+                  solve( Message( ~sec_ch, <index1, 'query_by_index'> ) ▶₁ #vr.17 )
+                    case p_1_11
+                    by contradiction /* impossible chain */
+                  qed
+                next
+                  case outsealedboxlocPKsindexlocationreport_0_1111211_case_1
+                  solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                         ) ▶₁ #vr.17 )
+                    case news_0_111112111
+                    solve( (#vr.15, 0) ~~> (#vk.1, 0) )
+                      case d_0_AES_GCM_dec
+                      by contradiction /* cyclic */
+                    qed
+                  qed
+                next
+                  case outsealedboxlocPKsindexlocationreport_0_1111211_case_2
+                  solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                         ) ▶₁ #vr.18 )
+                    case news_0_111112111
+                    by contradiction /* impossible chain */
+                  qed
+                next
+                  case outsealedboxlocPKsindexlocationreport_0_1111211_case_3
+                  solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                         ) ▶₁ #vr.19 )
+                    case news_0_111112111
+                    by solve( (#vr.17, 0) ~~> (#vk.1, 0) )
+                  qed
+                qed
+              next
+                case outindexquerybyindex_0_111121111
+                solve( Message( ~sec_ch, <index1, 'query_by_index'> ) ▶₁ #vr.17 )
+                  case p_1_11
+                  by solve( (#vr.15, 0) ~~> (#vk, 0) )
+                qed
+              next
+                case outsealedboxlocPKsindexlocationreport_0_1111211_case_1
+                solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                       ) ▶₁ #vr.17 )
+                  case news_0_111112111
+                  solve( (#vr.15, 0) ~~> (#vk, 0) )
+                    case d_0_AES_GCM_dec
+                    by contradiction /* cyclic */
+                  qed
+                qed
+              next
+                case outsealedboxlocPKsindexlocationreport_0_1111211_case_2
+                solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                       ) ▶₁ #vr.18 )
+                  case news_0_111112111
+                  solve( (#vr.16, 0) ~~> (#vk, 0) )
+                    case d_exp_case_1
+                    solve( (#vr.21, 0) ~~> (#vk, 0) )
+                      case exp
+                      solve( !KU( ~di ) @ #vk.1 )
+                        case outindexquerybyindex_0_111121111
+                        solve( Message( ~sec_ch, <index1, 'query_by_index'> ) ▶₁ #vr.20 )
+                          case p_1_11
+                          by contradiction /* impossible chain */
+                        qed
+                      next
+                        case outsealedboxlocPKsindexlocationreport_0_1111211_case_1
+                        solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                               ) ▶₁ #vr.20 )
+                          case news_0_111112111
+                          solve( (#vr.18, 0) ~~> (#vk.1, 0) )
+                            case d_0_AES_GCM_dec
+                            by contradiction /* cyclic */
+                          qed
+                        qed
+                      next
+                        case outsealedboxlocPKsindexlocationreport_0_1111211_case_2
+                        solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                               ) ▶₁ #vr.21 )
+                          case news_0_111112111
+                          by contradiction /* impossible chain */
+                        qed
+                      next
+                        case outsealedboxlocPKsindexlocationreport_0_1111211_case_3
+                        solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                               ) ▶₁ #vr.22 )
+                          case news_0_111112111
+                          by solve( (#vr.20, 0) ~~> (#vk.1, 0) )
+                        qed
+                      qed
+                    qed
+                  next
+                    case d_exp_case_2
+                    by contradiction /* forbidden KD-fact */
+                  next
+                    case d_exp_case_3
+                    by contradiction /* non-normal exponentiation rule instance */
+                  next
+                    case d_exp_case_4
+                    by contradiction /* non-normal exponentiation rule instance */
+                  next
+                    case d_exp_case_5
+                    by contradiction /* non-normal exponentiation rule instance */
+                  qed
+                qed
+              next
+                case outsealedboxlocPKsindexlocationreport_0_1111211_case_3
+                solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                       ) ▶₁ #vr.19 )
+                  case news_0_111112111
+                  by solve( (#vr.17, 0) ~~> (#vk, 0) )
+                qed
+              qed
+            qed
+          qed
+        qed
+      qed
+    next
+      case outsealedboxlocPKsindexlocationreport_0_1111211_case_2
+      solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+             ) ▶₁ #vr.7 )
+        case news_0_111112111
+        by contradiction /* impossible chain */
+      qed
+    next
+      case outsealedboxlocPKsindexlocationreport_0_1111211_case_3
+      solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+             ) ▶₁ #vr.8 )
+        case news_0_111112111
+        by solve( (#vr.6, 0) ~~> (#k, 0) )
+      qed
+    qed
+  next
+    case p_1_11_case_2
+    solve( !KU( location ) @ #k )
+      case outindexquerybyindex_0_111121111
+      solve( Message( ~sec_ch, <index1, 'query_by_index'> ) ▶₁ #vr.6 )
+        case p_1_11
+        by contradiction /* impossible chain */
+      qed
+    next
+      case outsealedboxlocPKsindexlocationreport_0_1111211_case_1
+      solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+             ) ▶₁ #vr.6 )
+        case news_0_111112111
+        solve( (#vr.4, 0) ~~> (#k, 0) )
+          case d_0_AES_GCM_dec
+          solve( (#vr.9, 0) ~~> (#k, 0) )
+            case location
+            solve( State_111112111( ~di.1, ~sec_ch, Pi ) ▶₀ #vr.8 )
+              case insecchchannelPiadv_1_11111211
+              solve( !KU( 'g'^(~di*~s) ) @ #vk )
+                case c_exp
+                solve( !KU( ~di ) @ #vk.3 )
+                  case outindexquerybyindex_0_111121111
+                  solve( Message( ~sec_ch, <index1, 'query_by_index'> ) ▶₁ #vr.17 )
+                    case p_1_11
+                    by contradiction /* impossible chain */
+                  qed
+                next
+                  case outsealedboxlocPKsindexlocationreport_0_1111211_case_1
+                  solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                         ) ▶₁ #vr.17 )
+                    case news_0_111112111
+                    solve( (#vr.15, 0) ~~> (#vk.1, 0) )
+                      case d_0_AES_GCM_dec
+                      by contradiction /* cyclic */
+                    qed
+                  qed
+                next
+                  case outsealedboxlocPKsindexlocationreport_0_1111211_case_2
+                  solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                         ) ▶₁ #vr.18 )
+                    case news_0_111112111
+                    by contradiction /* impossible chain */
+                  qed
+                next
+                  case outsealedboxlocPKsindexlocationreport_0_1111211_case_3
+                  solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                         ) ▶₁ #vr.19 )
+                    case news_0_111112111
+                    by solve( (#vr.17, 0) ~~> (#vk.1, 0) )
+                  qed
+                qed
+              next
+                case outindexquerybyindex_0_111121111
+                solve( Message( ~sec_ch, <index1, 'query_by_index'> ) ▶₁ #vr.17 )
+                  case p_1_11
+                  by solve( (#vr.15, 0) ~~> (#vk, 0) )
+                qed
+              next
+                case outsealedboxlocPKsindexlocationreport_0_1111211_case_1
+                solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                       ) ▶₁ #vr.17 )
+                  case news_0_111112111
+                  solve( (#vr.15, 0) ~~> (#vk, 0) )
+                    case d_0_AES_GCM_dec
+                    by contradiction /* cyclic */
+                  qed
+                qed
+              next
+                case outsealedboxlocPKsindexlocationreport_0_1111211_case_2
+                solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                       ) ▶₁ #vr.18 )
+                  case news_0_111112111
+                  solve( (#vr.16, 0) ~~> (#vk, 0) )
+                    case d_exp_case_1
+                    solve( (#vr.21, 0) ~~> (#vk, 0) )
+                      case exp
+                      solve( !KU( ~di ) @ #vk.1 )
+                        case outindexquerybyindex_0_111121111
+                        solve( Message( ~sec_ch, <index1, 'query_by_index'> ) ▶₁ #vr.20 )
+                          case p_1_11
+                          by contradiction /* impossible chain */
+                        qed
+                      next
+                        case outsealedboxlocPKsindexlocationreport_0_1111211_case_1
+                        solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                               ) ▶₁ #vr.20 )
+                          case news_0_111112111
+                          solve( (#vr.18, 0) ~~> (#vk.1, 0) )
+                            case d_0_AES_GCM_dec
+                            by contradiction /* cyclic */
+                          qed
+                        qed
+                      next
+                        case outsealedboxlocPKsindexlocationreport_0_1111211_case_2
+                        solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                               ) ▶₁ #vr.21 )
+                          case news_0_111112111
+                          by contradiction /* impossible chain */
+                        qed
+                      next
+                        case outsealedboxlocPKsindexlocationreport_0_1111211_case_3
+                        solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                               ) ▶₁ #vr.22 )
+                          case news_0_111112111
+                          by solve( (#vr.20, 0) ~~> (#vk.1, 0) )
+                        qed
+                      qed
+                    qed
+                  next
+                    case d_exp_case_2
+                    by contradiction /* forbidden KD-fact */
+                  next
+                    case d_exp_case_3
+                    by contradiction /* non-normal exponentiation rule instance */
+                  next
+                    case d_exp_case_4
+                    by contradiction /* non-normal exponentiation rule instance */
+                  next
+                    case d_exp_case_5
+                    by contradiction /* non-normal exponentiation rule instance */
+                  qed
+                qed
+              next
+                case outsealedboxlocPKsindexlocationreport_0_1111211_case_3
+                solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+                       ) ▶₁ #vr.19 )
+                  case news_0_111112111
+                  by solve( (#vr.17, 0) ~~> (#vk, 0) )
+                qed
+              qed
+            qed
+          qed
+        qed
+      qed
+    next
+      case outsealedboxlocPKsindexlocationreport_0_1111211_case_2
+      solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+             ) ▶₁ #vr.7 )
+        case news_0_111112111
+        by contradiction /* impossible chain */
+      qed
+    next
+      case outsealedboxlocPKsindexlocationreport_0_1111211_case_3
+      solve( Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>
+             ) ▶₁ #vr.8 )
+        case news_0_111112111
+        by solve( (#vr.6, 0) ~~> (#k, 0) )
+      qed
+    qed
+  qed
+qed
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+rule (modulo E) Init[color=#ffffff, process="new ~sec_ch.1:channel;"]:
+   [ Fr( ~sec_ch.1 ), Fr( ~di.1 ) ]
+  --[ Init( ) ]->
+   [ !Semistate_111( ~di.1, ~sec_ch.1 ) ]
+
+  /*
+  rule (modulo AC) Init[color=#ffffff, process="new ~sec_ch.1:channel;"]:
+     [ Fr( ~sec_ch ), Fr( ~di ) ]
+    --[ Init( ) ]->
+     [ !Semistate_111( ~di, ~sec_ch ) ]
+  */
+
+rule (modulo E) eventSecretlocation_0_1111121[color=#794080,
+                                              process="event Secret( location );"]:
+   [ State_1111121( ~di.1, ~sec_ch.1 ), Message( ~sec_ch.1, x.2 ) ]
+  --[ Secret( location ) ]->
+   [ Let_111112111( x.2, ~di.1, ~sec_ch.1 ), Ack( ~sec_ch.1, x.2 ) ]
+
+  /*
+  rule (modulo AC) eventSecretlocation_0_1111121[color=#794080,
+                                                 process="event Secret( location );"]:
+     [ State_1111121( ~di, ~sec_ch ), Message( ~sec_ch, x ) ]
+    --[ Secret( location ) ]->
+     [ Let_111112111( x, ~di, ~sec_ch ), Ack( ~sec_ch, x ) ]
+  */
+
+rule (modulo E) insecchchannelPiadv_1_11111211[color=#794080,
+                                               process="in(~sec_ch.1:channel,<Pi.1, 'adv'>);"]:
+   [ Let_111112111( <Pi.1, 'adv'>, ~di.1, ~sec_ch.1 ) ]
+  -->
+   [ State_111112111( ~di.1, ~sec_ch.1, Pi.1 ) ]
+
+  /*
+  rule (modulo AC) insecchchannelPiadv_1_11111211[color=#794080,
+                                                  process="in(~sec_ch.1:channel,<Pi.1, 'adv'>);"]:
+     [ Let_111112111( <Pi, 'adv'>, ~di, ~sec_ch ) ]
+    -->
+     [ State_111112111( ~di, ~sec_ch, Pi ) ]
+  */
+
+rule (modulo E) news_0_111112111[color=#794080, process="new ~s.1;"]:
+   [ State_111112111( ~di.1, ~sec_ch.1, Pi.1 ), Fr( ~s.1 ) ]
+  -->
+   [
+   Message( ~sec_ch.1,
+            <AES_GCM_enc(location, Pi.1^~s.1), 'g'^~s.1, SHA256(Pi.1), 
+             'location_report'>
+   ),
+   Semistate_11111211111( ~di.1, ~s.1, ~sec_ch.1, Pi.1 )
+   ]
+
+  // loop breaker: [0]
+  /*
+  rule (modulo AC) news_0_111112111[color=#794080, process="new ~s.1;"]:
+     [ State_111112111( ~di, ~sec_ch, Pi ), Fr( ~s ) ]
+    -->
+     [
+     Message( ~sec_ch,
+              <AES_GCM_enc(location, z), 'g'^~s, SHA256(Pi), 'location_report'>
+     ),
+     Semistate_11111211111( ~di, ~s, ~sec_ch, Pi )
+     ]
+    variants (modulo AC)
+    1. ~s    = ~s.10
+       Pi    = Pi.12
+       z     = Pi.12^~s.10
+    
+    2. ~s    = ~s.11
+       Pi    = z.14^inv(~s.11)
+       z     = z.14
+    
+    3. ~s    = ~s.43
+       Pi    = x.81^x.82
+       z     = x.81^(~s.43*x.82)
+    
+    4. ~s    = ~s.45
+       Pi    = x.85^inv((~s.45*x.86))
+       z     = x.85^inv(x.86)
+    
+    5. ~s    = ~s.45
+       Pi    = x.85^(x.86*inv(~s.45))
+       z     = x.85^x.86
+    
+    6. ~s    = ~s.46
+       Pi    = x.86^(x.87*inv((~s.46*x.88)))
+       z     = x.86^(x.87*inv(x.88))
+    // loop breaker: [0]
+  */
+
+rule (modulo E) insecchchannelsealedboxlocPKsindexlocationreport_0_111121[color=#658040,
+                                                                          process="in(~sec_ch.1:channel,<sealedbox_loc.2, PKs.2, index.2, 'location_report'>);"]:
+   [ State_111121( ~di.1, ~sec_ch.1 ), Message( ~sec_ch.1, x.2 ) ]
+  -->
+   [ Let_1111211( x.2, ~di.1, ~sec_ch.1 ), Ack( ~sec_ch.1, x.2 ) ]
+
+  // loop breaker: [1]
+  /*
+  rule (modulo AC) insecchchannelsealedboxlocPKsindexlocationreport_0_111121[color=#658040,
+                                                                             process="in(~sec_ch.1:channel,<sealedbox_loc.2, PKs.2, index.2, 'location_report'>);"]:
+     [ State_111121( ~di, ~sec_ch ), Message( ~sec_ch, x ) ]
+    -->
+     [ Let_1111211( x, ~di, ~sec_ch ), Ack( ~sec_ch, x ) ]
+    // loop breaker: [1]
+  */
+
+rule (modulo E) insecchchannelsealedboxlocPKsindexlocationreport_1_111121[color=#658040,
+                                                                          process="in(~sec_ch.1:channel,<sealedbox_loc.2, PKs.2, index.2, 'location_report'>);"]:
+   [
+   Let_1111211( <sealedbox_loc.2, PKs.2, index.2, 'location_report'>, ~di.1,
+                ~sec_ch.1
+   )
+   ]
+  -->
+   [ State_1111211( ~di.1, ~sec_ch.1, PKs.2, index.2, sealedbox_loc.2 ) ]
+
+  /*
+  rule (modulo AC) insecchchannelsealedboxlocPKsindexlocationreport_1_111121[color=#658040,
+                                                                             process="in(~sec_ch.1:channel,<sealedbox_loc.2, PKs.2, index.2, 'location_report'>);"]:
+     [
+     Let_1111211( <sealedbox_loc, PKs, index, 'location_report'>, ~di, ~sec_ch
+     )
+     ]
+    -->
+     [ State_1111211( ~di, ~sec_ch, PKs, index, sealedbox_loc ) ]
+  */
+
+rule (modulo E) outsealedboxlocPKsindexlocationreport_0_1111211[color=#658040,
+                                                                process="out(<sealedbox_loc.2, PKs.2, index.2, 'location_report'>);"]:
+   [ State_1111211( ~di.1, ~sec_ch.1, PKs.2, index.2, sealedbox_loc.2 ) ]
+  -->
+   [
+   State_11112111( ~di.1, ~sec_ch.1, PKs.2, index.2, sealedbox_loc.2 ),
+   Out( <sealedbox_loc.2, PKs.2, index.2, 'location_report'> )
+   ]
+
+  /*
+  rule (modulo AC) outsealedboxlocPKsindexlocationreport_0_1111211[color=#658040,
+                                                                   process="out(<sealedbox_loc.2, PKs.2, index.2, 'location_report'>);"]:
+     [ State_1111211( ~di, ~sec_ch, PKs, index, sealedbox_loc ) ]
+    -->
+     [
+     State_11112111( ~di, ~sec_ch, PKs, index, sealedbox_loc ),
+     Out( <sealedbox_loc, PKs, index, 'location_report'> )
+     ]
+  */
+
+rule (modulo E) insecchchannelindexquerybyindex_0_11112111[color=#658040,
+                                                           process="in(~sec_ch.1:channel,<index1.1, 'query_by_index'>);"]:
+   [
+   State_11112111( ~di.1, ~sec_ch.1, PKs.2, index.2, sealedbox_loc.2 ),
+   Message( ~sec_ch.1, x.3 )
+   ]
+  -->
+   [
+   Let_111121111( x.3, ~di.1, ~sec_ch.1, PKs.2, index.2, sealedbox_loc.2 ),
+   Ack( ~sec_ch.1, x.3 )
+   ]
+
+  // loop breaker: [1]
+  /*
+  rule (modulo AC) insecchchannelindexquerybyindex_0_11112111[color=#658040,
+                                                              process="in(~sec_ch.1:channel,<index1.1, 'query_by_index'>);"]:
+     [
+     State_11112111( ~di, ~sec_ch, PKs, index, sealedbox_loc ),
+     Message( ~sec_ch, x )
+     ]
+    -->
+     [
+     Let_111121111( x, ~di, ~sec_ch, PKs, index, sealedbox_loc ),
+     Ack( ~sec_ch, x )
+     ]
+    // loop breaker: [1]
+  */
+
+rule (modulo E) insecchchannelindexquerybyindex_1_11112111[color=#658040,
+                                                           process="in(~sec_ch.1:channel,<index1.1, 'query_by_index'>);"]:
+   [
+   Let_111121111( <index1.1, 'query_by_index'>, ~di.1, ~sec_ch.1, PKs.2,
+                  index.2, sealedbox_loc.2
+   )
+   ]
+  -->
+   [
+   State_111121111( ~di.1, ~sec_ch.1, index1.1, PKs.2, index.2,
+                    sealedbox_loc.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) insecchchannelindexquerybyindex_1_11112111[color=#658040,
+                                                              process="in(~sec_ch.1:channel,<index1.1, 'query_by_index'>);"]:
+     [
+     Let_111121111( <index1, 'query_by_index'>, ~di, ~sec_ch, PKs, index,
+                    sealedbox_loc
+     )
+     ]
+    -->
+     [ State_111121111( ~di, ~sec_ch, index1, PKs, index, sealedbox_loc ) ]
+  */
+
+rule (modulo E) outindexquerybyindex_0_111121111[color=#658040,
+                                                 process="out(<index1.1, 'query_by_index'>);"]:
+   [
+   State_111121111( ~di.1, ~sec_ch.1, index1.1, PKs.2, index.2,
+                    sealedbox_loc.2
+   )
+   ]
+  -->
+   [
+   State_1111211111( ~di.1, ~sec_ch.1, index1.1, PKs.2, index.2,
+                     sealedbox_loc.2
+   ),
+   Out( <index1.1, 'query_by_index'> )
+   ]
+
+  /*
+  rule (modulo AC) outindexquerybyindex_0_111121111[color=#658040,
+                                                    process="out(<index1.1, 'query_by_index'>);"]:
+     [ State_111121111( ~di, ~sec_ch, index1, PKs, index, sealedbox_loc ) ]
+    -->
+     [
+     State_1111211111( ~di, ~sec_ch, index1, PKs, index, sealedbox_loc ),
+     Out( <index1, 'query_by_index'> )
+     ]
+  */
+
+restriction Restr_ifindexindex_0_1111211111_1:
+  "∀ x #NOW x.1.
+    (Restr_ifindexindex_0_1111211111_1( x, x.1 ) @ #NOW) ⇒ (x = x.1)"
+  // safety formula
+
+rule (modulo E) ifindexindex_0_1111211111[color=#658040,
+                                          process="if index.2 = index1.1"]:
+   [
+   State_1111211111( ~di.1, ~sec_ch.1, index1.1, PKs.2, index.2,
+                     sealedbox_loc.2
+   )
+   ]
+  --[ Restr_ifindexindex_0_1111211111_1( index.2, index1.1 ) ]->
+   [
+   Message( ~sec_ch.1,
+            <sealedbox_loc.2, PKs.2, index.2, 'location_report_index'>
+   ),
+   Semistate_111121111111( ~di.1, ~sec_ch.1, index1.1, PKs.2, index.2,
+                           sealedbox_loc.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) ifindexindex_0_1111211111[color=#658040,
+                                             process="if index.2 = index1.1"]:
+     [ State_1111211111( ~di, ~sec_ch, index1, PKs, index, sealedbox_loc ) ]
+    --[ Restr_ifindexindex_0_1111211111_1( index, index1 ) ]->
+     [
+     Message( ~sec_ch, <sealedbox_loc, PKs, index, 'location_report_index'> ),
+     Semistate_111121111111( ~di, ~sec_ch, index1, PKs, index, sealedbox_loc )
+     ]
+  */
+
+rule (modulo E) p_1_11[color=#ffffff, process="!"]:
+   [ !Semistate_111( ~di.1, ~sec_ch.1 ) ]
+  -->
+   [
+   Message( ~sec_ch.1, <SHA256('g'^~di.1), 'query_by_index'> ),
+   Semistate_111211( ~di.1, ~sec_ch.1 ), State_111121( ~di.1, ~sec_ch.1 ),
+   State_1111121( ~di.1, ~sec_ch.1 ),
+   Message( ~sec_ch.1, <'g'^~di.1, 'adv'> ),
+   Semistate_11111111( ~di.1, ~sec_ch.1 )
+   ]
+
+  /*
+  rule (modulo AC) p_1_11[color=#ffffff, process="!"]:
+     [ !Semistate_111( ~di, ~sec_ch ) ]
+    -->
+     [
+     Message( ~sec_ch, <SHA256('g'^~di), 'query_by_index'> ),
+     Semistate_111211( ~di, ~sec_ch ), State_111121( ~di, ~sec_ch ),
+     State_1111121( ~di, ~sec_ch ), Message( ~sec_ch, <'g'^~di, 'adv'> ),
+     Semistate_11111111( ~di, ~sec_ch )
+     ]
+  */
+
+rule (modulo E) outsecchchannelSHAgdiquerybyindex_1_11121[color=#804640,
+                                                          process="out(~sec_ch.1:channel,<SHA256('g'^~di.1), 'query_by_index'>);"]:
+   [
+   Semistate_111211( ~di.1, ~sec_ch.1 ),
+   Ack( ~sec_ch.1, <SHA256('g'^~di.1), 'query_by_index'> ),
+   Message( ~sec_ch.1, x.2 )
+   ]
+  -->
+   [ Let_1112111( x.2, ~di.1, ~sec_ch.1 ), Ack( ~sec_ch.1, x.2 ) ]
+
+  // loop breaker: [1]
+  /*
+  rule (modulo AC) outsecchchannelSHAgdiquerybyindex_1_11121[color=#804640,
+                                                             process="out(~sec_ch.1:channel,<SHA256('g'^~di.1), 'query_by_index'>);"]:
+     [
+     Semistate_111211( ~di, ~sec_ch ),
+     Ack( ~sec_ch, <SHA256('g'^~di), 'query_by_index'> ),
+     Message( ~sec_ch, x )
+     ]
+    -->
+     [ Let_1112111( x, ~di, ~sec_ch ), Ack( ~sec_ch, x ) ]
+    // loop breaker: [1]
+  */
+
+rule (modulo E) insecchchannelsealedboxlocPKsindexlocationreportindex_1_111211[color=#804640,
+                                                                               process="in(~sec_ch.1:channel,<sealedbox_loc.3, PKs.3, index1.2, 'location_report_index'>);"]:
+   [
+   Let_1112111( <sealedbox_loc.3, PKs.3, index1.2, 'location_report_index'>,
+                ~di.1, ~sec_ch.1
+   )
+   ]
+  -->
+   [ State_1112111( ~di.1, ~sec_ch.1, index1.2, PKs.3, sealedbox_loc.3 ) ]
+
+  /*
+  rule (modulo AC) insecchchannelsealedboxlocPKsindexlocationreportindex_1_111211[color=#804640,
+                                                                                  process="in(~sec_ch.1:channel,<sealedbox_loc.3, PKs.3, index1.2, 'location_report_index'>);"]:
+     [
+     Let_1112111( <sealedbox_loc, PKs, index1, 'location_report_index'>, ~di,
+                  ~sec_ch
+     )
+     ]
+    -->
+     [ State_1112111( ~di, ~sec_ch, index1, PKs, sealedbox_loc ) ]
+  */
+
+rule (modulo E) letlocAESGCMdecsealedboxlocPKsdi_0_1112111[color=#ffffff,
+                                                           process="let loc.1=AES_GCM_dec(sealedbox_loc.3, PKs.3^~di.1)"]:
+   [ State_1112111( ~di.1, ~sec_ch.1, index1.2, PKs.3, sealedbox_loc.3 ) ]
+  -->
+   [
+   Let_11121111( <sealedbox_loc.3, PKs.3^~di.1>, ~di.1, ~sec_ch.1, index1.2,
+                 PKs.3, sealedbox_loc.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) letlocAESGCMdecsealedboxlocPKsdi_0_1112111[color=#ffffff,
+                                                              process="let loc.1=AES_GCM_dec(sealedbox_loc.3, PKs.3^~di.1)"]:
+     [ State_1112111( ~di, ~sec_ch, index1, PKs, sealedbox_loc ) ]
+    -->
+     [
+     Let_11121111( <sealedbox_loc, z>, ~di, ~sec_ch, index1, PKs,
+                   sealedbox_loc
+     )
+     ]
+    variants (modulo AC)
+    1. ~di   = ~di.10
+       PKs   = PKs.12
+       z     = PKs.12^~di.10
+    
+    2. ~di   = ~x.10
+       PKs   = x.13^inv(~x.10)
+       z     = x.13
+    
+    3. ~di   = ~x.10
+       PKs   = x.13^inv((~x.10*x.14))
+       z     = x.13^inv(x.14)
+    
+    4. ~di   = ~x.10
+       PKs   = x.13^(x.14*inv(~x.10))
+       z     = x.13^x.14
+    
+    5. ~di   = ~x.10
+       PKs   = x.13^(x.14*inv((~x.10*x.15)))
+       z     = x.13^(x.14*inv(x.15))
+    
+    6. ~di   = ~di.12
+       PKs   = x.10^x.11
+       z     = x.10^(x.11*~di.12)
+  */
+
+rule (modulo E) letlocAESGCMdecsealedboxlocPKsdi_1_1112111[color=#ffffff,
+                                                           process="let loc.1=AES_GCM_dec(sealedbox_loc.3, PKs.3^~di.1)"]:
+   [
+   Let_11121111( <AES_GCM_enc(loc.1, k), k>, ~di.1, ~sec_ch.1, index1.2,
+                 PKs.3, sealedbox_loc.3
+   )
+   ]
+  -->
+   [
+   State_11121111( ~di.1, ~sec_ch.1, loc.1, index1.2, PKs.3, sealedbox_loc.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) letlocAESGCMdecsealedboxlocPKsdi_1_1112111[color=#ffffff,
+                                                              process="let loc.1=AES_GCM_dec(sealedbox_loc.3, PKs.3^~di.1)"]:
+     [
+     Let_11121111( <AES_GCM_enc(loc, k), k>, ~di, ~sec_ch, index1, PKs,
+                   sealedbox_loc
+     )
+     ]
+    -->
+     [ State_11121111( ~di, ~sec_ch, loc, index1, PKs, sealedbox_loc ) ]
+  */
+
+restriction single_session:
+  "∀ #i #j. ((Init( ) @ #i) ∧ (Init( ) @ #j)) ⇒ (#i = #j)"
+  // safety formula
+
+/* All well-formedness checks were successful. */
+
+end
+
+==============================================================================
+summary of summaries:
+
+analyzed: /home/xiaofeng/fixed_Apple_location_server_privacy.spthy
+
+  confidentiality (all-traces): verified (191 steps)
+
+==============================================================================

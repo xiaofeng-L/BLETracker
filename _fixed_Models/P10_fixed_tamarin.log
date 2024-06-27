@@ -1,0 +1,1240 @@
+maude tool: 'maude'
+ checking version: 3.1. OK.
+ checking installation: OK.
+
+theory Apple_AirTag begin
+
+// Function signature and definition of the equational theory E
+
+builtins: diffie-hellman
+functions: AES_GCM_dec/3[destructor], AES_GCM_enc/3,
+           ECIES_dec/2[destructor], ECIES_enc/2, PairingSession_const/0, SHA256/1,
+           SerialNumberProtection_const/0, ServerSharedSecret_const/0, add/2,
+           fst/1[destructor], get_id/2, get_point_x/1, kdf/2, pair/2, pk/1,
+           qa/0[private,destructor], qe/0[private,destructor], sign/2,
+           snd/1[destructor], verify/2, zero_const/0
+equations:
+    AES_GCM_dec(AES_GCM_enc(mes, k, v), k, v) = mes,
+    ECIES_dec(ECIES_enc(m, pk(sk)), sk) = m,
+    fst(<x.1, x.2>) = x.1,
+    snd(<x.1, x.2>) = x.2,
+    verify(sign(m, sk), pk(sk)) = m
+
+heuristic: p
+
+/* looping facts with injective instances: L_CellLocked/2, L_PureState/2
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+lemma uuid_source [output=[spthy], sources]:
+  all-traces
+  "∀ e #i.
+    (RecvUUID( e ) @ #i) ⇒ (∃ #t. (UUIDSource( e ) @ #t) ∧ (#t < #i))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ e #i.
+  (RecvUUID( e ) @ #i) ∧ ∀ #t. (UUIDSource( e ) @ #t) ⇒ ¬(#t < #i)"
+*/
+by sorry
+
+lemma S2_verify_sources [sources, output=[spthy]]:
+  all-traces
+  "∀ S2 S2_data #i.
+    (RecvS2( S2, S2_data ) @ #i) ⇒
+    ((∃ #t. (SendS2( S2 ) @ #t) ∧ (#t < #i)) ∨
+     (∃ #t. (!KU( S2_data ) @ #t) ∧ (#t < #i)))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ S2 S2_data #i.
+  (RecvS2( S2, S2_data ) @ #i)
+ ∧
+  (∀ #t. (SendS2( S2 ) @ #t) ⇒ ¬(#t < #i)) ∧
+  (∀ #t. (!KU( S2_data ) @ #t) ⇒ ¬(#t < #i))"
+*/
+by sorry
+
+lemma e2_sources [sources, output=[spthy]]:
+  all-traces
+  "∀ E2_data E2 #i.
+    (RecvE2( E2_data, E2 ) @ #i) ⇒
+    ((∃ #t. (SendE2( E2 ) @ #t) ∧ (#t < #i)) ∨
+     (∃ #t. (!KU( E2_data ) @ #t) ∧ (#t < #i)))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ E2_data E2 #i.
+  (RecvE2( E2_data, E2 ) @ #i)
+ ∧
+  (∀ #t. (SendE2( E2 ) @ #t) ⇒ ¬(#t < #i)) ∧
+  (∀ #t. (!KU( E2_data ) @ #t) ⇒ ¬(#t < #i))"
+*/
+by sorry
+
+lemma e3_sources [sources, output=[spthy]]:
+  all-traces
+  "∀ tokenNew E3 SeedS #i.
+    (RecvE3( tokenNew, E3, SeedS ) @ #i) ⇒
+    ((∃ #t. (SendE3( E3, SeedS ) @ #t) ∧ (#t < #i)) ∨
+     (∃ #t. (!KU( tokenNew ) @ #t) ∧ (#t < #i)))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ tokenNew E3 SeedS #i.
+  (RecvE3( tokenNew, E3, SeedS ) @ #i)
+ ∧
+  (∀ #t. (SendE3( E3, SeedS ) @ #t) ⇒ ¬(#t < #i)) ∧
+  (∀ #t. (!KU( tokenNew ) @ #t) ⇒ ¬(#t < #i))"
+*/
+by sorry
+
+lemma h1_source [output=[spthy], sources]:
+  all-traces
+  "∀ e #i. (SendH1( e ) @ #i) ⇒ (∃ #t. (H1Source( e ) @ #t) ∧ (#t < #i))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ e #i. (SendH1( e ) @ #i) ∧ ∀ #t. (H1Source( e ) @ #t) ⇒ ¬(#t < #i)"
+*/
+by sorry
+
+lemma session_source [output=[spthy], sources]:
+  all-traces
+  "∀ e #i.
+    (RecvSessionNonce( e ) @ #i) ⇒
+    (∃ #t. (SessionNonceEncSource( e ) @ #t) ∧ (#t < #i))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ e #i.
+  (RecvSessionNonce( e ) @ #i)
+ ∧
+  ∀ #t. (SessionNonceEncSource( e ) @ #t) ⇒ ¬(#t < #i)"
+*/
+by sorry
+
+lemma e1_source [output=[spthy], sources]:
+  all-traces
+  "∀ e #i.
+    (SendE1( e ) @ #i) ⇒ (∃ #t. (E1EncSource( e ) @ #t) ∧ (#t < #i))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ e #i. (SendE1( e ) @ #i) ∧ ∀ #t. (E1EncSource( e ) @ #t) ⇒ ¬(#t < #i)"
+*/
+by sorry
+
+lemma pair_consistency [output=[spthy]]:
+  all-traces
+  "∀ device #i.
+    (Bounded( device ) @ #i) ⇒
+    (¬(∃ #j. (PairSuccess( device ) @ #j) ∧ (#i < #j)))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ device #i.
+  (Bounded( device ) @ #i) ∧ ∃ #j. (PairSuccess( device ) @ #j) ∧ #i < #j"
+*/
+simplify
+by solve( State_1111112111( ~UUID, ~UUID_paired, ~sec_ch, ~token, id_c,
+                            id_c, device
+          ) ▶₀ #j )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+rule (modulo E) Init[color=#ffffff, process="new ~sec_ch.1:channel;"]:
+   [ Fr( ~sec_ch.1 ), Fr( ~UUID_paired.1 ), Fr( ~UUID.1 ), Fr( ~token.1 ) ]
+  --[ Init( ), UUIDSource( ~UUID_paired.1 ) ]->
+   [ !Semistate_111111( ~UUID.1, ~UUID_paired.1, ~sec_ch.1, ~token.1 ) ]
+
+  /*
+  rule (modulo AC) Init[color=#ffffff, process="new ~sec_ch.1:channel;"]:
+     [ Fr( ~sec_ch ), Fr( ~UUID_paired ), Fr( ~UUID ), Fr( ~token ) ]
+    --[ Init( ), UUIDSource( ~UUID_paired ) ]->
+     [ !Semistate_111111( ~UUID, ~UUID_paired, ~sec_ch, ~token ) ]
+  */
+
+rule (modulo E) newiCloudldentifier_0_1111111111[color=#658040,
+                                                 process="new ~iCloudldentifier.1;"]:
+   [
+   State_1111111111( ~UUID.1, ~UUID_paired.1, ~sec_ch.1, ~token.1 ),
+   Fr( ~iCloudldentifier.1 ), In( <H1.1, E2.1, 'pre_app1'> )
+   ]
+  -->
+   [
+   Let_1111111111111( <E2.1, qe>, ~UUID.1, ~UUID_paired.1,
+                      ~iCloudldentifier.1, ~sec_ch.1, ~token.1, E2.1, H1.1
+   )
+   ]
+
+  /*
+  rule (modulo AC) newiCloudldentifier_0_1111111111[color=#658040,
+                                                    process="new ~iCloudldentifier.1;"]:
+     [
+     State_1111111111( ~UUID, ~UUID_paired, ~sec_ch, ~token ),
+     Fr( ~iCloudldentifier ), In( <H1, E2, 'pre_app1'> )
+     ]
+    -->
+     [
+     Let_1111111111111( <E2, qe>, ~UUID, ~UUID_paired, ~iCloudldentifier,
+                        ~sec_ch, ~token, E2, H1
+     )
+     ]
+  */
+
+rule (modulo E) letEdataECIESdecEqe_1_111111111111[color=#ffffff,
+                                                   process="let E2_data.1=ECIES_dec(E2.1, qe)"]:
+   [
+   Let_1111111111111( <ECIES_enc(E2_data.1, pk(sk)), sk>, ~UUID.1,
+                      ~UUID_paired.1, ~iCloudldentifier.1, ~sec_ch.1, ~token.1, E2.1, H1.1
+   )
+   ]
+  -->
+   [
+   State_1111111111111( ~UUID.1, ~UUID_paired.1, ~iCloudldentifier.1,
+                        ~sec_ch.1, ~token.1, E2.1, E2_data.1, H1.1
+   )
+   ]
+
+  /*
+  rule (modulo AC) letEdataECIESdecEqe_1_111111111111[color=#ffffff,
+                                                      process="let E2_data.1=ECIES_dec(E2.1, qe)"]:
+     [
+     Let_1111111111111( <ECIES_enc(E2_data, pk(sk)), sk>, ~UUID, ~UUID_paired,
+                        ~iCloudldentifier, ~sec_ch, ~token, E2, H1
+     )
+     ]
+    -->
+     [
+     State_1111111111111( ~UUID, ~UUID_paired, ~iCloudldentifier, ~sec_ch,
+                          ~token, E2, E2_data, H1
+     )
+     ]
+  */
+
+rule (modulo E) eventRecvEEdataE_0_1111111111111[color=#658040,
+                                                 process="event RecvE2( E2_data.1, E2.1 );"]:
+   [
+   State_1111111111111( ~UUID.1, ~UUID_paired.1, ~iCloudldentifier.1,
+                        ~sec_ch.1, ~token.1, E2.1, E2_data.1, H1.1
+   )
+   ]
+  --[ RecvE2( E2_data.1, E2.1 ) ]->
+   [
+   Let_111111111111111( E2_data.1, ~UUID.1, ~UUID_paired.1,
+                        ~iCloudldentifier.1, ~sec_ch.1, ~token.1, E2.1, E2_data.1, H1.1
+   )
+   ]
+
+  /*
+  rule (modulo AC) eventRecvEEdataE_0_1111111111111[color=#658040,
+                                                    process="event RecvE2( E2_data.1, E2.1 );"]:
+     [
+     State_1111111111111( ~UUID, ~UUID_paired, ~iCloudldentifier, ~sec_ch,
+                          ~token, E2, E2_data, H1
+     )
+     ]
+    --[ RecvE2( E2_data, E2 ) ]->
+     [
+     Let_111111111111111( E2_data, ~UUID, ~UUID_paired, ~iCloudldentifier,
+                          ~sec_ch, ~token, E2, E2_data, H1
+     )
+     ]
+  */
+
+rule (modulo E) letSessionNoncetokenUUIDSNdataVersionESeedKsrEdata_1_11111111111111[color=#ffffff,
+                                                                                    process="let <SessionNonce.1, token.2, UUID.2, SN.1, data.1, Version.1, E1.1, 
+ SeedK1.1, s.1, r.1>=E2_data.1"]:
+   [
+   Let_111111111111111( <SessionNonce.1, token.2, UUID.2, SN.1, data.1, 
+                         Version.1, E1.1, SeedK1.1, s.1, r.1>,
+                        ~UUID.1, ~UUID_paired.1, ~iCloudldentifier.1, ~sec_ch.1, ~token.1, E2.1,
+                        E2_data.1, H1.1
+   )
+   ]
+  -->
+   [
+   State_111111111111111( ~UUID.1, ~UUID_paired.1, ~iCloudldentifier.1,
+                          ~sec_ch.1, ~token.1, E1.1, E2.1, E2_data.1, H1.1, SN.1, SeedK1.1,
+                          SessionNonce.1, Version.1, data.1, r.1, s.1, UUID.2, token.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) letSessionNoncetokenUUIDSNdataVersionESeedKsrEdata_1_11111111111111[color=#ffffff,
+                                                                                       process="let <SessionNonce.1, token.2, UUID.2, SN.1, data.1, Version.1, E1.1, 
+ SeedK1.1, s.1, r.1>=E2_data.1"]:
+     [
+     Let_111111111111111( <SessionNonce, token, UUID, SN, data, Version, E1, 
+                           SeedK1, s, r>,
+                          ~UUID.1, ~UUID_paired, ~iCloudldentifier, ~sec_ch, ~token.1, E2, E2_data,
+                          H1
+     )
+     ]
+    -->
+     [
+     State_111111111111111( ~UUID.1, ~UUID_paired, ~iCloudldentifier, ~sec_ch,
+                            ~token.1, E1, E2, E2_data, H1, SN, SeedK1, SessionNonce, Version, data,
+                            r, s, UUID, token
+     )
+     ]
+  */
+
+rule (modulo E) eventRecvUUIDUUID_0_111111111111111[color=#658040,
+                                                    process="event RecvUUID( UUID.2 );"]:
+   [
+   State_111111111111111( ~UUID.1, ~UUID_paired.1, ~iCloudldentifier.1,
+                          ~sec_ch.1, ~token.1, E1.1, E2.1, E2_data.1, H1.1, SN.1, SeedK1.1,
+                          SessionNonce.1, Version.1, data.1, r.1, s.1, UUID.2, token.2
+   )
+   ]
+  --[ RecvUUID( UUID.2 ), RecvSessionNonce( SessionNonce.1 ) ]->
+   [
+   State_11111111111111111( ~UUID.1, ~UUID_paired.1, ~iCloudldentifier.1,
+                            ~sec_ch.1, ~token.1, E1.1, E2.1, E2_data.1, H1.1, SN.1, SeedK1.1,
+                            SessionNonce.1, Version.1, data.1, r.1, s.1, UUID.2, token.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) eventRecvUUIDUUID_0_111111111111111[color=#658040,
+                                                       process="event RecvUUID( UUID.2 );"]:
+     [
+     State_111111111111111( ~UUID, ~UUID_paired, ~iCloudldentifier, ~sec_ch,
+                            ~token, E1, E2, E2_data, H1, SN, SeedK1, SessionNonce, Version, data, r,
+                            s, UUID.1, token.1
+     )
+     ]
+    --[ RecvUUID( UUID.1 ), RecvSessionNonce( SessionNonce ) ]->
+     [
+     State_11111111111111111( ~UUID, ~UUID_paired, ~iCloudldentifier, ~sec_ch,
+                              ~token, E1, E2, E2_data, H1, SN, SeedK1, SessionNonce, Version, data, r,
+                              s, UUID.1, token.1
+     )
+     ]
+  */
+
+restriction Restr_ifUUIDUUIDpaired_1_11111111111111111_1:
+  "∀ x #NOW x.1.
+    (Restr_ifUUIDUUIDpaired_1_11111111111111111_1( x, x.1 ) @ #NOW) ⇒
+    (¬(x = x.1))"
+  // safety formula
+
+rule (modulo E) ifUUIDUUIDpaired_1_11111111111111111[color=#658040,
+                                                     process="if UUID.2 = ~UUID_paired.1"]:
+   [
+   State_11111111111111111( ~UUID.1, ~UUID_paired.1, ~iCloudldentifier.1,
+                            ~sec_ch.1, ~token.1, E1.1, E2.1, E2_data.1, H1.1, SN.1, SeedK1.1,
+                            SessionNonce.1, Version.1, data.1, r.1, s.1, UUID.2, token.2
+   )
+   ]
+  --[
+  Restr_ifUUIDUUIDpaired_1_11111111111111111_1( UUID.2, ~UUID_paired.1 )
+  ]->
+   [
+   State_111111111111111112( ~UUID.1, ~UUID_paired.1, ~iCloudldentifier.1,
+                             ~sec_ch.1, ~token.1, E1.1, E2.1, E2_data.1, H1.1, SN.1, SeedK1.1,
+                             SessionNonce.1, Version.1, data.1, r.1, s.1, UUID.2, token.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) ifUUIDUUIDpaired_1_11111111111111111[color=#658040,
+                                                        process="if UUID.2 = ~UUID_paired.1"]:
+     [
+     State_11111111111111111( ~UUID, ~UUID_paired, ~iCloudldentifier, ~sec_ch,
+                              ~token, E1, E2, E2_data, H1, SN, SeedK1, SessionNonce, Version, data, r,
+                              s, UUID.1, token.1
+     )
+     ]
+    --[ Restr_ifUUIDUUIDpaired_1_11111111111111111_1( UUID.1, ~UUID_paired )
+    ]->
+     [
+     State_111111111111111112( ~UUID, ~UUID_paired, ~iCloudldentifier,
+                               ~sec_ch, ~token, E1, E2, E2_data, H1, SN, SeedK1, SessionNonce, Version,
+                               data, r, s, UUID.1, token.1
+     )
+     ]
+  */
+
+restriction Restr_iftokentoken_0_111111111111111112_1:
+  "∀ x #NOW x.1.
+    (Restr_iftokentoken_0_111111111111111112_1( x, x.1 ) @ #NOW) ⇒ (x = x.1)"
+  // safety formula
+
+rule (modulo E) iftokentoken_0_111111111111111112[color=#658040,
+                                                  process="if token.2 = ~token.1"]:
+   [
+   State_111111111111111112( ~UUID.1, ~UUID_paired.1, ~iCloudldentifier.1,
+                             ~sec_ch.1, ~token.1, E1.1, E2.1, E2_data.1, H1.1, SN.1, SeedK1.1,
+                             SessionNonce.1, Version.1, data.1, r.1, s.1, UUID.2, token.2
+   ),
+   Fr( ~token_new.1 ), Fr( ~SeedS.1 )
+   ]
+  --[
+  SendH1( H1.1 ), SendE1( E1.1 ),
+  Restr_iftokentoken_0_111111111111111112_1( token.2, ~token.1 )
+  ]->
+   [
+   State_111111111111111112111111( ~SeedS.1, ~UUID.1, ~UUID_paired.1,
+                                   ~iCloudldentifier.1, ~sec_ch.1, ~token.1, ~token_new.1, E1.1, E2.1,
+                                   E2_data.1, H1.1, SN.1, SeedK1.1, SessionNonce.1, Version.1, data.1, r.1,
+                                   s.1, UUID.2, token.2
+   ),
+   Out( <~iCloudldentifier.1, ~SeedS.1, 
+         sign(<UUID.2, SessionNonce.1, ~SeedS.1, H1.1, E1.1, 
+               AES_GCM_enc(~token_new.1,
+                           kdf(kdf(<~SeedS.1, SeedK1.1>, ServerSharedSecret_const),
+                               PairingSession_const),
+                           kdf(kdf(<~SeedS.1, SeedK1.1>, ServerSharedSecret_const),
+                               PairingSession_const))
+              >,
+              qa), 
+         AES_GCM_enc(~token_new.1,
+                     kdf(kdf(<~SeedS.1, SeedK1.1>, ServerSharedSecret_const),
+                         PairingSession_const),
+                     kdf(kdf(<~SeedS.1, SeedK1.1>, ServerSharedSecret_const),
+                         PairingSession_const)), 
+         s.1, r.1, 'pre_app1'>
+   )
+   ]
+
+  /*
+  rule (modulo AC) iftokentoken_0_111111111111111112[color=#658040,
+                                                     process="if token.2 = ~token.1"]:
+     [
+     State_111111111111111112( ~UUID, ~UUID_paired, ~iCloudldentifier,
+                               ~sec_ch, ~token, E1, E2, E2_data, H1, SN, SeedK1, SessionNonce, Version,
+                               data, r, s, UUID.1, token.1
+     ),
+     Fr( ~token_new ), Fr( ~SeedS )
+     ]
+    --[
+    SendH1( H1 ), SendE1( E1 ),
+    Restr_iftokentoken_0_111111111111111112_1( token.1, ~token )
+    ]->
+     [
+     State_111111111111111112111111( ~SeedS, ~UUID, ~UUID_paired,
+                                     ~iCloudldentifier, ~sec_ch, ~token, ~token_new, E1, E2, E2_data, H1, SN,
+                                     SeedK1, SessionNonce, Version, data, r, s, UUID.1, token.1
+     ),
+     Out( <~iCloudldentifier, ~SeedS, 
+           sign(<UUID.1, SessionNonce, ~SeedS, H1, E1, 
+                 AES_GCM_enc(~token_new,
+                             kdf(kdf(<~SeedS, SeedK1>, ServerSharedSecret_const),
+                                 PairingSession_const),
+                             kdf(kdf(<~SeedS, SeedK1>, ServerSharedSecret_const),
+                                 PairingSession_const))
+                >,
+                qa), 
+           AES_GCM_enc(~token_new,
+                       kdf(kdf(<~SeedS, SeedK1>, ServerSharedSecret_const),
+                           PairingSession_const),
+                       kdf(kdf(<~SeedS, SeedK1>, ServerSharedSecret_const),
+                           PairingSession_const)), 
+           s, r, 'pre_app1'>
+     )
+     ]
+  */
+
+rule (modulo E) eventSendEAESGCMenctokennewkdfkdfSeedSSeedKServerSharedSecretconstPairingSessionconstkdfkdfSeedSSeedKServerSharedSecretconstPairingSessionconstSeedS_0_111111111111111112111111[color=#658040,
+                                                                                                                                                                                                process="event SendE3( AES_GCM_enc(~token_new.1,
+                    kdf(kdf(<~SeedS.1, SeedK1.1>, ServerSharedSecret_const),
+                        PairingSession_const),
+                    kdf(kdf(<~SeedS.1, SeedK1.1>, ServerSharedSecret_const),
+                        PairingSession_const)),
+        ~SeedS.1
+);"]:
+   [
+   State_111111111111111112111111( ~SeedS.1, ~UUID.1, ~UUID_paired.1,
+                                   ~iCloudldentifier.1, ~sec_ch.1, ~token.1, ~token_new.1, E1.1, E2.1,
+                                   E2_data.1, H1.1, SN.1, SeedK1.1, SessionNonce.1, Version.1, data.1, r.1,
+                                   s.1, UUID.2, token.2
+   )
+   ]
+  --[
+  SendE3( AES_GCM_enc(~token_new.1,
+                      kdf(kdf(<~SeedS.1, SeedK1.1>, ServerSharedSecret_const),
+                          PairingSession_const),
+                      kdf(kdf(<~SeedS.1, SeedK1.1>, ServerSharedSecret_const),
+                          PairingSession_const)),
+          ~SeedS.1
+  )
+  ]->
+   [ ]
+
+  /*
+  rule (modulo AC) eventSendEAESGCMenctokennewkdfkdfSeedSSeedKServerSharedSecretconstPairingSessionconstkdfkdfSeedSSeedKServerSharedSecretconstPairingSessionconstSeedS_0_111111111111111112111111[color=#658040,
+                                                                                                                                                                                                   process="event SendE3( AES_GCM_enc(~token_new.1,
+                    kdf(kdf(<~SeedS.1, SeedK1.1>, ServerSharedSecret_const),
+                        PairingSession_const),
+                    kdf(kdf(<~SeedS.1, SeedK1.1>, ServerSharedSecret_const),
+                        PairingSession_const)),
+        ~SeedS.1
+);"]:
+     [
+     State_111111111111111112111111( ~SeedS, ~UUID, ~UUID_paired,
+                                     ~iCloudldentifier, ~sec_ch, ~token, ~token_new, E1, E2, E2_data, H1, SN,
+                                     SeedK1, SessionNonce, Version, data, r, s, UUID.1, token.1
+     )
+     ]
+    --[
+    SendE3( AES_GCM_enc(~token_new,
+                        kdf(kdf(<~SeedS, SeedK1>, ServerSharedSecret_const),
+                            PairingSession_const),
+                        kdf(kdf(<~SeedS, SeedK1>, ServerSharedSecret_const),
+                            PairingSession_const)),
+            ~SeedS
+    )
+    ]->
+     [ ]
+  */
+
+rule (modulo E) newSessionNonce_0_1111111121[color=#804640,
+                                             process="new ~SessionNonce.2;"]:
+   [
+   State_1111111121( ~UUID.1, ~UUID_paired.1, ~sec_ch.1, ~token.1 ),
+   Fr( ~SessionNonce.2 ), Fr( ~E1.2 )
+   ]
+  -->
+   [
+   State_1111111121111( ~UUID.1, ~UUID_paired.1, ~sec_ch.1, ~token.1, ~E1.2,
+                        ~SessionNonce.2
+   ),
+   Out( <~SessionNonce.2, ~E1.2, 'open_ch'> )
+   ]
+
+  /*
+  rule (modulo AC) newSessionNonce_0_1111111121[color=#804640,
+                                                process="new ~SessionNonce.2;"]:
+     [
+     State_1111111121( ~UUID, ~UUID_paired, ~sec_ch, ~token ),
+     Fr( ~SessionNonce ), Fr( ~E1 )
+     ]
+    -->
+     [
+     State_1111111121111( ~UUID, ~UUID_paired, ~sec_ch, ~token, ~E1,
+                          ~SessionNonce
+     ),
+     Out( <~SessionNonce, ~E1, 'open_ch'> )
+     ]
+  */
+
+rule (modulo E) inCEopench_0_1111111121111[color=#804640,
+                                           process="in(<C1.1, E2.2, 'open_ch'>);"]:
+   [
+   State_1111111121111( ~UUID.1, ~UUID_paired.1, ~sec_ch.1, ~token.1, ~E1.2,
+                        ~SessionNonce.2
+   ),
+   In( <C1.1, E2.2, 'open_ch'> ), Fr( ~s_.1 ), Fr( ~r_.1 )
+   ]
+  --[ H1Source( SHA256(<'g'^~s_.1, ~r_.1>) ) ]->
+   [
+   State_111111112111111111( ~UUID.1, ~UUID_paired.1, ~r_.1, ~s_.1,
+                             ~sec_ch.1, ~token.1, C1.1, ~E1.2, ~SessionNonce.2, E2.2
+   ),
+   Out( <SHA256(<'g'^~s_.1, ~r_.1>), E2.2, 'pre_app1'> )
+   ]
+
+  /*
+  rule (modulo AC) inCEopench_0_1111111121111[color=#804640,
+                                              process="in(<C1.1, E2.2, 'open_ch'>);"]:
+     [
+     State_1111111121111( ~UUID, ~UUID_paired, ~sec_ch, ~token, ~E1,
+                          ~SessionNonce
+     ),
+     In( <C1, E2, 'open_ch'> ), Fr( ~s_ ), Fr( ~r_ )
+     ]
+    --[ H1Source( SHA256(<'g'^~s_, ~r_>) ) ]->
+     [
+     State_111111112111111111( ~UUID, ~UUID_paired, ~r_, ~s_, ~sec_ch, ~token,
+                               C1, ~E1, ~SessionNonce, E2
+     ),
+     Out( <SHA256(<'g'^~s_, ~r_>), E2, 'pre_app1'> )
+     ]
+  */
+
+rule (modulo E) iniCloudldentifierSeedSSEsrpreapp_0_111111112111111111[color=#804640,
+                                                                       process="in(<iCloudldentifier.2, SeedS.2, S2.2, E3.2, s.2, r.2, 'pre_app1'>);"]:
+   [
+   State_111111112111111111( ~UUID.1, ~UUID_paired.1, ~r_.1, ~s_.1,
+                             ~sec_ch.1, ~token.1, C1.1, ~E1.2, ~SessionNonce.2, E2.2
+   ),
+   In( <iCloudldentifier.2, SeedS.2, S2.2, E3.2, s.2, r.2, 'pre_app1'> )
+   ]
+  -->
+   [
+   State_11111111211111111111( ~UUID.1, ~UUID_paired.1, ~r_.1, ~s_.1,
+                               ~sec_ch.1, ~token.1, C1.1, ~E1.2, ~SessionNonce.2, E2.2, E3.2, S2.2,
+                               SeedS.2, iCloudldentifier.2, r.2, s.2
+   ),
+   Out( <'g'^~s_.1, ~r_.1, E3.2, SeedS.2, S2.2, iCloudldentifier.2, 
+         'open_ch'>
+   )
+   ]
+
+  /*
+  rule (modulo AC) iniCloudldentifierSeedSSEsrpreapp_0_111111112111111111[color=#804640,
+                                                                          process="in(<iCloudldentifier.2, SeedS.2, S2.2, E3.2, s.2, r.2, 'pre_app1'>);"]:
+     [
+     State_111111112111111111( ~UUID, ~UUID_paired, ~r_, ~s_, ~sec_ch, ~token,
+                               C1, ~E1, ~SessionNonce, E2
+     ),
+     In( <iCloudldentifier, SeedS, S2, E3, s, r, 'pre_app1'> )
+     ]
+    -->
+     [
+     State_11111111211111111111( ~UUID, ~UUID_paired, ~r_, ~s_, ~sec_ch,
+                                 ~token, C1, ~E1, ~SessionNonce, E2, E3, S2, SeedS, iCloudldentifier, r, s
+     ),
+     Out( <'g'^~s_, ~r_, E3, SeedS, S2, iCloudldentifier, 'open_ch'> )
+     ]
+  */
+
+rule (modulo E) eventSendSS_0_11111111211111111111[color=#804640,
+                                                   process="event SendS2( S2.2 );"]:
+   [
+   State_11111111211111111111( ~UUID.1, ~UUID_paired.1, ~r_.1, ~s_.1,
+                               ~sec_ch.1, ~token.1, C1.1, ~E1.2, ~SessionNonce.2, E2.2, E3.2, S2.2,
+                               SeedS.2, iCloudldentifier.2, r.2, s.2
+   ),
+   In( <other_param.1, 'open_ch'> )
+   ]
+  --[ SendS2( S2.2 ) ]->
+   [
+   State_1111111121111111111111( ~UUID.1, ~UUID_paired.1, ~r_.1, ~s_.1,
+                                 ~sec_ch.1, ~token.1, C1.1, other_param.1, ~E1.2, ~SessionNonce.2, E2.2,
+                                 E3.2, S2.2, SeedS.2, iCloudldentifier.2, r.2, s.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) eventSendSS_0_11111111211111111111[color=#804640,
+                                                      process="event SendS2( S2.2 );"]:
+     [
+     State_11111111211111111111( ~UUID, ~UUID_paired, ~r_, ~s_, ~sec_ch,
+                                 ~token, C1, ~E1, ~SessionNonce, E2, E3, S2, SeedS, iCloudldentifier, r, s
+     ),
+     In( <other_param, 'open_ch'> )
+     ]
+    --[ SendS2( S2 ) ]->
+     [
+     State_1111111121111111111111( ~UUID, ~UUID_paired, ~r_, ~s_, ~sec_ch,
+                                   ~token, C1, other_param, ~E1, ~SessionNonce, E2, E3, S2, SeedS,
+                                   iCloudldentifier, r, s
+     )
+     ]
+  */
+
+rule (modulo E) ifCSHAsr_0_1111111121111111111111[color=#804640,
+                                                  process="if C1.1=SHA256(<s.2, r.2>)"]:
+   [
+   State_1111111121111111111111( ~UUID.1, ~UUID_paired.1, ~r_.1, ~s_.1,
+                                 ~sec_ch.1, ~token.1, C1.1, other_param.1, ~E1.2, ~SessionNonce.2, E2.2,
+                                 E3.2, S2.2, SeedS.2, iCloudldentifier.2, r.2, s.2
+   )
+   ]
+  --[ Pred_Eq( C1.1, SHA256(<s.2, r.2>) ) ]->
+   [
+   Message( ~sec_ch.1,
+            <
+             get_id(add('g'^s.2, 'g'^~s_.1),
+                    kdf(get_point_x(add('g'^s.2, 'g'^~s_.1)), <r.2, ~r_.1>)), 
+             'id_c'>
+   ),
+   Semistate_111111112111111111111111( ~UUID.1, ~UUID_paired.1, ~r_.1,
+                                       ~s_.1, ~sec_ch.1, ~token.1, C1.1, other_param.1, ~E1.2,
+                                       ~SessionNonce.2, E2.2, E3.2, S2.2, SeedS.2, iCloudldentifier.2, r.2,
+                                       s.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) ifCSHAsr_0_1111111121111111111111[color=#804640,
+                                                     process="if C1.1=SHA256(<s.2, r.2>)"]:
+     [
+     State_1111111121111111111111( ~UUID, ~UUID_paired, ~r_, ~s_, ~sec_ch,
+                                   ~token, C1, other_param, ~E1, ~SessionNonce, E2, E3, S2, SeedS,
+                                   iCloudldentifier, r, s
+     )
+     ]
+    --[ Pred_Eq( C1, SHA256(<s, r>) ) ]->
+     [
+     Message( ~sec_ch,
+              <get_id(add(z, 'g'^~s_), kdf(get_point_x(add(z, 'g'^~s_)), <r, ~r_>)), 
+               'id_c'>
+     ),
+     Semistate_111111112111111111111111( ~UUID, ~UUID_paired, ~r_, ~s_,
+                                         ~sec_ch, ~token, C1, other_param, ~E1, ~SessionNonce, E2, E3, S2,
+                                         SeedS, iCloudldentifier, r, s
+     )
+     ]
+    variants (modulo AC)
+    1. s     = s.48
+       z     = 'g'^s.48
+    
+    2. s     = one
+       z     = 'g'
+  */
+
+rule (modulo E) ifCSHAsr_1_1111111121111111111111[color=#804640,
+                                                  process="if C1.1=SHA256(<s.2, r.2>)"]:
+   [
+   State_1111111121111111111111( ~UUID.1, ~UUID_paired.1, ~r_.1, ~s_.1,
+                                 ~sec_ch.1, ~token.1, C1.1, other_param.1, ~E1.2, ~SessionNonce.2, E2.2,
+                                 E3.2, S2.2, SeedS.2, iCloudldentifier.2, r.2, s.2
+   )
+   ]
+  --[ Pred_Not_Eq( C1.1, SHA256(<s.2, r.2>) ) ]->
+   [ ]
+
+  /*
+  rule (modulo AC) ifCSHAsr_1_1111111121111111111111[color=#804640,
+                                                     process="if C1.1=SHA256(<s.2, r.2>)"]:
+     [
+     State_1111111121111111111111( ~UUID, ~UUID_paired, ~r_, ~s_, ~sec_ch,
+                                   ~token, C1, other_param, ~E1, ~SessionNonce, E2, E3, S2, SeedS,
+                                   iCloudldentifier, r, s
+     )
+     ]
+    --[ Pred_Not_Eq( C1, SHA256(<s, r>) ) ]->
+     [ ]
+  */
+
+rule (modulo E) inSessionNonceEopench_0_111111121[color=#405880,
+                                                  process="in(<SessionNonce.3, E1.3, 'open_ch'>);"]:
+   [
+   State_111111121( ~UUID.1, ~UUID_paired.1, ~sec_ch.1, ~token.1 ),
+   In( <SessionNonce.3, E1.3, 'open_ch'> ), Fr( ~s.3 ), Fr( ~r.3 ),
+   Fr( ~SeedK1.2 ), Fr( ~exp_2.1 ), Fr( ~SN.2 ), Fr( ~data.2 ),
+   Fr( ~Version.2 )
+   ]
+  --[ SessionNonceEncSource( SessionNonce.3 ), E1EncSource( E1.3 ) ]->
+   [
+   State_11111112111111111111( ~UUID.1, ~UUID_paired.1, ~exp_2.1, ~sec_ch.1,
+                               ~token.1, ~SN.2, ~SeedK1.2, ~Version.2, ~data.2, ~r.3, ~s.3, E1.3,
+                               SessionNonce.3
+   ),
+   Out( <SHA256(<~s.3, ~r.3>), 
+         ECIES_enc(<SessionNonce.3, ~token.1, ~UUID_paired.1, ~SN.2, ~data.2, 
+                    ~Version.2, E1.3, ~SeedK1.2, ~s.3, ~r.3>,
+                   pk(qe)), 
+         'open_ch'>
+   )
+   ]
+
+  /*
+  rule (modulo AC) inSessionNonceEopench_0_111111121[color=#405880,
+                                                     process="in(<SessionNonce.3, E1.3, 'open_ch'>);"]:
+     [
+     State_111111121( ~UUID, ~UUID_paired, ~sec_ch, ~token ),
+     In( <SessionNonce, E1, 'open_ch'> ), Fr( ~s ), Fr( ~r ), Fr( ~SeedK1 ),
+     Fr( ~exp_2 ), Fr( ~SN ), Fr( ~data ), Fr( ~Version )
+     ]
+    --[ SessionNonceEncSource( SessionNonce ), E1EncSource( E1 ) ]->
+     [
+     State_11111112111111111111( ~UUID, ~UUID_paired, ~exp_2, ~sec_ch, ~token,
+                                 ~SN, ~SeedK1, ~Version, ~data, ~r, ~s, E1, SessionNonce
+     ),
+     Out( <SHA256(<~s, ~r>), 
+           ECIES_enc(<SessionNonce, ~token, ~UUID_paired, ~SN, ~data, ~Version, E1, 
+                      ~SeedK1, ~s, ~r>,
+                     pk(qe)), 
+           'open_ch'>
+     )
+     ]
+  */
+
+rule (modulo E) eventSendEECIESencSessionNoncetokenUUIDpairedSNdataVersionESeedKsrpkqe_0_11111112111111111111[color=#405880,
+                                                                                                              process="event SendE2( ECIES_enc(<SessionNonce.3, ~token.1, ~UUID_paired.1, 
+                   ~SN.2, ~data.2, ~Version.2, E1.3, ~SeedK1.2, ~s.3, ~r.3>,
+                  pk(qe))
+);"]:
+   [
+   State_11111112111111111111( ~UUID.1, ~UUID_paired.1, ~exp_2.1, ~sec_ch.1,
+                               ~token.1, ~SN.2, ~SeedK1.2, ~Version.2, ~data.2, ~r.3, ~s.3, E1.3,
+                               SessionNonce.3
+   ),
+   In( <pkS.2, r_.2, E3.3, SeedS.3, S2.3, iCloudldentifier.3, 'open_ch'> )
+   ]
+  --[
+  SendE2( ECIES_enc(<SessionNonce.3, ~token.1, ~UUID_paired.1, ~SN.2, 
+                     ~data.2, ~Version.2, E1.3, ~SeedK1.2, ~s.3, ~r.3>,
+                    pk(qe))
+  )
+  ]->
+   [
+   State_1111111211111111111111( ~UUID.1, ~UUID_paired.1, ~exp_2.1,
+                                 ~sec_ch.1, ~token.1, ~SN.2, ~SeedK1.2, ~Version.2, ~data.2, pkS.2, r_.2,
+                                 ~r.3, ~s.3, E1.3, E3.3, S2.3, SeedS.3, SessionNonce.3, iCloudldentifier.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) eventSendEECIESencSessionNoncetokenUUIDpairedSNdataVersionESeedKsrpkqe_0_11111112111111111111[color=#405880,
+                                                                                                                 process="event SendE2( ECIES_enc(<SessionNonce.3, ~token.1, ~UUID_paired.1, 
+                   ~SN.2, ~data.2, ~Version.2, E1.3, ~SeedK1.2, ~s.3, ~r.3>,
+                  pk(qe))
+);"]:
+     [
+     State_11111112111111111111( ~UUID, ~UUID_paired, ~exp_2, ~sec_ch, ~token,
+                                 ~SN, ~SeedK1, ~Version, ~data, ~r, ~s, E1, SessionNonce
+     ),
+     In( <pkS, r_, E3, SeedS, S2, iCloudldentifier, 'open_ch'> )
+     ]
+    --[
+    SendE2( ECIES_enc(<SessionNonce, ~token, ~UUID_paired, ~SN, ~data, 
+                       ~Version, E1, ~SeedK1, ~s, ~r>,
+                      pk(qe))
+    )
+    ]->
+     [
+     State_1111111211111111111111( ~UUID, ~UUID_paired, ~exp_2, ~sec_ch,
+                                   ~token, ~SN, ~SeedK1, ~Version, ~data, pkS, r_, ~r, ~s, E1, E3, S2,
+                                   SeedS, SessionNonce, iCloudldentifier
+     )
+     ]
+  */
+
+restriction Restr_ifverifySpkqaUUIDpairedSessionNonceSeedSSHApkSrEE_0_1111111211111111111111_1:
+  "∀ x #NOW x.1.
+    (Restr_ifverifySpkqaUUIDpairedSessionNonceSeedSSHApkSrEE_0_1111111211111111111111_1( x,
+                                                                                         x.1
+     ) @ #NOW) ⇒
+    (x = x.1)"
+  // safety formula
+
+rule (modulo E) ifverifySpkqaUUIDpairedSessionNonceSeedSSHApkSrEE_0_1111111211111111111111[color=#405880,
+                                                                                           process="if verify(S2.3, pk(qa)) =
+<~UUID_paired.1, SessionNonce.3, SeedS.3, SHA256(<pkS.2, r_.2>), 
+ E1.3, E3.3>"]:
+   [
+   State_1111111211111111111111( ~UUID.1, ~UUID_paired.1, ~exp_2.1,
+                                 ~sec_ch.1, ~token.1, ~SN.2, ~SeedK1.2, ~Version.2, ~data.2, pkS.2, r_.2,
+                                 ~r.3, ~s.3, E1.3, E3.3, S2.3, SeedS.3, SessionNonce.3, iCloudldentifier.3
+   )
+   ]
+  --[
+  RecvS2( S2.3,
+          <~UUID_paired.1, SessionNonce.3, SeedS.3, SHA256(<pkS.2, r_.2>), E1.3, 
+           E3.3>
+  ),
+  Restr_ifverifySpkqaUUIDpairedSessionNonceSeedSSHApkSrEE_0_1111111211111111111111_1( verify(S2.3,
+                                                                                             pk(qa)),
+                                                                                      <~UUID_paired.1, 
+                                                                                       SessionNonce.3, 
+                                                                                       SeedS.3, 
+                                                                                       SHA256(<pkS.2, r_.2>), 
+                                                                                       E1.3, E3.3>
+  )
+  ]->
+   [
+   Let_1111111211111111111111111( <E3.3, 
+                                   kdf(kdf(<SeedS.3, ~SeedK1.2>, ServerSharedSecret_const),
+                                       PairingSession_const), 
+                                   kdf(kdf(<SeedS.3, ~SeedK1.2>, ServerSharedSecret_const),
+                                       PairingSession_const)
+                                  >,
+                                  ~UUID.1, ~UUID_paired.1, ~exp_2.1, ~sec_ch.1, ~token.1, ~SN.2, ~SeedK1.2,
+                                  ~Version.2, ~data.2, pkS.2, r_.2, ~r.3, ~s.3, E1.3, E3.3, S2.3, SeedS.3,
+                                  SessionNonce.3, iCloudldentifier.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) ifverifySpkqaUUIDpairedSessionNonceSeedSSHApkSrEE_0_1111111211111111111111[color=#405880,
+                                                                                              process="if verify(S2.3, pk(qa)) =
+<~UUID_paired.1, SessionNonce.3, SeedS.3, SHA256(<pkS.2, r_.2>), 
+ E1.3, E3.3>"]:
+     [
+     State_1111111211111111111111( ~UUID, ~UUID_paired, ~exp_2, ~sec_ch,
+                                   ~token, ~SN, ~SeedK1, ~Version, ~data, pkS, r_, ~r, ~s, E1, E3, S2,
+                                   SeedS, SessionNonce, iCloudldentifier
+     )
+     ]
+    --[
+    RecvS2( S2,
+            <~UUID_paired, SessionNonce, SeedS, SHA256(<pkS, r_>), E1, E3>
+    ),
+    Restr_ifverifySpkqaUUIDpairedSessionNonceSeedSSHApkSrEE_0_1111111211111111111111_1( z,
+                                                                                        <~UUID_paired, 
+                                                                                         SessionNonce, SeedS, 
+                                                                                         SHA256(<pkS, r_>), 
+                                                                                         E1, E3>
+    )
+    ]->
+     [
+     Let_1111111211111111111111111( <E3, 
+                                     kdf(kdf(<SeedS, ~SeedK1>, ServerSharedSecret_const),
+                                         PairingSession_const), 
+                                     kdf(kdf(<SeedS, ~SeedK1>, ServerSharedSecret_const),
+                                         PairingSession_const)
+                                    >,
+                                    ~UUID, ~UUID_paired, ~exp_2, ~sec_ch, ~token, ~SN, ~SeedK1, ~Version,
+                                    ~data, pkS, r_, ~r, ~s, E1, E3, S2, SeedS, SessionNonce, iCloudldentifier
+     )
+     ]
+    variants (modulo AC)
+    1. S2    = S2.26
+       z     = verify(S2.26, pk(qa))
+    
+    2. S2    = sign(x.24, qa)
+       z     = x.24
+  */
+
+rule (modulo E) lettknewAESGCMdecEkdfkdfSeedSSeedKServerSharedSecretconstPairingSessionconstkdfkdfSeedSSeedKServerSharedSecretconstPairingSessionconst_1_111111121111111111111111[color=#ffffff,
+                                                                                                                                                                                  process="let tk_new.1=AES_GCM_dec(E3.3,
+            kdf(kdf(<SeedS.3, ~SeedK1.2>, ServerSharedSecret_const),
+                PairingSession_const),
+            kdf(kdf(<SeedS.3, ~SeedK1.2>, ServerSharedSecret_const),
+                PairingSession_const))"]:
+   [
+   Let_1111111211111111111111111( <AES_GCM_enc(tk_new.1, k, v), k, v>,
+                                  ~UUID.1, ~UUID_paired.1, ~exp_2.1, ~sec_ch.1, ~token.1, ~SN.2, ~SeedK1.2,
+                                  ~Version.2, ~data.2, pkS.2, r_.2, ~r.3, ~s.3, E1.3, E3.3, S2.3, SeedS.3,
+                                  SessionNonce.3, iCloudldentifier.3
+   )
+   ]
+  -->
+   [
+   State_1111111211111111111111111( ~UUID.1, ~UUID_paired.1, ~exp_2.1,
+                                    ~sec_ch.1, ~token.1, tk_new.1, ~SN.2, ~SeedK1.2, ~Version.2, ~data.2,
+                                    pkS.2, r_.2, ~r.3, ~s.3, E1.3, E3.3, S2.3, SeedS.3, SessionNonce.3,
+                                    iCloudldentifier.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) lettknewAESGCMdecEkdfkdfSeedSSeedKServerSharedSecretconstPairingSessionconstkdfkdfSeedSSeedKServerSharedSecretconstPairingSessionconst_1_111111121111111111111111[color=#ffffff,
+                                                                                                                                                                                     process="let tk_new.1=AES_GCM_dec(E3.3,
+            kdf(kdf(<SeedS.3, ~SeedK1.2>, ServerSharedSecret_const),
+                PairingSession_const),
+            kdf(kdf(<SeedS.3, ~SeedK1.2>, ServerSharedSecret_const),
+                PairingSession_const))"]:
+     [
+     Let_1111111211111111111111111( <AES_GCM_enc(tk_new, k, v), k, v>, ~UUID,
+                                    ~UUID_paired, ~exp_2, ~sec_ch, ~token, ~SN, ~SeedK1, ~Version, ~data,
+                                    pkS, r_, ~r, ~s, E1, E3, S2, SeedS, SessionNonce, iCloudldentifier
+     )
+     ]
+    -->
+     [
+     State_1111111211111111111111111( ~UUID, ~UUID_paired, ~exp_2, ~sec_ch,
+                                      ~token, tk_new, ~SN, ~SeedK1, ~Version, ~data, pkS, r_, ~r, ~s, E1, E3,
+                                      S2, SeedS, SessionNonce, iCloudldentifier
+     )
+     ]
+  */
+
+rule (modulo E) eventRecvEtknewESeedS_0_1111111211111111111111111[color=#405880,
+                                                                  process="event RecvE3( tk_new.1, E3.3, SeedS.3 );"]:
+   [
+   State_1111111211111111111111111( ~UUID.1, ~UUID_paired.1, ~exp_2.1,
+                                    ~sec_ch.1, ~token.1, tk_new.1, ~SN.2, ~SeedK1.2, ~Version.2, ~data.2,
+                                    pkS.2, r_.2, ~r.3, ~s.3, E1.3, E3.3, S2.3, SeedS.3, SessionNonce.3,
+                                    iCloudldentifier.3
+   ),
+   Fr( ~Status.1 )
+   ]
+  --[ RecvE3( tk_new.1, E3.3, SeedS.3 ) ]->
+   [
+   Message( ~sec_ch.1,
+            <
+             get_id(add('g'^~s.3, pkS.2),
+                    kdf(get_point_x(add('g'^~s.3, pkS.2)), <~r.3, r_.2>)), 
+             'id_p'>
+   ),
+   Semistate_11111112111111111111111111111( ~Status.1, ~UUID.1,
+                                            ~UUID_paired.1, ~exp_2.1, ~sec_ch.1, ~token.1, tk_new.1, ~SN.2,
+                                            ~SeedK1.2, ~Version.2, ~data.2, pkS.2, r_.2, ~r.3, ~s.3, E1.3,
+                                            E3.3, S2.3, SeedS.3, SessionNonce.3, iCloudldentifier.3
+   ),
+   Out( <
+         <~Status.1, 
+          ECIES_enc(<~UUID_paired.1, ~SN.2, SessionNonce.3, E1.3, tk_new.1, 
+                     ~Status.1>,
+                    pk(qe))
+         >, 
+         'open_ch'>
+   )
+   ]
+
+  /*
+  rule (modulo AC) eventRecvEtknewESeedS_0_1111111211111111111111111[color=#405880,
+                                                                     process="event RecvE3( tk_new.1, E3.3, SeedS.3 );"]:
+     [
+     State_1111111211111111111111111( ~UUID, ~UUID_paired, ~exp_2, ~sec_ch,
+                                      ~token, tk_new, ~SN, ~SeedK1, ~Version, ~data, pkS, r_, ~r, ~s, E1, E3,
+                                      S2, SeedS, SessionNonce, iCloudldentifier
+     ),
+     Fr( ~Status )
+     ]
+    --[ RecvE3( tk_new, E3, SeedS ) ]->
+     [
+     Message( ~sec_ch,
+              <get_id(add('g'^~s, pkS), kdf(get_point_x(add('g'^~s, pkS)), <~r, r_>)), 
+               'id_p'>
+     ),
+     Semistate_11111112111111111111111111111( ~Status, ~UUID, ~UUID_paired,
+                                              ~exp_2, ~sec_ch, ~token, tk_new, ~SN, ~SeedK1, ~Version, ~data,
+                                              pkS, r_, ~r, ~s, E1, E3, S2, SeedS, SessionNonce,
+                                              iCloudldentifier
+     ),
+     Out( <
+           <~Status, 
+            ECIES_enc(<~UUID_paired, ~SN, SessionNonce, E1, tk_new, ~Status>, pk(qe))
+           >, 
+           'open_ch'>
+     )
+     ]
+  */
+
+rule (modulo E) p_1_11111[color=#ffffff, process="!"]:
+   [ !Semistate_111111( ~UUID.1, ~UUID_paired.1, ~sec_ch.1, ~token.1 ) ]
+  -->
+   [
+   State_11111121( ~UUID.1, ~UUID_paired.1, ~sec_ch.1, ~token.1 ),
+   State_111111121( ~UUID.1, ~UUID_paired.1, ~sec_ch.1, ~token.1 ),
+   State_1111111121( ~UUID.1, ~UUID_paired.1, ~sec_ch.1, ~token.1 ),
+   State_1111111111( ~UUID.1, ~UUID_paired.1, ~sec_ch.1, ~token.1 )
+   ]
+
+  /*
+  rule (modulo AC) p_1_11111[color=#ffffff, process="!"]:
+     [ !Semistate_111111( ~UUID, ~UUID_paired, ~sec_ch, ~token ) ]
+    -->
+     [
+     State_11111121( ~UUID, ~UUID_paired, ~sec_ch, ~token ),
+     State_111111121( ~UUID, ~UUID_paired, ~sec_ch, ~token ),
+     State_1111111121( ~UUID, ~UUID_paired, ~sec_ch, ~token ),
+     State_1111111111( ~UUID, ~UUID_paired, ~sec_ch, ~token )
+     ]
+  */
+
+rule (modulo E) insecchchannelidcidc_0_11111121[color=#804049,
+                                                process="in(~sec_ch.1:channel,<id_c.1, 'id_c'>);"]:
+   [
+   State_11111121( ~UUID.1, ~UUID_paired.1, ~sec_ch.1, ~token.1 ),
+   Message( ~sec_ch.1, x.2 )
+   ]
+  -->
+   [
+   Let_111111211( x.2, ~UUID.1, ~UUID_paired.1, ~sec_ch.1, ~token.1 ),
+   Ack( ~sec_ch.1, x.2 )
+   ]
+
+  /*
+  rule (modulo AC) insecchchannelidcidc_0_11111121[color=#804049,
+                                                   process="in(~sec_ch.1:channel,<id_c.1, 'id_c'>);"]:
+     [
+     State_11111121( ~UUID, ~UUID_paired, ~sec_ch, ~token ),
+     Message( ~sec_ch, x )
+     ]
+    -->
+     [
+     Let_111111211( x, ~UUID, ~UUID_paired, ~sec_ch, ~token ),
+     Ack( ~sec_ch, x )
+     ]
+  */
+
+rule (modulo E) insecchchannelidcidc_1_11111121[color=#804049,
+                                                process="in(~sec_ch.1:channel,<id_c.1, 'id_c'>);"]:
+   [
+   Let_111111211( <id_c.1, 'id_c'>, ~UUID.1, ~UUID_paired.1, ~sec_ch.1,
+                  ~token.1
+   )
+   ]
+  -->
+   [ State_111111211( ~UUID.1, ~UUID_paired.1, ~sec_ch.1, ~token.1, id_c.1 )
+   ]
+
+  /*
+  rule (modulo AC) insecchchannelidcidc_1_11111121[color=#804049,
+                                                   process="in(~sec_ch.1:channel,<id_c.1, 'id_c'>);"]:
+     [ Let_111111211( <id_c, 'id_c'>, ~UUID, ~UUID_paired, ~sec_ch, ~token ) ]
+    -->
+     [ State_111111211( ~UUID, ~UUID_paired, ~sec_ch, ~token, id_c ) ]
+  */
+
+rule (modulo E) insecchchannelidpUUIDidp_0_111111211[color=#804049,
+                                                     process="in(~sec_ch.1:channel,<id_p.1, UUID.3, 'id_p'>);"]:
+   [
+   State_111111211( ~UUID.1, ~UUID_paired.1, ~sec_ch.1, ~token.1, id_c.1 ),
+   Message( ~sec_ch.1, x.2 )
+   ]
+  -->
+   [
+   Let_1111112111( x.2, ~UUID.1, ~UUID_paired.1, ~sec_ch.1, ~token.1, id_c.1
+   ),
+   Ack( ~sec_ch.1, x.2 )
+   ]
+
+  /*
+  rule (modulo AC) insecchchannelidpUUIDidp_0_111111211[color=#804049,
+                                                        process="in(~sec_ch.1:channel,<id_p.1, UUID.3, 'id_p'>);"]:
+     [
+     State_111111211( ~UUID, ~UUID_paired, ~sec_ch, ~token, id_c ),
+     Message( ~sec_ch, x )
+     ]
+    -->
+     [
+     Let_1111112111( x, ~UUID, ~UUID_paired, ~sec_ch, ~token, id_c ),
+     Ack( ~sec_ch, x )
+     ]
+  */
+
+rule (modulo E) insecchchannelidpUUIDidp_1_111111211[color=#804049,
+                                                     process="in(~sec_ch.1:channel,<id_p.1, UUID.3, 'id_p'>);"]:
+   [
+   Let_1111112111( <id_p.1, UUID.3, 'id_p'>, ~UUID.1, ~UUID_paired.1,
+                   ~sec_ch.1, ~token.1, id_c.1
+   )
+   ]
+  -->
+   [
+   State_1111112111( ~UUID.1, ~UUID_paired.1, ~sec_ch.1, ~token.1, id_c.1,
+                     id_p.1, UUID.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) insecchchannelidpUUIDidp_1_111111211[color=#804049,
+                                                        process="in(~sec_ch.1:channel,<id_p.1, UUID.3, 'id_p'>);"]:
+     [
+     Let_1111112111( <id_p, UUID, 'id_p'>, ~UUID.1, ~UUID_paired, ~sec_ch,
+                     ~token, id_c
+     )
+     ]
+    -->
+     [
+     State_1111112111( ~UUID.1, ~UUID_paired, ~sec_ch, ~token, id_c, id_p,
+                       UUID
+     )
+     ]
+  */
+
+rule (modulo E) ifidcidp_0_1111112111[color=#804049,
+                                      process="if id_c.1=id_p.1"]:
+   [
+   State_1111112111( ~UUID.1, ~UUID_paired.1, ~sec_ch.1, ~token.1, id_c.1,
+                     id_p.1, UUID.3
+   )
+   ]
+  --[ Pred_Eq( id_c.1, id_p.1 ), PairSuccess( UUID.3 ) ]->
+   [ ]
+
+  /*
+  rule (modulo AC) ifidcidp_0_1111112111[color=#804049,
+                                         process="if id_c.1=id_p.1"]:
+     [
+     State_1111112111( ~UUID, ~UUID_paired, ~sec_ch, ~token, id_c, id_p,
+                       UUID.1
+     )
+     ]
+    --[ Pred_Eq( id_c, id_p ), PairSuccess( UUID.1 ) ]->
+     [ ]
+  */
+
+rule (modulo E) ifidcidp_1_1111112111[color=#804049,
+                                      process="if id_c.1=id_p.1"]:
+   [
+   State_1111112111( ~UUID.1, ~UUID_paired.1, ~sec_ch.1, ~token.1, id_c.1,
+                     id_p.1, UUID.3
+   )
+   ]
+  --[ Pred_Not_Eq( id_c.1, id_p.1 ) ]->
+   [ ]
+
+  /*
+  rule (modulo AC) ifidcidp_1_1111112111[color=#804049,
+                                         process="if id_c.1=id_p.1"]:
+     [
+     State_1111112111( ~UUID, ~UUID_paired, ~sec_ch, ~token, id_c, id_p,
+                       UUID.1
+     )
+     ]
+    --[ Pred_Not_Eq( id_c, id_p ) ]->
+     [ ]
+  */
+
+restriction predicate_eq:
+  "∀ #i a b. (Pred_Eq( a, b ) @ #i) ⇒ (a = b)"
+  // safety formula
+
+restriction predicate_not_eq:
+  "∀ #i a b. (Pred_Not_Eq( a, b ) @ #i) ⇒ (¬(a = b))"
+  // safety formula
+
+restriction single_session:
+  "∀ #i #j. ((Init( ) @ #i) ∧ (Init( ) @ #j)) ⇒ (#i = #j)"
+  // safety formula
+
+/*
+WARNING: the following wellformedness checks failed!
+
+Lemma actions:
+  lemma `pair_consistency' references action 
+    (ProtoFact Linear "Bounded" 1,1,Linear)
+  but no rule has such an action.
+*/
+
+end
+
+==============================================================================
+summary of summaries:
+
+analyzed: /home/xiaofeng/P10_fixed_V6_Apple_simplified_initialization_authentication.spthy
+
+  WARNING: 1 wellformedness check failed!
+           The analysis results might be wrong!
+  
+  uuid_source (all-traces): analysis incomplete (1 steps)
+  S2_verify_sources (all-traces): analysis incomplete (1 steps)
+  e2_sources (all-traces): analysis incomplete (1 steps)
+  e3_sources (all-traces): analysis incomplete (1 steps)
+  h1_source (all-traces): analysis incomplete (1 steps)
+  session_source (all-traces): analysis incomplete (1 steps)
+  e1_source (all-traces): analysis incomplete (1 steps)
+  pair_consistency (all-traces): verified (2 steps)
+
+==============================================================================

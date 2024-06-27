@@ -1,0 +1,95 @@
+theory Apple_AirTag
+
+begin
+
+builtins: diffie-hellman
+
+functions: 
+	/* KDF: derive symmetric key. ANSI_X_963_KDF_SHA256 */
+	kdf/2, update_const/0, diversify_const/0, zero_const/0,
+
+	/* P-224 Curve */
+	add/2, mul/2, gen/0,
+
+  /* Hash function */
+	SHA256/1,
+	AES_GCM_enc/2, AES_GCM_dec/2 [destructor],
+
+	location/0 [private]
+equations:
+	AES_GCM_dec(AES_GCM_enc(m, k), k) = m
+	
+export queries:
+"
+set preciseActions = true.
+query attacker(location).
+"
+
+
+/* Tracker */
+let tracker(~sec_ch: channel, ~Pi_0) = 
+	/* ******** fixed ******* */
+	out(~sec_ch, <~Pi_0, 'adv'>)
+
+
+/* Other Participants */
+let participant(~sec_ch: channel) = 
+	event Secret(location);
+	in(~sec_ch, <Pi, 'adv'>);
+	new ~s;
+	let PKs = 'g' ^ ~s in
+	let DHKey = Pi ^ ~s in
+	let sealedbox_loc = AES_GCM_enc(location, DHKey) in
+	let index = SHA256(Pi) in
+	out(~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>)
+
+
+
+/* Server */
+let server(~sec_ch: channel) = 
+	in(~sec_ch, <sealedbox_loc, PKs, index, 'location_report'>);
+	out(<sealedbox_loc, PKs, index, 'location_report'>);
+
+	in(~sec_ch, <index1, 'query_by_index'>);
+	out(<index1, 'query_by_index'>);
+
+	if (index = index1) then (
+		out(~sec_ch, <sealedbox_loc, PKs, index, 'location_report_index'>)
+	)
+
+
+/* phone */
+let phone(~sec_ch: channel, ~di, ~Pi_0) = 
+	let index = SHA256(~Pi_0) in
+	out(~sec_ch, <index, 'query_by_index'>);
+	in(~sec_ch, <sealedbox_loc, PKs, index1, 'location_report_index'>);
+	let DHKey = PKs ^ ~di in
+	let loc = AES_GCM_dec(sealedbox_loc, DHKey) in
+	0
+
+
+	
+process:
+	/* For privacy, cloud is equipment to open channel for data communication between finder device and owner device. */
+	/* For security, cloud channel is private. */
+	
+
+	new ~sec_ch: channel;
+	new ~di;
+
+	!(
+	tracker(~sec_ch, 'g' ^ ~di) | 
+	participant(~sec_ch) |
+	server(~sec_ch) |
+	phone(~sec_ch, ~di, 'g' ^ ~di)
+	)
+	
+	
+lemma confidentiality [ output=[spthy] ]:
+"
+	( 
+		All x #i. (Secret(x) @ i ==> not (Ex #k. KU(x) @ k))
+	)
+"
+
+end

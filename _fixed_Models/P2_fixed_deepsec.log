@@ -1,0 +1,17 @@
+[1m[30mDeepSec - DEciding Equivalence Properties for SECurity protocols[0m
+    Version: 2.0.2
+    Git hash: 8ddc45ec79de5ec49810302ea7da32d3dc9f46e4
+    Git branch: master
+    Website: https://deepsec-prover.github.io
+
+
+Loading file /home/xiaofeng/Samsung_location_fixed_unlinkability.spthy.dps...
+
+Starting verification...
+
+[1m[33mWarnings[0m on file /home/xiaofeng/Samsung_location_fixed_unlinkability.spthy.dps:
+   Line 44, Characters 33-37: The identifier r2_1 is already defined.
+
+Starting verification of Samsung_location_fixed_unlinkability.spthy.dps...
+Verifying query 1...Result query 1: The two processes are [1m[32mtrace equivalent[0m. Verified in < 1s using 2MB of memory.          
+Verification complete.
