@@ -1,0 +1,267 @@
+/tmp/tmp.4JPRZgIpgF/Samsung_initialization_Authentication_fixed_V1_foundV4.spthy.gs
+Starting the transformation...
+Parsing the file...
+Writing in the output file...
+Translation complete !
+Linear part:
+exp(exp(g,a),b) = exp(exp(g,b),a)
+Completing equations...
+Completed equations:
+exp(exp(g,a),b) = exp(exp(g,b),a)
+Convergent part: No equation.
+Process 0 (that is, the initial process):
+{1}new sec_ch_1: channel;
+{2}event SecureChannel(sec_ch_1);
+{3}!
+(
+    {4}in(sec_ch_1, (sn_owner_1: bitstring,=sn_owner));
+    {5}event Bounded(sn_owner_1);
+    {6}let sn1_1: bitstring = serial_number_const in
+    {7}in(att, (hashed_sn_p_1: bitstring,(rand_1: bitstring,=pre_app1)));
+    {8}let sn_1: bitstring = hash_table(hashed_sn_p_1) in
+    {9}let pri_p_1: bitstring = kdf1(sn_1) in
+    {10}let pub_p_1: bitstring = exp(g,pri_p_1) in
+    {11}new pri_c_1: bitstring;
+    {12}let pub_c_1: bitstring = exp(g,pri_c_1) in
+    {13}let dhkey_PC_1: bitstring = exp(pub_p_1,pri_c_1) in
+    {14}let encryption_key_1: bitstring = derive_encryption_key(dhkey_PC_1,rand_1) in
+    {15}event SendPubkey(sec_ch_1,pri_c_1,pub_c_1);
+    {16}out(att, (encryption_key_1,(pub_c_1,pre_app1)));
+    {17}in(att, (sn_p1_1: bitstring,=pre_app1));
+    {18}event StepsEnd1;
+    {19}if (sn_p1_1 = sn_owner_1) then
+    (
+        {20}out(att, (bound_const,pre_app1));
+        {21}in(att, (sn_p_1: bitstring,(encryption_key_c_1: bitstring,=pre_app1)));
+        {22}if (sn_p_1 = sn_owner_1) then
+            {23}out(att, (bound_const,pre_app1))
+        else
+            {24}if ((sn_1 = sn_p_1) && (encryption_key_1 = encryption_key_c_1)) then
+            {25}event StepsEnd2;
+            {26}new secure_param_1: bitstring;
+            {27}event SendSecureParam(secure_param_1);
+            {28}out(att, (secure_param_1,pre_app1));
+            {29}let privacy_key_1: bitstring = kdf2(encryption_key_1,privacy_const) in
+            {30}let id_1: bitstring = get_id(privacy_key_1,secure_param_1,secure_param_1,secure_param_1) in
+            {31}out(sec_ch_1, (id_1,id_s))
+    )
+    else
+        {32}out(att, (unbound_const,pre_app1));
+        {33}in(att, (sn_p_2: bitstring,(encryption_key_c_2: bitstring,=pre_app1)));
+        {34}if (sn_p_2 = sn_owner_1) then
+            {35}out(att, (bound_const,pre_app1))
+        else
+            {36}if ((sn_1 = sn_p_2) && (encryption_key_1 = encryption_key_c_2)) then
+            {37}event StepsEnd2;
+            {38}new secure_param_2: bitstring;
+            {39}event SendSecureParam(secure_param_2);
+            {40}out(att, (secure_param_2,pre_app1));
+            {41}let privacy_key_2: bitstring = kdf2(encryption_key_1,privacy_const) in
+            {42}let id_2: bitstring = get_id(privacy_key_2,secure_param_2,secure_param_2,secure_param_2) in
+            {43}out(sec_ch_1, (id_2,id_s))
+) | (
+    {44}in(att, (hashed_sn_p: bitstring,=open_ch));
+    {45}new rand: bitstring;
+    {46}out(att, (hashed_sn_p,(rand,pre_app1)));
+    {47}in(att, (encryption_key: bitstring,(pub_c: bitstring,=pre_app1)));
+    {48}event ReceivePubKey(sec_ch_1,pub_c);
+    {49}out(att, (rand,(pub_c,open_ch)));
+    {50}let auth_key_1: bitstring = kdf2(encryption_key,bleAuthentication_const) in
+    {51}new n1_1: bitstring;
+    {52}out(att, (n1_1,open_ch));
+    {53}in(att, (n2_1: bitstring,=open_ch));
+    {54}let encrypted_nonce1_1: bitstring = AES_enc(smartthings_const,auth_key_1,n2_1) in
+    {55}out(att, (encrypted_nonce1_1,open_ch));
+    {56}in(att, (encrypted_nonce2_1: bitstring,=open_ch));
+    {57}let dec_mes_2_1: bitstring = AES_dec(encrypted_nonce2_1,auth_key_1,n1_1) in
+    {58}event StepcEnd1;
+    {59}let =smartthings_const = dec_mes_2_1 in
+    {60}let link_key_1: bitstring = kdf2(encryption_key,n2_1) in
+    {61}in(att, (encrypted_sn_p1_1: bitstring,=open_ch));
+    {62}let sn_p1: bitstring = AES_dec(encrypted_sn_p1_1,link_key_1,n2_1) in
+    {63}event ReceiveSn(sn_p1);
+    {64}out(att, (sn_p1,pre_app1));
+    {65}in(att, (encrypted_sn_p_1: bitstring,=open_ch));
+    {66}let sn_p: bitstring = AES_dec(encrypted_sn_p_1,link_key_1,n2_1) in
+    {67}event ReceiveSn(sn_p);
+    {68}out(att, (sn_p,(encryption_key,pre_app1)));
+    {69}in(att, (isbound_1: bitstring,=pre_app1));
+    {70}if (isbound_1 = unbound_const) then
+    {71}in(att, (secure_param: bitstring,=pre_app1));
+    {72}event ReceiveSecureParam(secure_param);
+    {73}let encrypted_param_1: bitstring = AES_enc(secure_param,link_key_1,n2_1) in
+    {74}out(att, (encrypted_param_1,open_ch));
+    {75}let privacy_key: bitstring = kdf2(encryption_key,privacy_const) in
+    {76}let id: bitstring = get_id(privacy_key,secure_param,secure_param,secure_param) in
+    {77}event StepcEnd2
+) | (
+    {78}let sn: bitstring = serial_number_const in
+    {79}out(sec_ch_1, (sn,sn_owner));
+    {80}let hashed_sn_1: bitstring = derive_hashed_sn(sn) in
+    {81}let pri_p: bitstring = kdf1(sn) in
+    {82}let pub_p: bitstring = exp(g,pri_p) in
+    {83}out(att, (hashed_sn_1,open_ch));
+    {84}in(att, (rand_2: bitstring,(pub_c_2: bitstring,=open_ch)));
+    {85}let dhkey_CP_1: bitstring = exp(pub_c_2,pri_p) in
+    {86}let encryption_key_2: bitstring = derive_encryption_key(dhkey_CP_1,rand_2) in
+    {87}let auth_key: bitstring = kdf2(encryption_key_2,bleAuthentication_const) in
+    {88}new n2: bitstring;
+    {89}out(att, (n2,open_ch));
+    {90}in(att, (n1: bitstring,=open_ch));
+    {91}let encrypted_nonce2: bitstring = AES_enc(smartthings_const,auth_key,n1) in
+    {92}out(att, (encrypted_nonce2,open_ch));
+    {93}in(att, (encrypted_nonce1: bitstring,=open_ch));
+    {94}let dec_mes_1_1: bitstring = AES_dec(encrypted_nonce1,auth_key,n2) in
+    {95}event SteppEnd1;
+    {96}let =smartthings_const = dec_mes_1_1 in
+    {97}let link_key: bitstring = kdf2(encryption_key_2,n2) in
+    {98}let encrypted_sn_p: bitstring = AES_enc(sn,link_key,n2) in
+    {99}event SendSn(sn,encrypted_sn_p);
+    {100}out(att, (encrypted_sn_p,open_ch));
+    {101}out(att, (encrypted_sn_p,open_ch));
+    {102}in(att, (encrypted_param: bitstring,=open_ch));
+    {103}let secure_param_3: bitstring = AES_dec(encrypted_param,link_key,n2) in
+    {104}let privacy_key_3: bitstring = kdf2(encryption_key_2,privacy_const) in
+    {105}let id_3: bitstring = get_id(privacy_key_3,secure_param_3,secure_param_3,secure_param_3) in
+    {106}out(sec_ch_1, (id_3,(sn,id_p)));
+    {107}event SteppEnd2
+) | (
+    {108}in(sec_ch_1, (id_s_1: bitstring,=id_s));
+    {109}in(sec_ch_1, (id_p_1: bitstring,(sn_2: bitstring,=id_p)));
+    {110}let =id_s_1 = id_p_1 in
+    {111}event PairSuccess(sn_2)
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}new sec_ch_1: channel;
+{2}event SecureChannel(sec_ch_1);
+{3}!
+(
+    {4}in(sec_ch_1, (sn_owner_1: bitstring,=sn_owner));
+    {5}event Bounded(sn_owner_1);
+    {7}in(att, (hashed_sn_p_1: bitstring,(rand_1: bitstring,=pre_app1)));
+    {8}let sn_1: bitstring = hash_table(hashed_sn_p_1) in
+    {11}new pri_c_1: bitstring;
+    {12}let pub_c_1: bitstring = exp(g,pri_c_1) in
+    {15}event SendPubkey(sec_ch_1,pri_c_1,pub_c_1);
+    {9}let pri_p_1: bitstring = kdf1(sn_1) in
+    {10}let pub_p_1: bitstring = exp(g,pri_p_1) in
+    {13}let dhkey_PC_1: bitstring = exp(pub_p_1,pri_c_1) in
+    {14}let encryption_key_1: bitstring = derive_encryption_key(dhkey_PC_1,rand_1) in
+    {16}out(att, (encryption_key_1,(pub_c_1,pre_app1)));
+    {17}in(att, (sn_p1_1: bitstring,=pre_app1));
+    {18}event StepsEnd1;
+    {19}if (sn_p1_1 = sn_owner_1) then
+    (
+        {20}out(att, (bound_const,pre_app1));
+        {21}in(att, (sn_p_1: bitstring,(encryption_key_c_1: bitstring,=pre_app1)));
+        {22}if (sn_p_1 = sn_owner_1) then
+            {23}out(att, (bound_const,pre_app1))
+        else
+            {24}if ((sn_1 = sn_p_1) && (encryption_key_1 = encryption_key_c_1)) then
+            {25}event StepsEnd2;
+            {26}new secure_param_1: bitstring;
+            {27}event SendSecureParam(secure_param_1);
+            {28}out(att, (secure_param_1,pre_app1));
+            {29}let privacy_key_1: bitstring = kdf2(encryption_key_1,privacy_const) in
+            {30}let id_1: bitstring = get_id(privacy_key_1,secure_param_1,secure_param_1,secure_param_1) in
+            {31}out(sec_ch_1, (id_1,id_s))
+    )
+    else
+        {32}out(att, (unbound_const,pre_app1));
+        {33}in(att, (sn_p_2: bitstring,(encryption_key_c_2: bitstring,=pre_app1)));
+        {34}if (sn_p_2 = sn_owner_1) then
+            {35}out(att, (bound_const,pre_app1))
+        else
+            {36}if ((sn_1 = sn_p_2) && (encryption_key_1 = encryption_key_c_2)) then
+            {37}event StepsEnd2;
+            {38}new secure_param_2: bitstring;
+            {39}event SendSecureParam(secure_param_2);
+            {40}out(att, (secure_param_2,pre_app1));
+            {41}let privacy_key_2: bitstring = kdf2(encryption_key_1,privacy_const) in
+            {42}let id_2: bitstring = get_id(privacy_key_2,secure_param_2,secure_param_2,secure_param_2) in
+            {43}out(sec_ch_1, (id_2,id_s))
+) | (
+    {44}in(att, (hashed_sn_p: bitstring,=open_ch));
+    {45}new rand: bitstring;
+    {46}out(att, (hashed_sn_p,(rand,pre_app1)));
+    {47}in(att, (encryption_key: bitstring,(pub_c: bitstring,=pre_app1)));
+    {48}event ReceivePubKey(sec_ch_1,pub_c);
+    {49}out(att, (rand,(pub_c,open_ch)));
+    {51}new n1_1: bitstring;
+    {52}out(att, (n1_1,open_ch));
+    {53}in(att, (n2_1: bitstring,=open_ch));
+    {50}let auth_key_1: bitstring = kdf2(encryption_key,bleAuthentication_const) in
+    {54}let encrypted_nonce1_1: bitstring = AES_enc(smartthings_const,auth_key_1,n2_1) in
+    {55}out(att, (encrypted_nonce1_1,open_ch));
+    {56}in(att, (encrypted_nonce2_1: bitstring,=open_ch));
+    {57}let dec_mes_2_1: bitstring = AES_dec(encrypted_nonce2_1,auth_key_1,n1_1) in
+    {58}event StepcEnd1;
+    {59}let =smartthings_const = dec_mes_2_1 in
+    {61}in(att, (encrypted_sn_p1_1: bitstring,=open_ch));
+    {60}let link_key_1: bitstring = kdf2(encryption_key,n2_1) in
+    {62}let sn_p1: bitstring = AES_dec(encrypted_sn_p1_1,link_key_1,n2_1) in
+    {63}event ReceiveSn(sn_p1);
+    {64}out(att, (sn_p1,pre_app1));
+    {65}in(att, (encrypted_sn_p_1: bitstring,=open_ch));
+    {66}let sn_p: bitstring = AES_dec(encrypted_sn_p_1,link_key_1,n2_1) in
+    {67}event ReceiveSn(sn_p);
+    {68}out(att, (sn_p,(encryption_key,pre_app1)));
+    {69}in(att, (isbound_1: bitstring,=pre_app1));
+    {70}if (isbound_1 = unbound_const) then
+    {71}in(att, (secure_param: bitstring,=pre_app1));
+    {72}event ReceiveSecureParam(secure_param);
+    {73}let encrypted_param_1: bitstring = AES_enc(secure_param,link_key_1,n2_1) in
+    {74}out(att, (encrypted_param_1,open_ch));
+    {77}event StepcEnd2
+) | (
+    {78}let sn: bitstring = serial_number_const in
+    {79}out(sec_ch_1, (sn,sn_owner));
+    {80}let hashed_sn_1: bitstring = derive_hashed_sn(sn) in
+    {83}out(att, (hashed_sn_1,open_ch));
+    {84}in(att, (rand_2: bitstring,(pub_c_2: bitstring,=open_ch)));
+    {88}new n2: bitstring;
+    {89}out(att, (n2,open_ch));
+    {90}in(att, (n1: bitstring,=open_ch));
+    {81}let pri_p: bitstring = kdf1(sn) in
+    {85}let dhkey_CP_1: bitstring = exp(pub_c_2,pri_p) in
+    {86}let encryption_key_2: bitstring = derive_encryption_key(dhkey_CP_1,rand_2) in
+    {87}let auth_key: bitstring = kdf2(encryption_key_2,bleAuthentication_const) in
+    {91}let encrypted_nonce2: bitstring = AES_enc(smartthings_const,auth_key,n1) in
+    {92}out(att, (encrypted_nonce2,open_ch));
+    {93}in(att, (encrypted_nonce1: bitstring,=open_ch));
+    {94}let dec_mes_1_1: bitstring = AES_dec(encrypted_nonce1,auth_key,n2) in
+    {95}event SteppEnd1;
+    {96}let =smartthings_const = dec_mes_1_1 in
+    {97}let link_key: bitstring = kdf2(encryption_key_2,n2) in
+    {98}let encrypted_sn_p: bitstring = AES_enc(sn,link_key,n2) in
+    {99}event SendSn(sn,encrypted_sn_p);
+    {100}out(att, (encrypted_sn_p,open_ch));
+    {101}out(att, (encrypted_sn_p,open_ch));
+    {102}in(att, (encrypted_param: bitstring,=open_ch));
+    {103}let secure_param_3: bitstring = AES_dec(encrypted_param,link_key,n2) in
+    {104}let privacy_key_3: bitstring = kdf2(encryption_key_2,privacy_const) in
+    {105}let id_3: bitstring = get_id(privacy_key_3,secure_param_3,secure_param_3,secure_param_3) in
+    {106}out(sec_ch_1, (id_3,(sn,id_p)));
+    {107}event SteppEnd2
+) | (
+    {108}in(sec_ch_1, (id_s_1: bitstring,=id_s));
+    {109}in(sec_ch_1, (id_p_1: bitstring,(sn_2: bitstring,=id_p)));
+    {110}let =id_s_1 = id_p_1 in
+    {111}event PairSuccess(sn_2)
+)
+
+-- Query not (event(PairSuccess(sn_3)) && event(Bounded(sn_3))) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 147 rules (54 with conclusion selected). Queue: 6 rules.
+Starting query not (event(PairSuccess(sn_3)) && event(Bounded(sn_3)))
+RESULT not (event(PairSuccess(sn_3)) && event(Bounded(sn_3))) is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query not (event(PairSuccess(sn_3)) && event(Bounded(sn_3))) is true.
+
+--------------------------------------------------------------
+

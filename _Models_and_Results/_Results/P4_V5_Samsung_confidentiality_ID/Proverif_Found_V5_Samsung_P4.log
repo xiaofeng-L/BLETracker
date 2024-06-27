@@ -1,0 +1,667 @@
+/tmp/tmp.WVm1dxBfkK/Samsung_initialization_Confidentiality_foundV4.spthy.gs
+Starting the transformation...
+Parsing the file...
+Writing in the output file...
+Translation complete !
+Linear part:
+exp(exp(g,a),b) = exp(exp(g,b),a)
+Completing equations...
+Completed equations:
+exp(exp(g,a),b) = exp(exp(g,b),a)
+Convergent part: No equation.
+Process 0 (that is, the initial process):
+{1}new sec_ch_1: channel;
+{2}!
+{3}new sn_owner_1: bitstring;
+{4}new sn_1: bitstring;
+(
+    {5}in(sec_ch_1, (hashed_sn_p_1: bitstring,(rand_1: bitstring,=identity_easysetup_blob_req)));
+    {6}let sn_11: bitstring = hash_table(hashed_sn_p_1) in
+    {7}let pri_p_1: bitstring = kdf1(sn_11) in
+    {8}let pub_p_1: bitstring = exp(g,pri_p_1) in
+    {9}new pri_c_1: bitstring;
+    {10}let pub_c_1: bitstring = exp(g,pri_c_1) in
+    {11}let dhkey_PC_1: bitstring = exp(pub_p_1,pri_c_1) in
+    {12}let encryption_key_1: bitstring = derive_encryption_key(dhkey_PC_1,rand_1) in
+    {13}out(sec_ch_1, (encryption_key_1,(pub_c_1,identity_easysetup_blob_rsp)));
+    {14}in(sec_ch_1, (sn_p1_1: bitstring,=chaser_trackers_lostmessage_req));
+    {15}if (sn_p1_1 = sn_owner_1) then
+    (
+        {16}out(sec_ch_1, (PREDEFINED_const,chaser_trackers_lostmessage_rsp));
+        {17}in(sec_ch_1, (sn_p_1: bitstring,(encryption_key_c_1: bitstring,=miniature_mobile_req)));
+        {18}if ((sn_11 = sn_p_1) && (encryption_key_1 = encryption_key_c_1)) then
+        {19}new secure_param_1: bitstring;
+        {20}out(sec_ch_1, (secure_param_1,miniature_mobile_rsp));
+        {21}let privacy_key_1: bitstring = kdf2(encryption_key_1,privacy_const) in
+        {22}let id_1: bitstring = get_id(privacy_key_1,secure_param_1,secure_param_1,secure_param_1) in
+        {23}out(sec_ch_1, (id_1,id_s))
+    )
+    else
+        {24}out(sec_ch_1, (Tracker_Not_Found_const,chaser_trackers_lostmessage_rsp));
+        {25}in(sec_ch_1, (sn_p_2: bitstring,(encryption_key_c_2: bitstring,=miniature_mobile_req)));
+        {26}if ((sn_11 = sn_p_2) && (encryption_key_1 = encryption_key_c_2)) then
+        {27}new secure_param_2: bitstring;
+        {28}out(sec_ch_1, (secure_param_2,miniature_mobile_rsp));
+        {29}let privacy_key_2: bitstring = kdf2(encryption_key_1,privacy_const) in
+        {30}let id_2: bitstring = get_id(privacy_key_2,secure_param_2,secure_param_2,secure_param_2) in
+        {31}out(sec_ch_1, (id_2,id_s))
+) | (
+    {32}in(att, (hashed_sn_p: bitstring,=hashed_SerialNumber));
+    {33}new rand: bitstring;
+    {34}out(sec_ch_1, (hashed_sn_p,(rand,identity_easysetup_blob_req)));
+    {35}in(sec_ch_1, (encryption_key: bitstring,(pub_c: bitstring,=identity_easysetup_blob_rsp)));
+    {36}out(att, (rand,(pub_c,rand_and_pubc)));
+    {37}let auth_key_1: bitstring = kdf2(encryption_key,bleAuthentication_const) in
+    {38}new n1_1: bitstring;
+    {39}out(att, (n1_1,nonce_1));
+    {40}in(att, (n2_1: bitstring,=nonce_2));
+    {41}let encrypted_nonce1_1: bitstring = AES_enc(smartthings_const,auth_key_1,n2_1) in
+    {42}out(att, (encrypted_nonce1_1,enc_nonce_1));
+    {43}in(att, (encrypted_nonce2_1: bitstring,=enc_nonce_2));
+    {44}let dec_mes_2_1: bitstring = AES_dec(encrypted_nonce2_1,auth_key_1,n1_1) in
+    {45}let =smartthings_const = dec_mes_2_1 in
+    {46}let link_key_1: bitstring = kdf2(encryption_key,n2_1) in
+    {47}in(att, (encrypted_sn_p1_1: bitstring,=enc_sn1));
+    {48}let sn_p1: bitstring = AES_dec(encrypted_sn_p1_1,link_key_1,n2_1) in
+    {49}out(sec_ch_1, (sn_p1,chaser_trackers_lostmessage_req));
+    {50}in(sec_ch_1, (bound_status_1: bitstring,=chaser_trackers_lostmessage_rsp));
+    {51}if (bound_status_1 = Tracker_Not_Found_const) then
+    {52}in(att, (encrypted_sn_p_1: bitstring,=enc_sn));
+    {53}let sn_p: bitstring = AES_dec(encrypted_sn_p_1,link_key_1,n2_1) in
+    {54}out(sec_ch_1, (sn_p,(encryption_key,miniature_mobile_req)));
+    {55}in(sec_ch_1, (secure_param_3: bitstring,(=secure_param,=miniature_mobile_rsp)));
+    {56}let encrypted_param_1: bitstring = AES_enc(secure_param_3,link_key_1,n2_1) in
+    {57}out(att, (encrypted_param_1,enc_params));
+    {58}let privacy_key: bitstring = kdf2(encryption_key,privacy_const) in
+    {59}let id: bitstring = get_id(privacy_key,secure_param_3,secure_param_3,secure_param_3) in
+    {60}out(sec_ch_1, (id,id_c))
+) | (
+    {61}let hashed_sn_1: bitstring = derive_hashed_sn(sn_1) in
+    {62}let pri_p: bitstring = kdf1(sn_1) in
+    {63}let pub_p: bitstring = exp(g,pri_p) in
+    {64}out(att, (hashed_sn_1,hashed_SerialNumber));
+    {65}in(att, (rand_2: bitstring,(pub_c_2: bitstring,=rand_and_pubc)));
+    {66}let dhkey_CP_1: bitstring = exp(pub_c_2,pri_p) in
+    {67}let encryption_key_2: bitstring = derive_encryption_key(dhkey_CP_1,rand_2) in
+    {68}let auth_key: bitstring = kdf2(encryption_key_2,bleAuthentication_const) in
+    {69}in(att, (n1: bitstring,=nonce_1));
+    {70}new n2: bitstring;
+    {71}out(att, (n2,nonce_2));
+    {72}in(att, (encrypted_nonce1: bitstring,=enc_nonce_1));
+    {73}let dec_mes_1_1: bitstring = AES_dec(encrypted_nonce1,auth_key,n2) in
+    {74}let encrypted_nonce2: bitstring = AES_enc(smartthings_const,auth_key,n1) in
+    {75}out(att, (encrypted_nonce2,enc_nonce_2));
+    {76}let =smartthings_const = dec_mes_1_1 in
+    {77}let link_key: bitstring = kdf2(encryption_key_2,n2) in
+    {78}let encrypted_sn_p1: bitstring = AES_enc(sn_1,link_key,n2) in
+    {79}out(att, (encrypted_sn_p1,enc_sn1));
+    {80}let encrypted_sn_p: bitstring = AES_enc(sn_1,link_key,n2) in
+    {81}out(att, (encrypted_sn_p,enc_sn));
+    {82}in(att, (encrypted_param: bitstring,=enc_params));
+    {83}let secure_param_4: bitstring = AES_dec(encrypted_param,link_key,n2) in
+    {84}let privacy_key_3: bitstring = kdf2(encryption_key_2,privacy_const) in
+    {85}let id_3: bitstring = get_id(privacy_key_3,secure_param_4,secure_param_4,secure_param_4) in
+    {86}event Secret(sv);
+    {87}out(att, AES_enc(sv,id_3,zero_const))
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}new sec_ch_1: channel;
+{2}!
+{3}new sn_owner_1: bitstring;
+{4}new sn_1: bitstring;
+(
+    {5}in(sec_ch_1, (hashed_sn_p_1: bitstring,(rand_1: bitstring,=identity_easysetup_blob_req)));
+    {6}let sn_11: bitstring = hash_table(hashed_sn_p_1) in
+    {9}new pri_c_1: bitstring;
+    {7}let pri_p_1: bitstring = kdf1(sn_11) in
+    {8}let pub_p_1: bitstring = exp(g,pri_p_1) in
+    {11}let dhkey_PC_1: bitstring = exp(pub_p_1,pri_c_1) in
+    {12}let encryption_key_1: bitstring = derive_encryption_key(dhkey_PC_1,rand_1) in
+    {10}let pub_c_1: bitstring = exp(g,pri_c_1) in
+    {13}out(sec_ch_1, (encryption_key_1,(pub_c_1,identity_easysetup_blob_rsp)));
+    {14}in(sec_ch_1, (sn_p1_1: bitstring,=chaser_trackers_lostmessage_req));
+    {15}if (sn_p1_1 = sn_owner_1) then
+    (
+        {16}out(sec_ch_1, (PREDEFINED_const,chaser_trackers_lostmessage_rsp));
+        {17}in(sec_ch_1, (sn_p_1: bitstring,(encryption_key_c_1: bitstring,=miniature_mobile_req)));
+        {18}if ((sn_11 = sn_p_1) && (encryption_key_1 = encryption_key_c_1)) then
+        {19}new secure_param_1: bitstring;
+        {20}out(sec_ch_1, (secure_param_1,miniature_mobile_rsp));
+        {21}let privacy_key_1: bitstring = kdf2(encryption_key_1,privacy_const) in
+        {22}let id_1: bitstring = get_id(privacy_key_1,secure_param_1,secure_param_1,secure_param_1) in
+        {23}out(sec_ch_1, (id_1,id_s))
+    )
+    else
+        {24}out(sec_ch_1, (Tracker_Not_Found_const,chaser_trackers_lostmessage_rsp));
+        {25}in(sec_ch_1, (sn_p_2: bitstring,(encryption_key_c_2: bitstring,=miniature_mobile_req)));
+        {26}if ((sn_11 = sn_p_2) && (encryption_key_1 = encryption_key_c_2)) then
+        {27}new secure_param_2: bitstring;
+        {28}out(sec_ch_1, (secure_param_2,miniature_mobile_rsp));
+        {29}let privacy_key_2: bitstring = kdf2(encryption_key_1,privacy_const) in
+        {30}let id_2: bitstring = get_id(privacy_key_2,secure_param_2,secure_param_2,secure_param_2) in
+        {31}out(sec_ch_1, (id_2,id_s))
+) | (
+    {32}in(att, (hashed_sn_p: bitstring,=hashed_SerialNumber));
+    {33}new rand: bitstring;
+    {34}out(sec_ch_1, (hashed_sn_p,(rand,identity_easysetup_blob_req)));
+    {35}in(sec_ch_1, (encryption_key: bitstring,(pub_c: bitstring,=identity_easysetup_blob_rsp)));
+    {36}out(att, (rand,(pub_c,rand_and_pubc)));
+    {38}new n1_1: bitstring;
+    {39}out(att, (n1_1,nonce_1));
+    {40}in(att, (n2_1: bitstring,=nonce_2));
+    {37}let auth_key_1: bitstring = kdf2(encryption_key,bleAuthentication_const) in
+    {41}let encrypted_nonce1_1: bitstring = AES_enc(smartthings_const,auth_key_1,n2_1) in
+    {42}out(att, (encrypted_nonce1_1,enc_nonce_1));
+    {43}in(att, (encrypted_nonce2_1: bitstring,=enc_nonce_2));
+    {44}let dec_mes_2_1: bitstring = AES_dec(encrypted_nonce2_1,auth_key_1,n1_1) in
+    {45}let =smartthings_const = dec_mes_2_1 in
+    {47}in(att, (encrypted_sn_p1_1: bitstring,=enc_sn1));
+    {46}let link_key_1: bitstring = kdf2(encryption_key,n2_1) in
+    {48}let sn_p1: bitstring = AES_dec(encrypted_sn_p1_1,link_key_1,n2_1) in
+    {49}out(sec_ch_1, (sn_p1,chaser_trackers_lostmessage_req));
+    {50}in(sec_ch_1, (bound_status_1: bitstring,=chaser_trackers_lostmessage_rsp));
+    {51}if (bound_status_1 = Tracker_Not_Found_const) then
+    {52}in(att, (encrypted_sn_p_1: bitstring,=enc_sn));
+    {53}let sn_p: bitstring = AES_dec(encrypted_sn_p_1,link_key_1,n2_1) in
+    {54}out(sec_ch_1, (sn_p,(encryption_key,miniature_mobile_req)));
+    {55}in(sec_ch_1, (secure_param_3: bitstring,(=secure_param,=miniature_mobile_rsp)));
+    {56}let encrypted_param_1: bitstring = AES_enc(secure_param_3,link_key_1,n2_1) in
+    {57}out(att, (encrypted_param_1,enc_params));
+    {58}let privacy_key: bitstring = kdf2(encryption_key,privacy_const) in
+    {59}let id: bitstring = get_id(privacy_key,secure_param_3,secure_param_3,secure_param_3) in
+    {60}out(sec_ch_1, (id,id_c))
+) | (
+    {61}let hashed_sn_1: bitstring = derive_hashed_sn(sn_1) in
+    {64}out(att, (hashed_sn_1,hashed_SerialNumber));
+    {65}in(att, (rand_2: bitstring,(pub_c_2: bitstring,=rand_and_pubc)));
+    {69}in(att, (n1: bitstring,=nonce_1));
+    {70}new n2: bitstring;
+    {71}out(att, (n2,nonce_2));
+    {72}in(att, (encrypted_nonce1: bitstring,=enc_nonce_1));
+    {62}let pri_p: bitstring = kdf1(sn_1) in
+    {66}let dhkey_CP_1: bitstring = exp(pub_c_2,pri_p) in
+    {67}let encryption_key_2: bitstring = derive_encryption_key(dhkey_CP_1,rand_2) in
+    {68}let auth_key: bitstring = kdf2(encryption_key_2,bleAuthentication_const) in
+    {73}let dec_mes_1_1: bitstring = AES_dec(encrypted_nonce1,auth_key,n2) in
+    {74}let encrypted_nonce2: bitstring = AES_enc(smartthings_const,auth_key,n1) in
+    {75}out(att, (encrypted_nonce2,enc_nonce_2));
+    {76}let =smartthings_const = dec_mes_1_1 in
+    {77}let link_key: bitstring = kdf2(encryption_key_2,n2) in
+    {78}let encrypted_sn_p1: bitstring = AES_enc(sn_1,link_key,n2) in
+    {79}out(att, (encrypted_sn_p1,enc_sn1));
+    {80}let encrypted_sn_p: bitstring = AES_enc(sn_1,link_key,n2) in
+    {81}out(att, (encrypted_sn_p,enc_sn));
+    {82}in(att, (encrypted_param: bitstring,=enc_params));
+    {83}let secure_param_4: bitstring = AES_dec(encrypted_param,link_key,n2) in
+    {86}event Secret(sv);
+    {84}let privacy_key_3: bitstring = kdf2(encryption_key_2,privacy_const) in
+    {85}let id_3: bitstring = get_id(privacy_key_3,secure_param_4,secure_param_4,secure_param_4) in
+    {87}out(att, AES_enc(sv,id_3,zero_const))
+)
+
+-- Query not attacker(sv) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 182 rules (60 with conclusion selected). Queue: 67 rules.
+400 rules inserted. Base: 310 rules (61 with conclusion selected). Queue: 88 rules.
+600 rules inserted. Base: 436 rules (65 with conclusion selected). Queue: 144 rules.
+800 rules inserted. Base: 583 rules (76 with conclusion selected). Queue: 158 rules.
+1000 rules inserted. Base: 687 rules (81 with conclusion selected). Queue: 161 rules.
+1200 rules inserted. Base: 841 rules (93 with conclusion selected). Queue: 264 rules.
+1400 rules inserted. Base: 1017 rules (155 with conclusion selected). Queue: 333 rules.
+1600 rules inserted. Base: 1164 rules (159 with conclusion selected). Queue: 363 rules.
+1800 rules inserted. Base: 1329 rules (199 with conclusion selected). Queue: 380 rules.
+2000 rules inserted. Base: 1398 rules (209 with conclusion selected). Queue: 475 rules.
+2200 rules inserted. Base: 1535 rules (213 with conclusion selected). Queue: 506 rules.
+2400 rules inserted. Base: 1609 rules (229 with conclusion selected). Queue: 565 rules.
+2600 rules inserted. Base: 1734 rules (258 with conclusion selected). Queue: 743 rules.
+2800 rules inserted. Base: 1866 rules (266 with conclusion selected). Queue: 1357 rules.
+3000 rules inserted. Base: 2002 rules (310 with conclusion selected). Queue: 1563 rules.
+3200 rules inserted. Base: 2047 rules (310 with conclusion selected). Queue: 1567 rules.
+3400 rules inserted. Base: 2122 rules (312 with conclusion selected). Queue: 1521 rules.
+3600 rules inserted. Base: 2258 rules (368 with conclusion selected). Queue: 1441 rules.
+3800 rules inserted. Base: 2438 rules (466 with conclusion selected). Queue: 1425 rules.
+4000 rules inserted. Base: 2638 rules (603 with conclusion selected). Queue: 1484 rules.
+4200 rules inserted. Base: 2806 rules (672 with conclusion selected). Queue: 1523 rules.
+4400 rules inserted. Base: 2934 rules (678 with conclusion selected). Queue: 1553 rules.
+4600 rules inserted. Base: 3056 rules (678 with conclusion selected). Queue: 1739 rules.
+4800 rules inserted. Base: 3172 rules (704 with conclusion selected). Queue: 2205 rules.
+5000 rules inserted. Base: 3365 rules (874 with conclusion selected). Queue: 2254 rules.
+5200 rules inserted. Base: 3505 rules (870 with conclusion selected). Queue: 2154 rules.
+5400 rules inserted. Base: 3684 rules (870 with conclusion selected). Queue: 2057 rules.
+5600 rules inserted. Base: 3857 rules (870 with conclusion selected). Queue: 1973 rules.
+5800 rules inserted. Base: 4033 rules (870 with conclusion selected). Queue: 2415 rules.
+6000 rules inserted. Base: 4054 rules (870 with conclusion selected). Queue: 2445 rules.
+6200 rules inserted. Base: 4066 rules (792 with conclusion selected). Queue: 3111 rules.
+6400 rules inserted. Base: 4211 rules (838 with conclusion selected). Queue: 3012 rules.
+6600 rules inserted. Base: 4365 rules (922 with conclusion selected). Queue: 3007 rules.
+6800 rules inserted. Base: 4559 rules (1044 with conclusion selected). Queue: 3101 rules.
+7000 rules inserted. Base: 4719 rules (1084 with conclusion selected). Queue: 3091 rules.
+7200 rules inserted. Base: 4895 rules (1085 with conclusion selected). Queue: 2986 rules.
+7400 rules inserted. Base: 5051 rules (1085 with conclusion selected). Queue: 3363 rules.
+7600 rules inserted. Base: 5227 rules (1085 with conclusion selected). Queue: 3966 rules.
+7800 rules inserted. Base: 5401 rules (1145 with conclusion selected). Queue: 3864 rules.
+8000 rules inserted. Base: 5571 rules (1195 with conclusion selected). Queue: 3756 rules.
+8200 rules inserted. Base: 5741 rules (1245 with conclusion selected). Queue: 3652 rules.
+8400 rules inserted. Base: 5821 rules (1277 with conclusion selected). Queue: 3928 rules.
+8600 rules inserted. Base: 5821 rules (1277 with conclusion selected). Queue: 3928 rules.
+8800 rules inserted. Base: 5889 rules (1341 with conclusion selected). Queue: 3924 rules.
+9000 rules inserted. Base: 5905 rules (1391 with conclusion selected). Queue: 3928 rules.
+9200 rules inserted. Base: 5983 rules (1503 with conclusion selected). Queue: 3932 rules.
+9400 rules inserted. Base: 6137 rules (1543 with conclusion selected). Queue: 3870 rules.
+9600 rules inserted. Base: 6315 rules (1547 with conclusion selected). Queue: 3788 rules.
+9800 rules inserted. Base: 6483 rules (1549 with conclusion selected). Queue: 3717 rules.
+10000 rules inserted. Base: 6659 rules (1549 with conclusion selected). Queue: 4146 rules.
+10200 rules inserted. Base: 6731 rules (1581 with conclusion selected). Queue: 4314 rules.
+10400 rules inserted. Base: 6853 rules (1625 with conclusion selected). Queue: 4236 rules.
+10600 rules inserted. Base: 6948 rules (1653 with conclusion selected). Queue: 4180 rules.
+10800 rules inserted. Base: 7085 rules (1701 with conclusion selected). Queue: 4102 rules.
+11000 rules inserted. Base: 7185 rules (1735 with conclusion selected). Queue: 4036 rules.
+11200 rules inserted. Base: 7274 rules (1756 with conclusion selected). Queue: 3979 rules.
+11400 rules inserted. Base: 7441 rules (1845 with conclusion selected). Queue: 3901 rules.
+11600 rules inserted. Base: 7601 rules (1881 with conclusion selected). Queue: 3798 rules.
+11800 rules inserted. Base: 7781 rules (1925 with conclusion selected). Queue: 3684 rules.
+12000 rules inserted. Base: 7971 rules (2053 with conclusion selected). Queue: 3758 rules.
+12200 rules inserted. Base: 8167 rules (2187 with conclusion selected). Queue: 3860 rules.
+12400 rules inserted. Base: 8367 rules (2265 with conclusion selected). Queue: 3842 rules.
+12600 rules inserted. Base: 8567 rules (2357 with conclusion selected). Queue: 3734 rules.
+12800 rules inserted. Base: 8699 rules (2455 with conclusion selected). Queue: 3670 rules.
+13000 rules inserted. Base: 8831 rules (2513 with conclusion selected). Queue: 3566 rules.
+13200 rules inserted. Base: 8947 rules (2521 with conclusion selected). Queue: 3746 rules.
+13400 rules inserted. Base: 9127 rules (2521 with conclusion selected). Queue: 4242 rules.
+13600 rules inserted. Base: 9275 rules (2576 with conclusion selected). Queue: 4253 rules.
+13800 rules inserted. Base: 9417 rules (2626 with conclusion selected). Queue: 4173 rules.
+14000 rules inserted. Base: 9563 rules (2679 with conclusion selected). Queue: 4092 rules.
+14200 rules inserted. Base: 9705 rules (2731 with conclusion selected). Queue: 4014 rules.
+14400 rules inserted. Base: 9695 rules (2705 with conclusion selected). Queue: 4130 rules.
+14600 rules inserted. Base: 9840 rules (2790 with conclusion selected). Queue: 4031 rules.
+14800 rules inserted. Base: 10036 rules (2869 with conclusion selected). Queue: 3924 rules.
+15000 rules inserted. Base: 10201 rules (2947 with conclusion selected). Queue: 3804 rules.
+15200 rules inserted. Base: 10378 rules (3017 with conclusion selected). Queue: 3690 rules.
+15400 rules inserted. Base: 10539 rules (3053 with conclusion selected). Queue: 3634 rules.
+15600 rules inserted. Base: 10707 rules (3057 with conclusion selected). Queue: 3567 rules.
+15800 rules inserted. Base: 10883 rules (3065 with conclusion selected). Queue: 3508 rules.
+16000 rules inserted. Base: 11075 rules (3065 with conclusion selected). Queue: 3439 rules.
+16200 rules inserted. Base: 11275 rules (3065 with conclusion selected). Queue: 3314 rules.
+16400 rules inserted. Base: 11475 rules (3069 with conclusion selected). Queue: 3170 rules.
+16600 rules inserted. Base: 11443 rules (3017 with conclusion selected). Queue: 3322 rules.
+16800 rules inserted. Base: 11547 rules (3041 with conclusion selected). Queue: 3242 rules.
+17000 rules inserted. Base: 11557 rules (2969 with conclusion selected). Queue: 3171 rules.
+17200 rules inserted. Base: 11697 rules (3017 with conclusion selected). Queue: 3090 rules.
+17400 rules inserted. Base: 11801 rules (3041 with conclusion selected). Queue: 3010 rules.
+17600 rules inserted. Base: 11810 rules (2969 with conclusion selected). Queue: 2940 rules.
+17800 rules inserted. Base: 11983 rules (3025 with conclusion selected). Queue: 2834 rules.
+18000 rules inserted. Base: 12174 rules (3077 with conclusion selected). Queue: 2708 rules.
+18200 rules inserted. Base: 12365 rules (3129 with conclusion selected). Queue: 2574 rules.
+18400 rules inserted. Base: 12389 rules (3133 with conclusion selected). Queue: 2654 rules.
+18600 rules inserted. Base: 12463 rules (3133 with conclusion selected). Queue: 2618 rules.
+18800 rules inserted. Base: 12643 rules (3133 with conclusion selected). Queue: 2460 rules.
+19000 rules inserted. Base: 12745 rules (3115 with conclusion selected). Queue: 2367 rules.
+19200 rules inserted. Base: 12915 rules (3113 with conclusion selected). Queue: 2796 rules.
+19400 rules inserted. Base: 13099 rules (3113 with conclusion selected). Queue: 3484 rules.
+19600 rules inserted. Base: 13183 rules (3113 with conclusion selected). Queue: 3728 rules.
+19800 rules inserted. Base: 13163 rules (3109 with conclusion selected). Queue: 3828 rules.
+20000 rules inserted. Base: 13179 rules (3141 with conclusion selected). Queue: 3810 rules.
+20200 rules inserted. Base: 13252 rules (3193 with conclusion selected). Queue: 3678 rules.
+20400 rules inserted. Base: 13373 rules (3241 with conclusion selected). Queue: 3542 rules.
+20600 rules inserted. Base: 13446 rules (3297 with conclusion selected). Queue: 3414 rules.
+20800 rules inserted. Base: 13615 rules (3309 with conclusion selected). Queue: 3302 rules.
+21000 rules inserted. Base: 13693 rules (3347 with conclusion selected). Queue: 3268 rules.
+21200 rules inserted. Base: 13777 rules (3391 with conclusion selected). Queue: 3224 rules.
+21400 rules inserted. Base: 13741 rules (3385 with conclusion selected). Queue: 3280 rules.
+21600 rules inserted. Base: 13903 rules (3469 with conclusion selected). Queue: 3202 rules.
+21800 rules inserted. Base: 14052 rules (3529 with conclusion selected). Queue: 3159 rules.
+22000 rules inserted. Base: 14203 rules (3577 with conclusion selected). Queue: 3102 rules.
+22200 rules inserted. Base: 14375 rules (3670 with conclusion selected). Queue: 3023 rules.
+22400 rules inserted. Base: 14522 rules (3721 with conclusion selected). Queue: 2973 rules.
+22600 rules inserted. Base: 14657 rules (3769 with conclusion selected). Queue: 2900 rules.
+22800 rules inserted. Base: 14657 rules (3769 with conclusion selected). Queue: 2900 rules.
+23000 rules inserted. Base: 14657 rules (3769 with conclusion selected). Queue: 2900 rules.
+23200 rules inserted. Base: 14657 rules (3769 with conclusion selected). Queue: 2900 rules.
+23400 rules inserted. Base: 14329 rules (3511 with conclusion selected). Queue: 3160 rules.
+23600 rules inserted. Base: 14423 rules (3565 with conclusion selected). Queue: 3118 rules.
+23800 rules inserted. Base: 14519 rules (3617 with conclusion selected). Queue: 3066 rules.
+24000 rules inserted. Base: 14689 rules (3617 with conclusion selected). Queue: 2929 rules.
+24200 rules inserted. Base: 14775 rules (3631 with conclusion selected). Queue: 2916 rules.
+24400 rules inserted. Base: 14907 rules (3683 with conclusion selected). Queue: 2876 rules.
+24600 rules inserted. Base: 14849 rules (3695 with conclusion selected). Queue: 2926 rules.
+24800 rules inserted. Base: 14955 rules (3725 with conclusion selected). Queue: 2846 rules.
+25000 rules inserted. Base: 15120 rules (3765 with conclusion selected). Queue: 2734 rules.
+25200 rules inserted. Base: 15285 rules (3805 with conclusion selected). Queue: 2622 rules.
+25400 rules inserted. Base: 15450 rules (3845 with conclusion selected). Queue: 2510 rules.
+25600 rules inserted. Base: 15647 rules (3901 with conclusion selected). Queue: 2382 rules.
+25800 rules inserted. Base: 15847 rules (3960 with conclusion selected). Queue: 2241 rules.
+26000 rules inserted. Base: 16047 rules (4017 with conclusion selected). Queue: 2098 rules.
+26200 rules inserted. Base: 16173 rules (4095 with conclusion selected). Queue: 2028 rules.
+26400 rules inserted. Base: 16143 rules (4211 with conclusion selected). Queue: 2082 rules.
+26600 rules inserted. Base: 16167 rules (4321 with conclusion selected). Queue: 2096 rules.
+26800 rules inserted. Base: 16295 rules (4357 with conclusion selected). Queue: 2086 rules.
+27000 rules inserted. Base: 16322 rules (4338 with conclusion selected). Queue: 2078 rules.
+27200 rules inserted. Base: 16391 rules (4353 with conclusion selected). Queue: 2088 rules.
+27400 rules inserted. Base: 16321 rules (4379 with conclusion selected). Queue: 2118 rules.
+27600 rules inserted. Base: 15999 rules (4269 with conclusion selected). Queue: 2386 rules.
+27800 rules inserted. Base: 16181 rules (4293 with conclusion selected). Queue: 2252 rules.
+28000 rules inserted. Base: 16363 rules (4301 with conclusion selected). Queue: 2102 rules.
+28200 rules inserted. Base: 16483 rules (4305 with conclusion selected). Queue: 1966 rules.
+28400 rules inserted. Base: 16565 rules (4313 with conclusion selected). Queue: 1884 rules.
+28600 rules inserted. Base: 16600 rules (4317 with conclusion selected). Queue: 1825 rules.
+28800 rules inserted. Base: 16699 rules (4337 with conclusion selected). Queue: 1770 rules.
+29000 rules inserted. Base: 16705 rules (4345 with conclusion selected). Queue: 1814 rules.
+29200 rules inserted. Base: 16567 rules (4369 with conclusion selected). Queue: 1838 rules.
+29400 rules inserted. Base: 16521 rules (4337 with conclusion selected). Queue: 1862 rules.
+29600 rules inserted. Base: 16207 rules (4179 with conclusion selected). Queue: 2160 rules.
+29800 rules inserted. Base: 16111 rules (4117 with conclusion selected). Queue: 2338 rules.
+30000 rules inserted. Base: 16057 rules (4093 with conclusion selected). Queue: 2480 rules.
+30200 rules inserted. Base: 15880 rules (3949 with conclusion selected). Queue: 2753 rules.
+30400 rules inserted. Base: 15486 rules (3709 with conclusion selected). Queue: 3175 rules.
+30600 rules inserted. Base: 15475 rules (3714 with conclusion selected). Queue: 3128 rules.
+30800 rules inserted. Base: 15445 rules (3753 with conclusion selected). Queue: 3134 rules.
+31000 rules inserted. Base: 15147 rules (3669 with conclusion selected). Queue: 3318 rules.
+31200 rules inserted. Base: 15227 rules (3693 with conclusion selected). Queue: 3238 rules.
+31400 rules inserted. Base: 15087 rules (3655 with conclusion selected). Queue: 3432 rules.
+31600 rules inserted. Base: 15015 rules (3625 with conclusion selected). Queue: 3486 rules.
+31800 rules inserted. Base: 14975 rules (3619 with conclusion selected). Queue: 3546 rules.
+32000 rules inserted. Base: 15035 rules (3657 with conclusion selected). Queue: 3490 rules.
+32200 rules inserted. Base: 15085 rules (3695 with conclusion selected). Queue: 3440 rules.
+32400 rules inserted. Base: 15145 rules (3743 with conclusion selected). Queue: 3394 rules.
+32600 rules inserted. Base: 15165 rules (3777 with conclusion selected). Queue: 3416 rules.
+32800 rules inserted. Base: 14952 rules (3542 with conclusion selected). Queue: 3349 rules.
+33000 rules inserted. Base: 15056 rules (3637 with conclusion selected). Queue: 3247 rules.
+33200 rules inserted. Base: 14979 rules (3573 with conclusion selected). Queue: 3190 rules.
+33400 rules inserted. Base: 14857 rules (3469 with conclusion selected). Queue: 3128 rules.
+33600 rules inserted. Base: 14987 rules (3541 with conclusion selected). Queue: 3014 rules.
+33800 rules inserted. Base: 14873 rules (3473 with conclusion selected). Queue: 3132 rules.
+34000 rules inserted. Base: 14599 rules (3377 with conclusion selected). Queue: 3368 rules.
+34200 rules inserted. Base: 14459 rules (3389 with conclusion selected). Queue: 3466 rules.
+34400 rules inserted. Base: 14463 rules (3373 with conclusion selected). Queue: 3410 rules.
+34600 rules inserted. Base: 14515 rules (3421 with conclusion selected). Queue: 3362 rules.
+34800 rules inserted. Base: 14553 rules (3473 with conclusion selected). Queue: 3324 rules.
+35000 rules inserted. Base: 14631 rules (3501 with conclusion selected). Queue: 3230 rules.
+35200 rules inserted. Base: 14716 rules (3575 with conclusion selected). Queue: 3180 rules.
+35400 rules inserted. Base: 14847 rules (3621 with conclusion selected). Queue: 3178 rules.
+35600 rules inserted. Base: 14991 rules (3689 with conclusion selected). Queue: 3134 rules.
+35800 rules inserted. Base: 15113 rules (3725 with conclusion selected). Queue: 3174 rules.
+36000 rules inserted. Base: 15009 rules (3745 with conclusion selected). Queue: 3066 rules.
+36200 rules inserted. Base: 14927 rules (3669 with conclusion selected). Queue: 2942 rules.
+36400 rules inserted. Base: 14669 rules (3609 with conclusion selected). Queue: 2806 rules.
+36600 rules inserted. Base: 14795 rules (3579 with conclusion selected). Queue: 2652 rules.
+36800 rules inserted. Base: 14756 rules (3616 with conclusion selected). Queue: 2705 rules.
+37000 rules inserted. Base: 14609 rules (3545 with conclusion selected). Queue: 2822 rules.
+37200 rules inserted. Base: 14563 rules (3519 with conclusion selected). Queue: 2848 rules.
+37400 rules inserted. Base: 14638 rules (3562 with conclusion selected). Queue: 2772 rules.
+37600 rules inserted. Base: 14695 rules (3569 with conclusion selected). Queue: 2690 rules.
+37800 rules inserted. Base: 14751 rules (3601 with conclusion selected). Queue: 2670 rules.
+38000 rules inserted. Base: 14907 rules (3651 with conclusion selected). Queue: 2580 rules.
+38200 rules inserted. Base: 15031 rules (3669 with conclusion selected). Queue: 2530 rules.
+38400 rules inserted. Base: 15147 rules (3705 with conclusion selected). Queue: 2474 rules.
+38600 rules inserted. Base: 15207 rules (3737 with conclusion selected). Queue: 2494 rules.
+38800 rules inserted. Base: 15313 rules (3753 with conclusion selected). Queue: 2664 rules.
+39000 rules inserted. Base: 15378 rules (3761 with conclusion selected). Queue: 2775 rules.
+39200 rules inserted. Base: 15355 rules (3729 with conclusion selected). Queue: 2674 rules.
+39400 rules inserted. Base: 15399 rules (3737 with conclusion selected). Queue: 2586 rules.
+39600 rules inserted. Base: 15415 rules (3749 with conclusion selected). Queue: 2514 rules.
+39800 rules inserted. Base: 15459 rules (3757 with conclusion selected). Queue: 2414 rules.
+40000 rules inserted. Base: 15533 rules (3819 with conclusion selected). Queue: 2376 rules.
+40200 rules inserted. Base: 15647 rules (3847 with conclusion selected). Queue: 2312 rules.
+40400 rules inserted. Base: 15731 rules (3877 with conclusion selected). Queue: 2278 rules.
+40600 rules inserted. Base: 15759 rules (3893 with conclusion selected). Queue: 2286 rules.
+40800 rules inserted. Base: 15803 rules (3905 with conclusion selected). Queue: 2228 rules.
+41000 rules inserted. Base: 15867 rules (3937 with conclusion selected). Queue: 2146 rules.
+41200 rules inserted. Base: 15979 rules (3989 with conclusion selected). Queue: 2090 rules.
+41400 rules inserted. Base: 16161 rules (4053 with conclusion selected). Queue: 2236 rules.
+41600 rules inserted. Base: 16343 rules (4137 with conclusion selected). Queue: 2282 rules.
+41800 rules inserted. Base: 16323 rules (4107 with conclusion selected). Queue: 2356 rules.
+42000 rules inserted. Base: 16371 rules (4121 with conclusion selected). Queue: 2238 rules.
+42200 rules inserted. Base: 16431 rules (4097 with conclusion selected). Queue: 2146 rules.
+42400 rules inserted. Base: 16479 rules (4113 with conclusion selected). Queue: 2162 rules.
+42600 rules inserted. Base: 16515 rules (4145 with conclusion selected). Queue: 2116 rules.
+42800 rules inserted. Base: 16547 rules (4161 with conclusion selected). Queue: 2034 rules.
+43000 rules inserted. Base: 16636 rules (4192 with conclusion selected). Queue: 1929 rules.
+43200 rules inserted. Base: 16823 rules (4245 with conclusion selected). Queue: 1806 rules.
+43400 rules inserted. Base: 17007 rules (4305 with conclusion selected). Queue: 1722 rules.
+43600 rules inserted. Base: 17191 rules (4365 with conclusion selected). Queue: 1638 rules.
+43800 rules inserted. Base: 17375 rules (4425 with conclusion selected). Queue: 1554 rules.
+44000 rules inserted. Base: 17449 rules (4453 with conclusion selected). Queue: 1526 rules.
+44200 rules inserted. Base: 17359 rules (4409 with conclusion selected). Queue: 1556 rules.
+44400 rules inserted. Base: 17283 rules (4385 with conclusion selected). Queue: 1492 rules.
+44600 rules inserted. Base: 17313 rules (4403 with conclusion selected). Queue: 1412 rules.
+44800 rules inserted. Base: 17491 rules (4461 with conclusion selected). Queue: 1270 rules.
+45000 rules inserted. Base: 17663 rules (4491 with conclusion selected). Queue: 1148 rules.
+45200 rules inserted. Base: 17855 rules (4521 with conclusion selected). Queue: 1044 rules.
+45400 rules inserted. Base: 18039 rules (4545 with conclusion selected). Queue: 946 rules.
+45600 rules inserted. Base: 17823 rules (4561 with conclusion selected). Queue: 978 rules.
+45800 rules inserted. Base: 17691 rules (4477 with conclusion selected). Queue: 902 rules.
+46000 rules inserted. Base: 17833 rules (4525 with conclusion selected). Queue: 750 rules.
+46200 rules inserted. Base: 17969 rules (4537 with conclusion selected). Queue: 688 rules.
+46400 rules inserted. Base: 17825 rules (4463 with conclusion selected). Queue: 782 rules.
+46600 rules inserted. Base: 17213 rules (4183 with conclusion selected). Queue: 968 rules.
+46800 rules inserted. Base: 17303 rules (4212 with conclusion selected). Queue: 829 rules.
+47000 rules inserted. Base: 17409 rules (4233 with conclusion selected). Queue: 744 rules.
+47200 rules inserted. Base: 17147 rules (4119 with conclusion selected). Queue: 772 rules.
+47400 rules inserted. Base: 16821 rules (4052 with conclusion selected). Queue: 805 rules.
+47600 rules inserted. Base: 16471 rules (3905 with conclusion selected). Queue: 874 rules.
+47800 rules inserted. Base: 16467 rules (3845 with conclusion selected). Queue: 734 rules.
+48000 rules inserted. Base: 16435 rules (3837 with conclusion selected). Queue: 630 rules.
+48200 rules inserted. Base: 16303 rules (3793 with conclusion selected). Queue: 526 rules.
+48400 rules inserted. Base: 16239 rules (3785 with conclusion selected). Queue: 426 rules.
+48600 rules inserted. Base: 16063 rules (3741 with conclusion selected). Queue: 326 rules.
+48800 rules inserted. Base: 15953 rules (3649 with conclusion selected). Queue: 217 rules.
+49000 rules inserted. Base: 15631 rules (3557 with conclusion selected). Queue: 216 rules.
+49200 rules inserted. Base: 15217 rules (3361 with conclusion selected). Queue: 136 rules.
+Starting query not attacker(sv)
+goal reachable: begin(@p_act(@occ82_1,(AES_enc(secure_param_5,kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),n2_2),n2_2),enc_params[]))) && begin(@p_act(@occ72_1,(AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),bleAuthentication_const),n2_2),enc_nonce_1[]))) && attacker(n1_2) && begin(@p_act(@occ69_1,(n1_2,nonce_1[]))) && begin(@p_act(@occ65_1,(rand_3,(pub_c_3,rand_and_pubc[])))) && attacker(pub_c_3) && attacker(rand_3) && attacker(secure_param_5) -> attacker(sv)
+Abbreviations:
+@occ82_1 = @occ82[!1 = @sid]
+sn = sn_1[!1 = @sid]
+n2_2 = n2[n1 = n1_2,pub_c_2 = pub_c_3,rand_2 = rand_3,!1 = @sid]
+@occ72_1 = @occ72[!1 = @sid]
+@occ69_1 = @occ69[!1 = @sid]
+@occ65_1 = @occ65[!1 = @sid]
+
+Derivation:
+Abbreviations:
+sn = sn_1[!1 = @sid]
+n2_2 = n2[n1 = n1_2,pub_c_2 = pub_c_3,rand_2 = rand_3,!1 = @sid]
+@occ82_1 = @occ82[!1 = @sid]
+@occ69_1 = @occ69[!1 = @sid]
+@occ65_1 = @occ65[!1 = @sid]
+@occ72_1 = @occ72[!1 = @sid]
+
+1. Using the function zero_const the attacker may obtain zero_const.
+attacker(zero_const).
+
+2. We assume as hypothesis that
+attacker(secure_param_5).
+
+3. Using the function privacy_const the attacker may obtain privacy_const.
+attacker(privacy_const).
+
+4. We assume as hypothesis that
+attacker(rand_3).
+
+5. The message (derive_hashed_sn(sn),hashed_SerialNumber[]) may be sent to the attacker at output {64}.
+attacker((derive_hashed_sn(sn),hashed_SerialNumber[])).
+
+6. By 5, the attacker may know (derive_hashed_sn(sn),hashed_SerialNumber[]).
+Using the function 1-proj-2-tuple the attacker may obtain derive_hashed_sn(sn).
+attacker(derive_hashed_sn(sn)).
+
+7. By 6, the attacker may know derive_hashed_sn(sn).
+Using the function hash_table the attacker may obtain sn.
+attacker(sn).
+
+8. By 7, the attacker may know sn.
+Using the function kdf1 the attacker may obtain kdf1(sn).
+attacker(kdf1(sn)).
+
+9. We assume as hypothesis that
+attacker(pub_c_3).
+
+10. By 9, the attacker may know pub_c_3.
+By 8, the attacker may know kdf1(sn).
+Using the function exp the attacker may obtain exp(pub_c_3,kdf1(sn)).
+attacker(exp(pub_c_3,kdf1(sn))).
+
+11. By 10, the attacker may know exp(pub_c_3,kdf1(sn)).
+By 4, the attacker may know rand_3.
+Using the function derive_encryption_key the attacker may obtain derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3).
+attacker(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3)).
+
+12. By 11, the attacker may know derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3).
+By 3, the attacker may know privacy_const.
+Using the function kdf2 the attacker may obtain kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),privacy_const).
+attacker(kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),privacy_const)).
+
+13. By 12, the attacker may know kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),privacy_const).
+By 2, the attacker may know secure_param_5.
+By 2, the attacker may know secure_param_5.
+By 2, the attacker may know secure_param_5.
+Using the function get_id the attacker may obtain get_id(kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),privacy_const),secure_param_5,secure_param_5,secure_param_5).
+attacker(get_id(kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),privacy_const),secure_param_5,secure_param_5,secure_param_5)).
+
+14. The attacker initially knows rand_and_pubc[].
+attacker(rand_and_pubc[]).
+
+15. By 9, the attacker may know pub_c_3.
+By 14, the attacker may know rand_and_pubc[].
+Using the function 2-tuple the attacker may obtain (pub_c_3,rand_and_pubc[]).
+attacker((pub_c_3,rand_and_pubc[])).
+
+16. By 4, the attacker may know rand_3.
+By 15, the attacker may know (pub_c_3,rand_and_pubc[]).
+Using the function 2-tuple the attacker may obtain (rand_3,(pub_c_3,rand_and_pubc[])).
+attacker((rand_3,(pub_c_3,rand_and_pubc[]))).
+
+17. The attacker initially knows nonce_1[].
+attacker(nonce_1[]).
+
+18. We assume as hypothesis that
+attacker(n1_2).
+
+19. By 18, the attacker may know n1_2.
+By 17, the attacker may know nonce_1[].
+Using the function 2-tuple the attacker may obtain (n1_2,nonce_1[]).
+attacker((n1_2,nonce_1[])).
+
+20. The attacker initially knows enc_nonce_1[].
+attacker(enc_nonce_1[]).
+
+21. The event @p_act(@occ65_1,(rand_3,(pub_c_3,rand_and_pubc[]))) records how variables are instantiated at {65}.
+The message (rand_3,(pub_c_3,rand_and_pubc[])) that the attacker may have by 16 may be received at input {65}.
+The event @p_act(@occ69_1,(n1_2,nonce_1[])) records how variables are instantiated at {69}.
+The message (n1_2,nonce_1[]) that the attacker may have by 19 may be received at input {69}.
+So the message (n2_2,nonce_2[]) may be sent to the attacker at output {71}.
+attacker((n2_2,nonce_2[])).
+
+22. By 21, the attacker may know (n2_2,nonce_2[]).
+Using the function 1-proj-2-tuple the attacker may obtain n2_2.
+attacker(n2_2).
+
+23. Using the function bleAuthentication_const the attacker may obtain bleAuthentication_const.
+attacker(bleAuthentication_const).
+
+24. By 11, the attacker may know derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3).
+By 23, the attacker may know bleAuthentication_const.
+Using the function kdf2 the attacker may obtain kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),bleAuthentication_const).
+attacker(kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),bleAuthentication_const)).
+
+25. Using the function smartthings_const the attacker may obtain smartthings_const.
+attacker(smartthings_const).
+
+26. By 25, the attacker may know smartthings_const.
+By 24, the attacker may know kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),bleAuthentication_const).
+By 22, the attacker may know n2_2.
+Using the function AES_enc the attacker may obtain AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),bleAuthentication_const),n2_2).
+attacker(AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),bleAuthentication_const),n2_2)).
+
+27. By 26, the attacker may know AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),bleAuthentication_const),n2_2).
+By 20, the attacker may know enc_nonce_1[].
+Using the function 2-tuple the attacker may obtain (AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),bleAuthentication_const),n2_2),enc_nonce_1[]).
+attacker((AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),bleAuthentication_const),n2_2),enc_nonce_1[])).
+
+28. The attacker initially knows enc_params[].
+attacker(enc_params[]).
+
+29. By 11, the attacker may know derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3).
+By 22, the attacker may know n2_2.
+Using the function kdf2 the attacker may obtain kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),n2_2).
+attacker(kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),n2_2)).
+
+30. By 2, the attacker may know secure_param_5.
+By 29, the attacker may know kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),n2_2).
+By 22, the attacker may know n2_2.
+Using the function AES_enc the attacker may obtain AES_enc(secure_param_5,kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),n2_2),n2_2).
+attacker(AES_enc(secure_param_5,kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),n2_2),n2_2)).
+
+31. By 30, the attacker may know AES_enc(secure_param_5,kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),n2_2),n2_2).
+By 28, the attacker may know enc_params[].
+Using the function 2-tuple the attacker may obtain (AES_enc(secure_param_5,kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),n2_2),n2_2),enc_params[]).
+attacker((AES_enc(secure_param_5,kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),n2_2),n2_2),enc_params[])).
+
+32. The event @p_act(@occ65_1,(rand_3,(pub_c_3,rand_and_pubc[]))) records how variables are instantiated at {65}.
+The message (rand_3,(pub_c_3,rand_and_pubc[])) that the attacker may have by 16 may be received at input {65}.
+The event @p_act(@occ69_1,(n1_2,nonce_1[])) records how variables are instantiated at {69}.
+The message (n1_2,nonce_1[]) that the attacker may have by 19 may be received at input {69}.
+The event @p_act(@occ72_1,(AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),bleAuthentication_const),n2_2),enc_nonce_1[])) records how variables are instantiated at {72}.
+The message (AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),bleAuthentication_const),n2_2),enc_nonce_1[]) that the attacker may have by 27 may be received at input {72}.
+The event @p_act(@occ82_1,(AES_enc(secure_param_5,kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),n2_2),n2_2),enc_params[])) records how variables are instantiated at {82}.
+The message (AES_enc(secure_param_5,kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),n2_2),n2_2),enc_params[]) that the attacker may have by 31 may be received at input {82}.
+So the message AES_enc(sv,get_id(kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),privacy_const),secure_param_5,secure_param_5,secure_param_5),zero_const) may be sent to the attacker at output {87}.
+attacker(AES_enc(sv,get_id(kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),privacy_const),secure_param_5,secure_param_5,secure_param_5),zero_const)).
+
+33. By 32, the attacker may know AES_enc(sv,get_id(kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),privacy_const),secure_param_5,secure_param_5,secure_param_5),zero_const).
+By 13, the attacker may know get_id(kdf2(derive_encryption_key(exp(pub_c_3,kdf1(sn)),rand_3),privacy_const),secure_param_5,secure_param_5,secure_param_5).
+By 1, the attacker may know zero_const.
+Using the function AES_dec the attacker may obtain sv.
+attacker(sv).
+
+34. By 33, attacker(sv).
+The goal is reached, represented in the following fact:
+attacker(sv).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new sec_ch_1: channel creating sec_ch at {1}
+
+new sn_owner_1: bitstring creating sn_owner at {3} in copy a
+
+new sn_1: bitstring creating sn at {4} in copy a
+
+out(att, (~M,~M_1)) with ~M = derive_hashed_sn(sn), ~M_1 = hashed_SerialNumber at {64} in copy a
+
+in(att, (a_1,(a_2,rand_and_pubc))) at {65} in copy a
+
+in(att, (a_3,nonce_1)) at {69} in copy a
+
+new n2: bitstring creating n2_2 at {70} in copy a
+
+out(att, (~M_2,~M_3)) with ~M_2 = n2_2, ~M_3 = nonce_2 at {71} in copy a
+
+in(att, (AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(a_2,kdf1(hash_table(~M))),a_1),bleAuthentication_const),~M_2),enc_nonce_1)) with AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(a_2,kdf1(hash_table(~M))),a_1),bleAuthentication_const),~M_2) = AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(a_2,kdf1(sn)),a_1),bleAuthentication_const),n2_2) at {72} in copy a
+
+out(att, (~M_4,~M_5)) with ~M_4 = AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(a_2,kdf1(sn)),a_1),bleAuthentication_const),a_3), ~M_5 = enc_nonce_2 at {75} in copy a
+
+out(att, (~M_6,~M_7)) with ~M_6 = AES_enc(sn,kdf2(derive_encryption_key(exp(a_2,kdf1(sn)),a_1),n2_2),n2_2), ~M_7 = enc_sn1 at {79} in copy a
+
+out(att, (~M_8,~M_9)) with ~M_8 = AES_enc(sn,kdf2(derive_encryption_key(exp(a_2,kdf1(sn)),a_1),n2_2),n2_2), ~M_9 = enc_sn at {81} in copy a
+
+in(att, (AES_enc(a_4,kdf2(derive_encryption_key(exp(a_2,kdf1(hash_table(~M))),a_1),~M_2),~M_2),enc_params)) with AES_enc(a_4,kdf2(derive_encryption_key(exp(a_2,kdf1(hash_table(~M))),a_1),~M_2),~M_2) = AES_enc(a_4,kdf2(derive_encryption_key(exp(a_2,kdf1(sn)),a_1),n2_2),n2_2) at {82} in copy a
+
+event Secret(sv) at {86} in copy a
+
+out(att, ~M_10) with ~M_10 = AES_enc(sv,get_id(kdf2(derive_encryption_key(exp(a_2,kdf1(sn)),a_1),privacy_const),a_4,a_4,a_4),zero_const) at {87} in copy a
+
+The attacker has the message AES_dec(~M_10,get_id(kdf2(derive_encryption_key(exp(a_2,kdf1(hash_table(~M))),a_1),privacy_const),a_4,a_4,a_4),zero_const) = sv.
+A trace has been found.
+RESULT not attacker(sv) is false.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query not attacker(sv) is false.
+
+--------------------------------------------------------------
+
