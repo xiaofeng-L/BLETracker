@@ -1,18 +1,0 @@
-[1m[30mDeepSec - DEciding Equivalence Properties for SECurity protocols[0m
-    Version: 2.0.2
-    Git hash: 8ddc45ec79de5ec49810302ea7da32d3dc9f46e4
-    Git branch: master
-    Website: https://deepsec-prover.github.io
-
-
-Loading file /home/xiaofeng/Samsung_location_E2E_unlinkability.spthy.dps...
-
-Starting verification...
-
-[1m[33mWarnings[0m on file /home/xiaofeng/Samsung_location_E2E_unlinkability.spthy.dps:
-   Line 53, Characters 35-39: The identifier r2_1 is already defined.
-
-Starting verification of Samsung_location_E2E_unlinkability.spthy.dps...
-Verifying query 1...Verifying query 1... [round 1 jobs verification:: 0% (366 jobs remaning); run time: 1s]          The following attack trace has been found on the 1st process: out(att,ax_1);out(att,ax_2);out(att,ax_3);in(att,((proj_{1,2}(ax_2),tracker_ID)));out(att,ax_4);in(att,((#n_1,(Mode_E2E,(#n_0,adv)))));out(att,ax_5);in(att,((get_pk(#n_2),tracker_PubKey)));out(att,ax_6);in(att,((proj_{1,2}(ax_1),tracker_ID)));out(att,ax_7)          
-Result query 1: The two processes are [1m[31mnot trace equivalent[0m. Verified in 1s using 37MB of memory.          
-Verification complete.
