@@ -1,0 +1,1920 @@
+maude tool: 'maude'
+ checking version: 3.1. OK.
+ checking installation: OK.
+
+theory Samsung_SmartTag begin
+
+// Function signature and definition of the equational theory E
+
+builtins: diffie-hellman
+functions: AES_dec/3[destructor], AES_enc/3, SHA256/1, addrA_const/0,
+           addrB_const/0, bleAuthentication_const/0, bound_const/0,
+           derive_encryption_key/2, derive_hashed_sn/1, fst/1[destructor], get_id/4,
+           hash_table/1[destructor], kdf1/1, kdf2/2, no_confirm_const/0, pair/2,
+           poolsize_const/0, privacy_const/0, serial_number_const/0,
+           smartthings_const/0, snd/1[destructor], unbound_const/0,
+           yes_confirm_const/0
+equations:
+    AES_dec(AES_enc(mes, k, v), k, v) = mes,
+    fst(<x.1, x.2>) = x.1,
+    hash_table(derive_hashed_sn(x)) = x,
+    snd(<x.1, x.2>) = x.2
+
+heuristic: p
+
+/* looping facts with injective instances: L_CellLocked/2, L_PureState/2
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+lemma sn_sources [sources, output=[spthy]]:
+  all-traces
+  "∀ sn #i.
+    (ReceiveSn( sn ) @ #i) ⇒
+    ((∃ enc_sn #t. (SendSn( sn, enc_sn ) @ #t) ∧ (#t < #i)) ∨
+     (∃ #t. (!KU( sn ) @ #t) ∧ (#t < #i)))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ sn #i.
+  (ReceiveSn( sn ) @ #i)
+ ∧
+  (∀ enc_sn #t. (SendSn( sn, enc_sn ) @ #t) ⇒ ¬(#t < #i)) ∧
+  (∀ #t. (!KU( sn ) @ #t) ⇒ ¬(#t < #i))"
+*/
+by sorry
+
+lemma pair_consistency [output=[spthy]]:
+  all-traces
+  "∀ device #i.
+    (Bounded( device ) @ #i) ⇒
+    (¬(∃ #j. (PairSuccess( device ) @ #j) ∧ (#i < #j)))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ device #i.
+  (Bounded( device ) @ #i) ∧ ∃ #j. (PairSuccess( device ) @ #j) ∧ #i < #j"
+*/
+simplify
+solve( State_1112111( ~sec_ch.1, id_p, id_p, device ) ▶₀ #j )
+  case insecchchannelidpsnidp_1_111211
+  solve( State_11111111( ~sec_ch, serial_number_const ) ▶₀ #i )
+    case insecchchannelsnownersnowner_1_1111111
+    solve( State_11111111( ~sec_ch, sn_owner ) ▶₀ #vr.22 )
+      case insecchchannelsnownersnowner_1_1111111
+      solve( Ack( ~sec_ch, <serial_number_const, 'sn_owner'> ) ▶₁ #vr.24 )
+        case insecchchannelidpsnidp_0_111211
+        solve( State_11111111( ~sec_ch, sn_owner ) ▶₀ #vr.46 )
+          case insecchchannelsnownersnowner_1_1111111
+          solve( splitEqs(7) )
+            case split_case_1
+            solve( !KU( 'g'^(~pri_c*inv(kdf1(serial_number_const))*kdf1(sn))
+                   ) @ #vk.29 )
+              case newpric_0_11111111111
+              solve( !KU( AES_enc(~secure_param,
+                                  kdf2(derive_encryption_key('g'^(~pri_c*kdf1(sn)), rand.1), ~n2), ~n2)
+                     ) @ #vk.17 )
+                case c_AES_enc
+                solve( !KU( kdf2(derive_encryption_key('g'^(~pri_c*kdf1(sn)), rand.1),
+                                 ~n2)
+                       ) @ #vk.40 )
+                  case c_kdf2
+                  solve( !KU( AES_enc(smartthings_const,
+                                      kdf2(derive_encryption_key('g'^(~pri_c*kdf1(sn)), rand.1),
+                                           bleAuthentication_const),
+                                      ~n2)
+                         ) @ #vk.27 )
+                    case c_AES_enc
+                    solve( !KU( kdf2(derive_encryption_key('g'^(~pri_c*kdf1(sn)), rand.1),
+                                     bleAuthentication_const)
+                           ) @ #vk.43 )
+                      case c_kdf2
+                      solve( !KU( derive_hashed_sn(sn) ) @ #vk.30 )
+                        case c_derive_hashed_sn
+                        solve( !KU( derive_hashed_sn(sn.1) ) @ #vk.35 )
+                          case c_derive_hashed_sn
+                          solve( !KU( kdf1(sn) ) @ #vk.40 )
+                            case c_kdf1
+                            solve( !KU( kdf1(serial_number_const) ) @ #vk.40 )
+                              case c_kdf1
+                              solve( !KU( derive_encryption_key('g'^(~pri_c*kdf1(sn)), rand.1)
+                                     ) @ #vk.32 )
+                                case c_derive_encryption_key
+                                solve( !KU( 'g'^(~pri_c*kdf1(sn)) ) @ #vk.46 )
+                                  case newpric_0_11111111111
+                                  solve( !KU( derive_encryption_key('g'^(~pri_c.1*kdf1(sn.1)), rand.2)
+                                         ) @ #vk.39 )
+                                    case c_derive_encryption_key
+                                    solve( !KU( 'g'^(~pri_c.1*kdf1(sn.1)) ) @ #vk.47 )
+                                      case newpric_0_11111111111
+                                      solve( !KU( kdf1(sn.1) ) @ #vk.48 )
+                                        case c_kdf1
+                                        solve( !KU( ~secure_param ) @ #vk.44 )
+                                          case ifsnsnpderiveencryptionkeygkdfsnpricrandencryptionkeyc_0_11111111111111112112
+                                          solve( !KU( ~n2 ) @ #vk.45 )
+                                            case inrandpubcopench_0_11112111
+                                            SOLVED // trace found
+                                          qed
+                                        qed
+                                      qed
+                                    qed
+                                  qed
+                                qed
+                              qed
+                            qed
+                          qed
+                        qed
+                      qed
+                    qed
+                  qed
+                qed
+              qed
+            qed
+          qed
+        qed
+      qed
+    qed
+  qed
+qed
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+rule (modulo E) Init[color=#ffffff, process="new ~sec_ch.1:channel;"]:
+   [ Fr( ~sec_ch.1 ) ]
+  --[ Init( ), SecureChannel( ~sec_ch.1 ) ]->
+   [ !Semistate_111( ~sec_ch.1 ) ]
+
+  /*
+  rule (modulo AC) Init[color=#ffffff, process="new ~sec_ch.1:channel;"]:
+     [ Fr( ~sec_ch ) ]
+    --[ Init( ), SecureChannel( ~sec_ch ) ]->
+     [ !Semistate_111( ~sec_ch ) ]
+  */
+
+rule (modulo E) insecchchannelsnownersnowner_0_1111111[color=#658040,
+                                                       process="in(~sec_ch.1:channel,<sn_owner.1, 'sn_owner'>);"]:
+   [ State_1111111( ~sec_ch.1 ), Message( ~sec_ch.1, x.2 ) ]
+  -->
+   [ Let_11111111( x.2, ~sec_ch.1 ), Ack( ~sec_ch.1, x.2 ) ]
+
+  /*
+  rule (modulo AC) insecchchannelsnownersnowner_0_1111111[color=#658040,
+                                                          process="in(~sec_ch.1:channel,<sn_owner.1, 'sn_owner'>);"]:
+     [ State_1111111( ~sec_ch ), Message( ~sec_ch, x ) ]
+    -->
+     [ Let_11111111( x, ~sec_ch ), Ack( ~sec_ch, x ) ]
+  */
+
+rule (modulo E) insecchchannelsnownersnowner_1_1111111[color=#658040,
+                                                       process="in(~sec_ch.1:channel,<sn_owner.1, 'sn_owner'>);"]:
+   [ Let_11111111( <sn_owner.1, 'sn_owner'>, ~sec_ch.1 ) ]
+  -->
+   [ State_11111111( ~sec_ch.1, sn_owner.1 ) ]
+
+  /*
+  rule (modulo AC) insecchchannelsnownersnowner_1_1111111[color=#658040,
+                                                          process="in(~sec_ch.1:channel,<sn_owner.1, 'sn_owner'>);"]:
+     [ Let_11111111( <sn_owner, 'sn_owner'>, ~sec_ch ) ]
+    -->
+     [ State_11111111( ~sec_ch, sn_owner ) ]
+  */
+
+rule (modulo E) eventBoundedsnowner_0_11111111[color=#658040,
+                                               process="event Bounded( sn_owner.1 );"]:
+   [
+   State_11111111( ~sec_ch.1, sn_owner.1 ),
+   In( <hashed_sn_p.1, rand.1, 'pre_app1'> )
+   ]
+  --[ Bounded( sn_owner.1 ) ]->
+   [
+   Let_11111111111( hashed_sn_p.1, ~sec_ch.1, hashed_sn_p.1, rand.1,
+                    sn_owner.1
+   )
+   ]
+
+  // loop breaker: [0]
+  /*
+  rule (modulo AC) eventBoundedsnowner_0_11111111[color=#658040,
+                                                  process="event Bounded( sn_owner.1 );"]:
+     [
+     State_11111111( ~sec_ch, sn_owner ),
+     In( <hashed_sn_p, rand, 'pre_app1'> )
+     ]
+    --[ Bounded( sn_owner ) ]->
+     [ Let_11111111111( hashed_sn_p, ~sec_ch, hashed_sn_p, rand, sn_owner ) ]
+    // loop breaker: [0]
+  */
+
+rule (modulo E) letsnhashtablehashedsnp_1_1111111111[color=#ffffff,
+                                                     process="let sn.1=hash_table(hashed_sn_p.1)"]:
+   [
+   Let_11111111111( derive_hashed_sn(sn.1), ~sec_ch.1, hashed_sn_p.1,
+                    rand.1, sn_owner.1
+   )
+   ]
+  -->
+   [ State_11111111111( ~sec_ch.1, hashed_sn_p.1, rand.1, sn.1, sn_owner.1 )
+   ]
+
+  /*
+  rule (modulo AC) letsnhashtablehashedsnp_1_1111111111[color=#ffffff,
+                                                        process="let sn.1=hash_table(hashed_sn_p.1)"]:
+     [
+     Let_11111111111( derive_hashed_sn(sn), ~sec_ch, hashed_sn_p, rand,
+                      sn_owner
+     )
+     ]
+    -->
+     [ State_11111111111( ~sec_ch, hashed_sn_p, rand, sn, sn_owner ) ]
+  */
+
+rule (modulo E) newpric_0_11111111111[color=#658040,
+                                      process="new ~pri_c.1;"]:
+   [
+   State_11111111111( ~sec_ch.1, hashed_sn_p.1, rand.1, sn.1, sn_owner.1 ),
+   Fr( ~pri_c.1 )
+   ]
+  --[ SendPubkey( ~sec_ch.1, ~pri_c.1, 'g'^~pri_c.1 ) ]->
+   [
+   State_11111111111111( ~pri_c.1, ~sec_ch.1, hashed_sn_p.1, rand.1, sn.1,
+                         sn_owner.1
+   ),
+   Out( <derive_encryption_key('g'^kdf1(sn.1)^~pri_c.1, rand.1), 
+         'g'^~pri_c.1, 'pre_app1'>
+   )
+   ]
+
+  /*
+  rule (modulo AC) newpric_0_11111111111[color=#658040,
+                                         process="new ~pri_c.1;"]:
+     [
+     State_11111111111( ~sec_ch, hashed_sn_p, rand, sn, sn_owner ),
+     Fr( ~pri_c )
+     ]
+    --[ SendPubkey( ~sec_ch, ~pri_c, 'g'^~pri_c ) ]->
+     [
+     State_11111111111111( ~pri_c, ~sec_ch, hashed_sn_p, rand, sn, sn_owner ),
+     Out( <derive_encryption_key('g'^(~pri_c*kdf1(sn)), rand), 'g'^~pri_c, 
+           'pre_app1'>
+     )
+     ]
+  */
+
+rule (modulo E) insnppreapp_0_11111111111111[color=#658040,
+                                             process="in(<sn_p1.1, 'pre_app1'>);"]:
+   [
+   State_11111111111111( ~pri_c.1, ~sec_ch.1, hashed_sn_p.1, rand.1, sn.1,
+                         sn_owner.1
+   ),
+   In( <sn_p1.1, 'pre_app1'> )
+   ]
+  --[ StepsEnd1( ) ]->
+   [
+   State_1111111111111111( ~pri_c.1, ~sec_ch.1, hashed_sn_p.1, rand.1, sn.1,
+                           sn_owner.1, sn_p1.1
+   )
+   ]
+
+  /*
+  rule (modulo AC) insnppreapp_0_11111111111111[color=#658040,
+                                                process="in(<sn_p1.1, 'pre_app1'>);"]:
+     [
+     State_11111111111111( ~pri_c, ~sec_ch, hashed_sn_p, rand, sn, sn_owner ),
+     In( <sn_p1, 'pre_app1'> )
+     ]
+    --[ StepsEnd1( ) ]->
+     [
+     State_1111111111111111( ~pri_c, ~sec_ch, hashed_sn_p, rand, sn, sn_owner,
+                             sn_p1
+     )
+     ]
+  */
+
+restriction Restr_ifsnpsnowner_0_1111111111111111_1:
+  "∀ x #NOW x.1.
+    (Restr_ifsnpsnowner_0_1111111111111111_1( x, x.1 ) @ #NOW) ⇒ (x = x.1)"
+  // safety formula
+
+rule (modulo E) ifsnpsnowner_0_1111111111111111[color=#658040,
+                                                process="if sn_p1.1 = sn_owner.1"]:
+   [
+   State_1111111111111111( ~pri_c.1, ~sec_ch.1, hashed_sn_p.1, rand.1, sn.1,
+                           sn_owner.1, sn_p1.1
+   )
+   ]
+  --[ Restr_ifsnpsnowner_0_1111111111111111_1( sn_p1.1, sn_owner.1 ) ]->
+   [ Out( <bound_const, 'pre_app1'> ) ]
+
+  /*
+  rule (modulo AC) ifsnpsnowner_0_1111111111111111[color=#658040,
+                                                   process="if sn_p1.1 = sn_owner.1"]:
+     [
+     State_1111111111111111( ~pri_c, ~sec_ch, hashed_sn_p, rand, sn, sn_owner,
+                             sn_p1
+     )
+     ]
+    --[ Restr_ifsnpsnowner_0_1111111111111111_1( sn_p1, sn_owner ) ]->
+     [ Out( <bound_const, 'pre_app1'> ) ]
+  */
+
+restriction Restr_ifsnpsnowner_1_1111111111111111_1:
+  "∀ x #NOW x.1.
+    (Restr_ifsnpsnowner_1_1111111111111111_1( x, x.1 ) @ #NOW) ⇒
+    (¬(x = x.1))"
+  // safety formula
+
+rule (modulo E) ifsnpsnowner_1_1111111111111111[color=#658040,
+                                                process="if sn_p1.1 = sn_owner.1"]:
+   [
+   State_1111111111111111( ~pri_c.1, ~sec_ch.1, hashed_sn_p.1, rand.1, sn.1,
+                           sn_owner.1, sn_p1.1
+   )
+   ]
+  --[ Restr_ifsnpsnowner_1_1111111111111111_1( sn_p1.1, sn_owner.1 ) ]->
+   [
+   State_111111111111111121( ~pri_c.1, ~sec_ch.1, hashed_sn_p.1, rand.1,
+                             sn.1, sn_owner.1, sn_p1.1
+   ),
+   Out( <unbound_const, 'pre_app1'> )
+   ]
+
+  /*
+  rule (modulo AC) ifsnpsnowner_1_1111111111111111[color=#658040,
+                                                   process="if sn_p1.1 = sn_owner.1"]:
+     [
+     State_1111111111111111( ~pri_c, ~sec_ch, hashed_sn_p, rand, sn, sn_owner,
+                             sn_p1
+     )
+     ]
+    --[ Restr_ifsnpsnowner_1_1111111111111111_1( sn_p1, sn_owner ) ]->
+     [
+     State_111111111111111121( ~pri_c, ~sec_ch, hashed_sn_p, rand, sn,
+                               sn_owner, sn_p1
+     ),
+     Out( <unbound_const, 'pre_app1'> )
+     ]
+  */
+
+rule (modulo E) insnpencryptionkeycpreapp_0_111111111111111121[color=#658040,
+                                                               process="in(<sn_p.1, encryption_key_c.1, 'pre_app1'>);"]:
+   [
+   State_111111111111111121( ~pri_c.1, ~sec_ch.1, hashed_sn_p.1, rand.1,
+                             sn.1, sn_owner.1, sn_p1.1
+   ),
+   In( <sn_p.1, encryption_key_c.1, 'pre_app1'> )
+   ]
+  -->
+   [
+   State_1111111111111111211( ~pri_c.1, ~sec_ch.1, encryption_key_c.1,
+                              hashed_sn_p.1, rand.1, sn.1, sn_owner.1, sn_p.1, sn_p1.1
+   )
+   ]
+
+  /*
+  rule (modulo AC) insnpencryptionkeycpreapp_0_111111111111111121[color=#658040,
+                                                                  process="in(<sn_p.1, encryption_key_c.1, 'pre_app1'>);"]:
+     [
+     State_111111111111111121( ~pri_c, ~sec_ch, hashed_sn_p, rand, sn,
+                               sn_owner, sn_p1
+     ),
+     In( <sn_p, encryption_key_c, 'pre_app1'> )
+     ]
+    -->
+     [
+     State_1111111111111111211( ~pri_c, ~sec_ch, encryption_key_c,
+                                hashed_sn_p, rand, sn, sn_owner, sn_p, sn_p1
+     )
+     ]
+  */
+
+restriction Restr_ifsnpsnowner_0_1111111111111111211_1:
+  "∀ x #NOW x.1.
+    (Restr_ifsnpsnowner_0_1111111111111111211_1( x, x.1 ) @ #NOW) ⇒
+    (x = x.1)"
+  // safety formula
+
+rule (modulo E) ifsnpsnowner_0_1111111111111111211[color=#658040,
+                                                   process="if sn_p.1 = sn_owner.1"]:
+   [
+   State_1111111111111111211( ~pri_c.1, ~sec_ch.1, encryption_key_c.1,
+                              hashed_sn_p.1, rand.1, sn.1, sn_owner.1, sn_p.1, sn_p1.1
+   )
+   ]
+  --[ Restr_ifsnpsnowner_0_1111111111111111211_1( sn_p.1, sn_owner.1 ) ]->
+   [ Out( <bound_const, 'pre_app1'> ) ]
+
+  /*
+  rule (modulo AC) ifsnpsnowner_0_1111111111111111211[color=#658040,
+                                                      process="if sn_p.1 = sn_owner.1"]:
+     [
+     State_1111111111111111211( ~pri_c, ~sec_ch, encryption_key_c,
+                                hashed_sn_p, rand, sn, sn_owner, sn_p, sn_p1
+     )
+     ]
+    --[ Restr_ifsnpsnowner_0_1111111111111111211_1( sn_p, sn_owner ) ]->
+     [ Out( <bound_const, 'pre_app1'> ) ]
+  */
+
+restriction Restr_ifsnpsnowner_1_1111111111111111211_1:
+  "∀ x #NOW x.1.
+    (Restr_ifsnpsnowner_1_1111111111111111211_1( x, x.1 ) @ #NOW) ⇒
+    (¬(x = x.1))"
+  // safety formula
+
+rule (modulo E) ifsnpsnowner_1_1111111111111111211[color=#658040,
+                                                   process="if sn_p.1 = sn_owner.1"]:
+   [
+   State_1111111111111111211( ~pri_c.1, ~sec_ch.1, encryption_key_c.1,
+                              hashed_sn_p.1, rand.1, sn.1, sn_owner.1, sn_p.1, sn_p1.1
+   )
+   ]
+  --[ Restr_ifsnpsnowner_1_1111111111111111211_1( sn_p.1, sn_owner.1 ) ]->
+   [
+   State_11111111111111112112( ~pri_c.1, ~sec_ch.1, encryption_key_c.1,
+                               hashed_sn_p.1, rand.1, sn.1, sn_owner.1, sn_p.1, sn_p1.1
+   )
+   ]
+
+  /*
+  rule (modulo AC) ifsnpsnowner_1_1111111111111111211[color=#658040,
+                                                      process="if sn_p.1 = sn_owner.1"]:
+     [
+     State_1111111111111111211( ~pri_c, ~sec_ch, encryption_key_c,
+                                hashed_sn_p, rand, sn, sn_owner, sn_p, sn_p1
+     )
+     ]
+    --[ Restr_ifsnpsnowner_1_1111111111111111211_1( sn_p, sn_owner ) ]->
+     [
+     State_11111111111111112112( ~pri_c, ~sec_ch, encryption_key_c,
+                                 hashed_sn_p, rand, sn, sn_owner, sn_p, sn_p1
+     )
+     ]
+  */
+
+restriction Restr_ifsnsnpderiveencryptionkeygkdfsnpricrandencryptionkeyc_0_11111111111111112112_1:
+  "∀ x #NOW x.1 x.2 x.3.
+    (Restr_ifsnsnpderiveencryptionkeygkdfsnpricrandencryptionkeyc_0_11111111111111112112_1( x,
+                                                                                            x.1, x.2, x.3
+     ) @ #NOW) ⇒
+    ((x = x.1) ∧ (x.2 = x.3))"
+  // safety formula
+
+rule (modulo E) ifsnsnpderiveencryptionkeygkdfsnpricrandencryptionkeyc_0_11111111111111112112[color=#658040,
+                                                                                              process="if (sn.1 = sn_p.1) ∧
+(derive_encryption_key('g'^kdf1(sn.1)^~pri_c.1, rand.1) =
+ encryption_key_c.1)"]:
+   [
+   State_11111111111111112112( ~pri_c.1, ~sec_ch.1, encryption_key_c.1,
+                               hashed_sn_p.1, rand.1, sn.1, sn_owner.1, sn_p.1, sn_p1.1
+   ),
+   Fr( ~secure_param.1 )
+   ]
+  --[
+  StepsEnd2( ), SendSecureParam( ~secure_param.1 ),
+  Restr_ifsnsnpderiveencryptionkeygkdfsnpricrandencryptionkeyc_0_11111111111111112112_1( sn.1,
+                                                                                         sn_p.1,
+                                                                                         derive_encryption_key('g'^kdf1(sn.1)^~pri_c.1,
+                                                                                                               rand.1),
+                                                                                         encryption_key_c.1
+  )
+  ]->
+   [
+   Message( ~sec_ch.1,
+            <
+             get_id(kdf2(derive_encryption_key('g'^kdf1(sn.1)^~pri_c.1, rand.1),
+                         privacy_const),
+                    ~secure_param.1, ~secure_param.1, ~secure_param.1), 
+             'id_s'>
+   ),
+   Semistate_11111111111111112112111111( ~pri_c.1, ~sec_ch.1,
+                                         ~secure_param.1, encryption_key_c.1, hashed_sn_p.1, rand.1, sn.1,
+                                         sn_owner.1, sn_p.1, sn_p1.1
+   ),
+   Out( <~secure_param.1, 'pre_app1'> )
+   ]
+
+  /*
+  rule (modulo AC) ifsnsnpderiveencryptionkeygkdfsnpricrandencryptionkeyc_0_11111111111111112112[color=#658040,
+                                                                                                 process="if (sn.1 = sn_p.1) ∧
+(derive_encryption_key('g'^kdf1(sn.1)^~pri_c.1, rand.1) =
+ encryption_key_c.1)"]:
+     [
+     State_11111111111111112112( ~pri_c, ~sec_ch, encryption_key_c,
+                                 hashed_sn_p, rand, sn, sn_owner, sn_p, sn_p1
+     ),
+     Fr( ~secure_param )
+     ]
+    --[
+    StepsEnd2( ), SendSecureParam( ~secure_param ),
+    Restr_ifsnsnpderiveencryptionkeygkdfsnpricrandencryptionkeyc_0_11111111111111112112_1( sn,
+                                                                                           sn_p,
+                                                                                           derive_encryption_key('g'^(
+                                                                                                                      ~pri_c*
+                                                                                                                      kdf1(sn)
+                                                                                                                     ),
+                                                                                                                 rand),
+                                                                                           encryption_key_c
+    )
+    ]->
+     [
+     Message( ~sec_ch,
+              <
+               get_id(kdf2(derive_encryption_key('g'^(~pri_c*kdf1(sn)), rand),
+                           privacy_const),
+                      ~secure_param, ~secure_param, ~secure_param), 
+               'id_s'>
+     ),
+     Semistate_11111111111111112112111111( ~pri_c, ~sec_ch, ~secure_param,
+                                           encryption_key_c, hashed_sn_p, rand, sn, sn_owner, sn_p, sn_p1
+     ),
+     Out( <~secure_param, 'pre_app1'> )
+     ]
+  */
+
+rule (modulo E) inhashedsnpopench_0_1111121[color=#804640,
+                                            process="in(<hashed_sn_p.2, 'open_ch'>);"]:
+   [
+   State_1111121( ~sec_ch.1 ), In( <hashed_sn_p.2, 'open_ch'> ),
+   Fr( ~rand.2 )
+   ]
+  -->
+   [
+   State_1111121111( ~sec_ch.1, ~rand.2, hashed_sn_p.2 ),
+   Out( <hashed_sn_p.2, ~rand.2, 'pre_app1'> )
+   ]
+
+  /*
+  rule (modulo AC) inhashedsnpopench_0_1111121[color=#804640,
+                                               process="in(<hashed_sn_p.2, 'open_ch'>);"]:
+     [ State_1111121( ~sec_ch ), In( <hashed_sn_p, 'open_ch'> ), Fr( ~rand ) ]
+    -->
+     [
+     State_1111121111( ~sec_ch, ~rand, hashed_sn_p ),
+     Out( <hashed_sn_p, ~rand, 'pre_app1'> )
+     ]
+  */
+
+rule (modulo E) inencryptionkeypubcpreapp_0_1111121111[color=#804640,
+                                                       process="in(<encryption_key.2, pub_c.2, 'pre_app1'>);"]:
+   [
+   State_1111121111( ~sec_ch.1, ~rand.2, hashed_sn_p.2 ),
+   In( <encryption_key.2, pub_c.2, 'pre_app1'> )
+   ]
+  --[ ReceivePubKey( ~sec_ch.1, pub_c.2 ) ]->
+   [
+   State_1111121111111( ~sec_ch.1, ~rand.2, encryption_key.2, hashed_sn_p.2,
+                        pub_c.2
+   ),
+   Out( <~rand.2, pub_c.2, 'open_ch'> )
+   ]
+
+  /*
+  rule (modulo AC) inencryptionkeypubcpreapp_0_1111121111[color=#804640,
+                                                          process="in(<encryption_key.2, pub_c.2, 'pre_app1'>);"]:
+     [
+     State_1111121111( ~sec_ch, ~rand, hashed_sn_p ),
+     In( <encryption_key, pub_c, 'pre_app1'> )
+     ]
+    --[ ReceivePubKey( ~sec_ch, pub_c ) ]->
+     [
+     State_1111121111111( ~sec_ch, ~rand, encryption_key, hashed_sn_p, pub_c
+     ),
+     Out( <~rand, pub_c, 'open_ch'> )
+     ]
+  */
+
+rule (modulo E) newn_0_1111121111111[color=#804640,
+                                     process="new ~n1.1;"]:
+   [
+   State_1111121111111( ~sec_ch.1, ~rand.2, encryption_key.2, hashed_sn_p.2,
+                        pub_c.2
+   ),
+   Fr( ~n1.1 )
+   ]
+  -->
+   [
+   State_111112111111111( ~n1.1, ~sec_ch.1, ~rand.2, encryption_key.2,
+                          hashed_sn_p.2, pub_c.2
+   ),
+   Out( <~n1.1, 'open_ch'> )
+   ]
+
+  /*
+  rule (modulo AC) newn_0_1111121111111[color=#804640,
+                                        process="new ~n1.1;"]:
+     [
+     State_1111121111111( ~sec_ch, ~rand, encryption_key, hashed_sn_p, pub_c
+     ),
+     Fr( ~n1 )
+     ]
+    -->
+     [
+     State_111112111111111( ~n1, ~sec_ch, ~rand, encryption_key, hashed_sn_p,
+                            pub_c
+     ),
+     Out( <~n1, 'open_ch'> )
+     ]
+  */
+
+rule (modulo E) innopench_0_111112111111111[color=#804640,
+                                            process="in(<n2.1, 'open_ch'>);"]:
+   [
+   State_111112111111111( ~n1.1, ~sec_ch.1, ~rand.2, encryption_key.2,
+                          hashed_sn_p.2, pub_c.2
+   ),
+   In( <n2.1, 'open_ch'> )
+   ]
+  -->
+   [
+   State_11111211111111111( ~n1.1, ~sec_ch.1, n2.1, ~rand.2,
+                            encryption_key.2, hashed_sn_p.2, pub_c.2
+   ),
+   Out( <
+         AES_enc(smartthings_const,
+                 kdf2(encryption_key.2, bleAuthentication_const), n2.1), 
+         'open_ch'>
+   )
+   ]
+
+  /*
+  rule (modulo AC) innopench_0_111112111111111[color=#804640,
+                                               process="in(<n2.1, 'open_ch'>);"]:
+     [
+     State_111112111111111( ~n1, ~sec_ch, ~rand, encryption_key, hashed_sn_p,
+                            pub_c
+     ),
+     In( <n2, 'open_ch'> )
+     ]
+    -->
+     [
+     State_11111211111111111( ~n1, ~sec_ch, n2, ~rand, encryption_key,
+                              hashed_sn_p, pub_c
+     ),
+     Out( <
+           AES_enc(smartthings_const, kdf2(encryption_key, bleAuthentication_const),
+                   n2), 
+           'open_ch'>
+     )
+     ]
+  */
+
+rule (modulo E) inencryptednonceopench_0_11111211111111111[color=#804640,
+                                                           process="in(<encrypted_nonce2.1, 'open_ch'>);"]:
+   [
+   State_11111211111111111( ~n1.1, ~sec_ch.1, n2.1, ~rand.2,
+                            encryption_key.2, hashed_sn_p.2, pub_c.2
+   ),
+   In( <encrypted_nonce2.1, 'open_ch'> )
+   ]
+  -->
+   [
+   Let_1111121111111111111( <encrypted_nonce2.1, 
+                             kdf2(encryption_key.2, bleAuthentication_const), ~n1.1>,
+                            ~n1.1, ~sec_ch.1, encrypted_nonce2.1, n2.1, ~rand.2, encryption_key.2,
+                            hashed_sn_p.2, pub_c.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) inencryptednonceopench_0_11111211111111111[color=#804640,
+                                                              process="in(<encrypted_nonce2.1, 'open_ch'>);"]:
+     [
+     State_11111211111111111( ~n1, ~sec_ch, n2, ~rand, encryption_key,
+                              hashed_sn_p, pub_c
+     ),
+     In( <encrypted_nonce2, 'open_ch'> )
+     ]
+    -->
+     [
+     Let_1111121111111111111( <encrypted_nonce2, 
+                               kdf2(encryption_key, bleAuthentication_const), ~n1>,
+                              ~n1, ~sec_ch, encrypted_nonce2, n2, ~rand, encryption_key, hashed_sn_p,
+                              pub_c
+     )
+     ]
+  */
+
+rule (modulo E) letdecmesAESdecencryptednoncekdfencryptionkeybleAuthenticationconstn_1_111112111111111111[color=#ffffff,
+                                                                                                          process="let dec_mes_2.1=AES_dec(encrypted_nonce2.1,
+        kdf2(encryption_key.2, bleAuthentication_const), ~n1.1)"]:
+   [
+   Let_1111121111111111111( <AES_enc(dec_mes_2.1, k, v), k, v>, ~n1.1,
+                            ~sec_ch.1, encrypted_nonce2.1, n2.1, ~rand.2, encryption_key.2,
+                            hashed_sn_p.2, pub_c.2
+   )
+   ]
+  -->
+   [
+   State_1111121111111111111( ~n1.1, ~sec_ch.1, dec_mes_2.1,
+                              encrypted_nonce2.1, n2.1, ~rand.2, encryption_key.2, hashed_sn_p.2,
+                              pub_c.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) letdecmesAESdecencryptednoncekdfencryptionkeybleAuthenticationconstn_1_111112111111111111[color=#ffffff,
+                                                                                                             process="let dec_mes_2.1=AES_dec(encrypted_nonce2.1,
+        kdf2(encryption_key.2, bleAuthentication_const), ~n1.1)"]:
+     [
+     Let_1111121111111111111( <AES_enc(dec_mes_2, k, v), k, v>, ~n1, ~sec_ch,
+                              encrypted_nonce2, n2, ~rand, encryption_key, hashed_sn_p, pub_c
+     )
+     ]
+    -->
+     [
+     State_1111121111111111111( ~n1, ~sec_ch, dec_mes_2, encrypted_nonce2, n2,
+                                ~rand, encryption_key, hashed_sn_p, pub_c
+     )
+     ]
+  */
+
+rule (modulo E) eventStepcEnd_0_1111121111111111111[color=#804640,
+                                                    process="event StepcEnd1( );"]:
+   [
+   State_1111121111111111111( ~n1.1, ~sec_ch.1, dec_mes_2.1,
+                              encrypted_nonce2.1, n2.1, ~rand.2, encryption_key.2, hashed_sn_p.2,
+                              pub_c.2
+   )
+   ]
+  --[ StepcEnd1( ) ]->
+   [
+   State_11111211111111111111( ~n1.1, ~sec_ch.1, dec_mes_2.1,
+                               encrypted_nonce2.1, n2.1, ~rand.2, encryption_key.2, hashed_sn_p.2,
+                               pub_c.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) eventStepcEnd_0_1111121111111111111[color=#804640,
+                                                       process="event StepcEnd1( );"]:
+     [
+     State_1111121111111111111( ~n1, ~sec_ch, dec_mes_2, encrypted_nonce2, n2,
+                                ~rand, encryption_key, hashed_sn_p, pub_c
+     )
+     ]
+    --[ StepcEnd1( ) ]->
+     [
+     State_11111211111111111111( ~n1, ~sec_ch, dec_mes_2, encrypted_nonce2,
+                                 n2, ~rand, encryption_key, hashed_sn_p, pub_c
+     )
+     ]
+  */
+
+rule (modulo E) ifsmartthingsconstdecmes_0_11111211111111111111[color=#804640,
+                                                                process="if smartthings_const=dec_mes_2.1"]:
+   [
+   State_11111211111111111111( ~n1.1, ~sec_ch.1, dec_mes_2.1,
+                               encrypted_nonce2.1, n2.1, ~rand.2, encryption_key.2, hashed_sn_p.2,
+                               pub_c.2
+   ),
+   In( <encrypted_sn_p1.1, 'open_ch'> )
+   ]
+  --[ Pred_Eq( smartthings_const, dec_mes_2.1 ) ]->
+   [
+   Let_11111211111111111111111( <encrypted_sn_p1.1, 
+                                 kdf2(encryption_key.2, n2.1), n2.1>,
+                                ~n1.1, ~sec_ch.1, dec_mes_2.1, encrypted_nonce2.1, encrypted_sn_p1.1,
+                                n2.1, ~rand.2, encryption_key.2, hashed_sn_p.2, pub_c.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) ifsmartthingsconstdecmes_0_11111211111111111111[color=#804640,
+                                                                   process="if smartthings_const=dec_mes_2.1"]:
+     [
+     State_11111211111111111111( ~n1, ~sec_ch, dec_mes_2, encrypted_nonce2,
+                                 n2, ~rand, encryption_key, hashed_sn_p, pub_c
+     ),
+     In( <encrypted_sn_p1, 'open_ch'> )
+     ]
+    --[ Pred_Eq( smartthings_const, dec_mes_2 ) ]->
+     [
+     Let_11111211111111111111111( <encrypted_sn_p1, kdf2(encryption_key, n2), 
+                                   n2>,
+                                  ~n1, ~sec_ch, dec_mes_2, encrypted_nonce2, encrypted_sn_p1, n2, ~rand,
+                                  encryption_key, hashed_sn_p, pub_c
+     )
+     ]
+  */
+
+rule (modulo E) letsnpAESdecencryptedsnpkdfencryptionkeynn_1_1111121111111111111111[color=#ffffff,
+                                                                                    process="let sn_p1.2=AES_dec(encrypted_sn_p1.1, kdf2(encryption_key.2, n2.1), n2.1)"]:
+   [
+   Let_11111211111111111111111( <AES_enc(sn_p1.2, k, v), k, v>, ~n1.1,
+                                ~sec_ch.1, dec_mes_2.1, encrypted_nonce2.1, encrypted_sn_p1.1, n2.1,
+                                ~rand.2, encryption_key.2, hashed_sn_p.2, pub_c.2
+   )
+   ]
+  -->
+   [
+   State_11111211111111111111111( ~n1.1, ~sec_ch.1, dec_mes_2.1,
+                                  encrypted_nonce2.1, encrypted_sn_p1.1, n2.1, ~rand.2, encryption_key.2,
+                                  hashed_sn_p.2, pub_c.2, sn_p1.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) letsnpAESdecencryptedsnpkdfencryptionkeynn_1_1111121111111111111111[color=#ffffff,
+                                                                                       process="let sn_p1.2=AES_dec(encrypted_sn_p1.1, kdf2(encryption_key.2, n2.1), n2.1)"]:
+     [
+     Let_11111211111111111111111( <AES_enc(sn_p1, k, v), k, v>, ~n1, ~sec_ch,
+                                  dec_mes_2, encrypted_nonce2, encrypted_sn_p1, n2, ~rand, encryption_key,
+                                  hashed_sn_p, pub_c
+     )
+     ]
+    -->
+     [
+     State_11111211111111111111111( ~n1, ~sec_ch, dec_mes_2, encrypted_nonce2,
+                                    encrypted_sn_p1, n2, ~rand, encryption_key, hashed_sn_p, pub_c, sn_p1
+     )
+     ]
+  */
+
+rule (modulo E) eventReceiveSnsnp_0_11111211111111111111111[color=#804640,
+                                                            process="event ReceiveSn( sn_p1.2 );"]:
+   [
+   State_11111211111111111111111( ~n1.1, ~sec_ch.1, dec_mes_2.1,
+                                  encrypted_nonce2.1, encrypted_sn_p1.1, n2.1, ~rand.2, encryption_key.2,
+                                  hashed_sn_p.2, pub_c.2, sn_p1.2
+   )
+   ]
+  --[ ReceiveSn( sn_p1.2 ) ]->
+   [
+   State_1111121111111111111111111( ~n1.1, ~sec_ch.1, dec_mes_2.1,
+                                    encrypted_nonce2.1, encrypted_sn_p1.1, n2.1, ~rand.2, encryption_key.2,
+                                    hashed_sn_p.2, pub_c.2, sn_p1.2
+   ),
+   Out( <sn_p1.2, 'pre_app1'> )
+   ]
+
+  /*
+  rule (modulo AC) eventReceiveSnsnp_0_11111211111111111111111[color=#804640,
+                                                               process="event ReceiveSn( sn_p1.2 );"]:
+     [
+     State_11111211111111111111111( ~n1, ~sec_ch, dec_mes_2, encrypted_nonce2,
+                                    encrypted_sn_p1, n2, ~rand, encryption_key, hashed_sn_p, pub_c, sn_p1
+     )
+     ]
+    --[ ReceiveSn( sn_p1 ) ]->
+     [
+     State_1111121111111111111111111( ~n1, ~sec_ch, dec_mes_2,
+                                      encrypted_nonce2, encrypted_sn_p1, n2, ~rand, encryption_key,
+                                      hashed_sn_p, pub_c, sn_p1
+     ),
+     Out( <sn_p1, 'pre_app1'> )
+     ]
+  */
+
+rule (modulo E) inencryptedsnpopench_0_1111121111111111111111111[color=#804640,
+                                                                 process="in(<encrypted_sn_p.1, 'open_ch'>);"]:
+   [
+   State_1111121111111111111111111( ~n1.1, ~sec_ch.1, dec_mes_2.1,
+                                    encrypted_nonce2.1, encrypted_sn_p1.1, n2.1, ~rand.2, encryption_key.2,
+                                    hashed_sn_p.2, pub_c.2, sn_p1.2
+   ),
+   In( <encrypted_sn_p.1, 'open_ch'> )
+   ]
+  -->
+   [
+   Let_111112111111111111111111111( <encrypted_sn_p.1, 
+                                     kdf2(encryption_key.2, n2.1), n2.1>,
+                                    ~n1.1, ~sec_ch.1, dec_mes_2.1, encrypted_nonce2.1, encrypted_sn_p.1,
+                                    encrypted_sn_p1.1, n2.1, ~rand.2, encryption_key.2, hashed_sn_p.2,
+                                    pub_c.2, sn_p1.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) inencryptedsnpopench_0_1111121111111111111111111[color=#804640,
+                                                                    process="in(<encrypted_sn_p.1, 'open_ch'>);"]:
+     [
+     State_1111121111111111111111111( ~n1, ~sec_ch, dec_mes_2,
+                                      encrypted_nonce2, encrypted_sn_p1, n2, ~rand, encryption_key,
+                                      hashed_sn_p, pub_c, sn_p1
+     ),
+     In( <encrypted_sn_p, 'open_ch'> )
+     ]
+    -->
+     [
+     Let_111112111111111111111111111( <encrypted_sn_p, 
+                                       kdf2(encryption_key, n2), n2>,
+                                      ~n1, ~sec_ch, dec_mes_2, encrypted_nonce2, encrypted_sn_p,
+                                      encrypted_sn_p1, n2, ~rand, encryption_key, hashed_sn_p, pub_c, sn_p1
+     )
+     ]
+  */
+
+rule (modulo E) letsnpAESdecencryptedsnpkdfencryptionkeynn_1_11111211111111111111111111[color=#ffffff,
+                                                                                        process="let sn_p.2=AES_dec(encrypted_sn_p.1, kdf2(encryption_key.2, n2.1), n2.1)"]:
+   [
+   Let_111112111111111111111111111( <AES_enc(sn_p.2, k, v), k, v>, ~n1.1,
+                                    ~sec_ch.1, dec_mes_2.1, encrypted_nonce2.1, encrypted_sn_p.1,
+                                    encrypted_sn_p1.1, n2.1, ~rand.2, encryption_key.2, hashed_sn_p.2,
+                                    pub_c.2, sn_p1.2
+   )
+   ]
+  -->
+   [
+   State_111112111111111111111111111( ~n1.1, ~sec_ch.1, dec_mes_2.1,
+                                      encrypted_nonce2.1, encrypted_sn_p.1, encrypted_sn_p1.1, n2.1, ~rand.2,
+                                      encryption_key.2, hashed_sn_p.2, pub_c.2, sn_p.2, sn_p1.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) letsnpAESdecencryptedsnpkdfencryptionkeynn_1_11111211111111111111111111[color=#ffffff,
+                                                                                           process="let sn_p.2=AES_dec(encrypted_sn_p.1, kdf2(encryption_key.2, n2.1), n2.1)"]:
+     [
+     Let_111112111111111111111111111( <AES_enc(sn_p, k, v), k, v>, ~n1,
+                                      ~sec_ch, dec_mes_2, encrypted_nonce2, encrypted_sn_p, encrypted_sn_p1,
+                                      n2, ~rand, encryption_key, hashed_sn_p, pub_c, sn_p1
+     )
+     ]
+    -->
+     [
+     State_111112111111111111111111111( ~n1, ~sec_ch, dec_mes_2,
+                                        encrypted_nonce2, encrypted_sn_p, encrypted_sn_p1, n2, ~rand,
+                                        encryption_key, hashed_sn_p, pub_c, sn_p, sn_p1
+     )
+     ]
+  */
+
+rule (modulo E) eventReceiveSnsnp_0_111112111111111111111111111[color=#804640,
+                                                                process="event ReceiveSn( sn_p.2 );"]:
+   [
+   State_111112111111111111111111111( ~n1.1, ~sec_ch.1, dec_mes_2.1,
+                                      encrypted_nonce2.1, encrypted_sn_p.1, encrypted_sn_p1.1, n2.1, ~rand.2,
+                                      encryption_key.2, hashed_sn_p.2, pub_c.2, sn_p.2, sn_p1.2
+   )
+   ]
+  --[ ReceiveSn( sn_p.2 ) ]->
+   [
+   State_11111211111111111111111111111( ~n1.1, ~sec_ch.1, dec_mes_2.1,
+                                        encrypted_nonce2.1, encrypted_sn_p.1, encrypted_sn_p1.1, n2.1,
+                                        ~rand.2, encryption_key.2, hashed_sn_p.2, pub_c.2, sn_p.2, sn_p1.2
+   ),
+   Out( <sn_p.2, encryption_key.2, 'pre_app1'> )
+   ]
+
+  /*
+  rule (modulo AC) eventReceiveSnsnp_0_111112111111111111111111111[color=#804640,
+                                                                   process="event ReceiveSn( sn_p.2 );"]:
+     [
+     State_111112111111111111111111111( ~n1, ~sec_ch, dec_mes_2,
+                                        encrypted_nonce2, encrypted_sn_p, encrypted_sn_p1, n2, ~rand,
+                                        encryption_key, hashed_sn_p, pub_c, sn_p, sn_p1
+     )
+     ]
+    --[ ReceiveSn( sn_p ) ]->
+     [
+     State_11111211111111111111111111111( ~n1, ~sec_ch, dec_mes_2,
+                                          encrypted_nonce2, encrypted_sn_p, encrypted_sn_p1, n2, ~rand,
+                                          encryption_key, hashed_sn_p, pub_c, sn_p, sn_p1
+     ),
+     Out( <sn_p, encryption_key, 'pre_app1'> )
+     ]
+  */
+
+rule (modulo E) inisboundpreapp_0_11111211111111111111111111111[color=#804640,
+                                                                process="in(<isbound.1, 'pre_app1'>);"]:
+   [
+   State_11111211111111111111111111111( ~n1.1, ~sec_ch.1, dec_mes_2.1,
+                                        encrypted_nonce2.1, encrypted_sn_p.1, encrypted_sn_p1.1, n2.1,
+                                        ~rand.2, encryption_key.2, hashed_sn_p.2, pub_c.2, sn_p.2, sn_p1.2
+   ),
+   In( <isbound.1, 'pre_app1'> )
+   ]
+  -->
+   [
+   State_111112111111111111111111111111( ~n1.1, ~sec_ch.1, dec_mes_2.1,
+                                         encrypted_nonce2.1, encrypted_sn_p.1, encrypted_sn_p1.1, isbound.1,
+                                         n2.1, ~rand.2, encryption_key.2, hashed_sn_p.2, pub_c.2, sn_p.2,
+                                         sn_p1.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) inisboundpreapp_0_11111211111111111111111111111[color=#804640,
+                                                                   process="in(<isbound.1, 'pre_app1'>);"]:
+     [
+     State_11111211111111111111111111111( ~n1, ~sec_ch, dec_mes_2,
+                                          encrypted_nonce2, encrypted_sn_p, encrypted_sn_p1, n2, ~rand,
+                                          encryption_key, hashed_sn_p, pub_c, sn_p, sn_p1
+     ),
+     In( <isbound, 'pre_app1'> )
+     ]
+    -->
+     [
+     State_111112111111111111111111111111( ~n1, ~sec_ch, dec_mes_2,
+                                           encrypted_nonce2, encrypted_sn_p, encrypted_sn_p1, isbound, n2,
+                                           ~rand, encryption_key, hashed_sn_p, pub_c, sn_p, sn_p1
+     )
+     ]
+  */
+
+restriction Restr_ifisboundunboundconst_0_111112111111111111111111111111_1:
+  "∀ x #NOW.
+    (Restr_ifisboundunboundconst_0_111112111111111111111111111111_1( x
+     ) @ #NOW) ⇒
+    (x = unbound_const)"
+  // safety formula
+
+rule (modulo E) ifisboundunboundconst_0_111112111111111111111111111111[color=#804640,
+                                                                       process="if isbound.1 = unbound_const"]:
+   [
+   State_111112111111111111111111111111( ~n1.1, ~sec_ch.1, dec_mes_2.1,
+                                         encrypted_nonce2.1, encrypted_sn_p.1, encrypted_sn_p1.1, isbound.1,
+                                         n2.1, ~rand.2, encryption_key.2, hashed_sn_p.2, pub_c.2, sn_p.2,
+                                         sn_p1.2
+   ),
+   In( <secure_param.2, 'pre_app1'> )
+   ]
+  --[
+  ReceiveSecureParam( secure_param.2 ),
+  Restr_ifisboundunboundconst_0_111112111111111111111111111111_1( isbound.1
+  )
+  ]->
+   [
+   State_1111121111111111111111111111111111( ~n1.1, ~sec_ch.1, dec_mes_2.1,
+                                             encrypted_nonce2.1, encrypted_sn_p.1, encrypted_sn_p1.1,
+                                             isbound.1, n2.1, ~rand.2, encryption_key.2, hashed_sn_p.2,
+                                             pub_c.2, secure_param.2, sn_p.2, sn_p1.2
+   ),
+   Out( <AES_enc(secure_param.2, kdf2(encryption_key.2, n2.1), n2.1), 
+         'open_ch'>
+   )
+   ]
+
+  /*
+  rule (modulo AC) ifisboundunboundconst_0_111112111111111111111111111111[color=#804640,
+                                                                          process="if isbound.1 = unbound_const"]:
+     [
+     State_111112111111111111111111111111( ~n1, ~sec_ch, dec_mes_2,
+                                           encrypted_nonce2, encrypted_sn_p, encrypted_sn_p1, isbound, n2,
+                                           ~rand, encryption_key, hashed_sn_p, pub_c, sn_p, sn_p1
+     ),
+     In( <secure_param, 'pre_app1'> )
+     ]
+    --[
+    ReceiveSecureParam( secure_param ),
+    Restr_ifisboundunboundconst_0_111112111111111111111111111111_1( isbound )
+    ]->
+     [
+     State_1111121111111111111111111111111111( ~n1, ~sec_ch, dec_mes_2,
+                                               encrypted_nonce2, encrypted_sn_p, encrypted_sn_p1, isbound, n2,
+                                               ~rand, encryption_key, hashed_sn_p, pub_c, secure_param, sn_p,
+                                               sn_p1
+     ),
+     Out( <AES_enc(secure_param, kdf2(encryption_key, n2), n2), 'open_ch'> )
+     ]
+  */
+
+rule (modulo E) eventStepcEnd_0_1111121111111111111111111111111111[color=#804640,
+                                                                   process="event StepcEnd2( );"]:
+   [
+   State_1111121111111111111111111111111111( ~n1.1, ~sec_ch.1, dec_mes_2.1,
+                                             encrypted_nonce2.1, encrypted_sn_p.1, encrypted_sn_p1.1,
+                                             isbound.1, n2.1, ~rand.2, encryption_key.2, hashed_sn_p.2,
+                                             pub_c.2, secure_param.2, sn_p.2, sn_p1.2
+   )
+   ]
+  --[ StepcEnd2( ) ]->
+   [ ]
+
+  /*
+  rule (modulo AC) eventStepcEnd_0_1111121111111111111111111111111111[color=#804640,
+                                                                      process="event StepcEnd2( );"]:
+     [
+     State_1111121111111111111111111111111111( ~n1, ~sec_ch, dec_mes_2,
+                                               encrypted_nonce2, encrypted_sn_p, encrypted_sn_p1, isbound, n2,
+                                               ~rand, encryption_key, hashed_sn_p, pub_c, secure_param, sn_p,
+                                               sn_p1
+     )
+     ]
+    --[ StepcEnd2( ) ]->
+     [ ]
+  */
+
+rule (modulo E) ifsmartthingsconstdecmes_1_11111211111111111111[color=#804640,
+                                                                process="if smartthings_const=dec_mes_2.1"]:
+   [
+   State_11111211111111111111( ~n1.1, ~sec_ch.1, dec_mes_2.1,
+                               encrypted_nonce2.1, n2.1, ~rand.2, encryption_key.2, hashed_sn_p.2,
+                               pub_c.2
+   )
+   ]
+  --[ Pred_Not_Eq( smartthings_const, dec_mes_2.1 ) ]->
+   [ ]
+
+  /*
+  rule (modulo AC) ifsmartthingsconstdecmes_1_11111211111111111111[color=#804640,
+                                                                   process="if smartthings_const=dec_mes_2.1"]:
+     [
+     State_11111211111111111111( ~n1, ~sec_ch, dec_mes_2, encrypted_nonce2,
+                                 n2, ~rand, encryption_key, hashed_sn_p, pub_c
+     )
+     ]
+    --[ Pred_Not_Eq( smartthings_const, dec_mes_2 ) ]->
+     [ ]
+  */
+
+rule (modulo E) outsecchchannelserialnumberconstsnowner_1_111121[color=#405880,
+                                                                 process="out(~sec_ch.1:channel,<serial_number_const, 'sn_owner'>);"]:
+   [
+   Semistate_1111211( ~sec_ch.1 ),
+   Ack( ~sec_ch.1, <serial_number_const, 'sn_owner'> )
+   ]
+  -->
+   [
+   State_11112111( ~sec_ch.1 ),
+   Out( <derive_hashed_sn(serial_number_const), 'open_ch'> )
+   ]
+
+  // loop breaker: [1]
+  /*
+  rule (modulo AC) outsecchchannelserialnumberconstsnowner_1_111121[color=#405880,
+                                                                    process="out(~sec_ch.1:channel,<serial_number_const, 'sn_owner'>);"]:
+     [
+     Semistate_1111211( ~sec_ch ),
+     Ack( ~sec_ch, <serial_number_const, 'sn_owner'> )
+     ]
+    -->
+     [
+     State_11112111( ~sec_ch ),
+     Out( <derive_hashed_sn(serial_number_const), 'open_ch'> )
+     ]
+    // loop breaker: [1]
+  */
+
+rule (modulo E) inrandpubcopench_0_11112111[color=#405880,
+                                            process="in(<rand.3, pub_c.3, 'open_ch'>);"]:
+   [
+   State_11112111( ~sec_ch.1 ), In( <rand.3, pub_c.3, 'open_ch'> ),
+   Fr( ~n2.2 )
+   ]
+  -->
+   [
+   State_11112111111( ~sec_ch.1, ~n2.2, pub_c.3, rand.3 ),
+   Out( <~n2.2, 'open_ch'> )
+   ]
+
+  /*
+  rule (modulo AC) inrandpubcopench_0_11112111[color=#405880,
+                                               process="in(<rand.3, pub_c.3, 'open_ch'>);"]:
+     [ State_11112111( ~sec_ch ), In( <rand, pub_c, 'open_ch'> ), Fr( ~n2 ) ]
+    -->
+     [ State_11112111111( ~sec_ch, ~n2, pub_c, rand ), Out( <~n2, 'open_ch'> )
+     ]
+  */
+
+rule (modulo E) innopench_0_11112111111[color=#405880,
+                                        process="in(<n1.2, 'open_ch'>);"]:
+   [
+   State_11112111111( ~sec_ch.1, ~n2.2, pub_c.3, rand.3 ),
+   In( <n1.2, 'open_ch'> )
+   ]
+  -->
+   [
+   State_1111211111111( ~sec_ch.1, ~n2.2, n1.2, pub_c.3, rand.3 ),
+   Out( <
+         AES_enc(smartthings_const,
+                 kdf2(derive_encryption_key(pub_c.3^kdf1(serial_number_const), rand.3),
+                      bleAuthentication_const),
+                 n1.2), 
+         'open_ch'>
+   )
+   ]
+
+  /*
+  rule (modulo AC) innopench_0_11112111111[color=#405880,
+                                           process="in(<n1.2, 'open_ch'>);"]:
+     [ State_11112111111( ~sec_ch, ~n2, pub_c, rand ), In( <n1, 'open_ch'> ) ]
+    -->
+     [
+     State_1111211111111( ~sec_ch, ~n2, n1, pub_c, rand ),
+     Out( <
+           AES_enc(smartthings_const,
+                   kdf2(derive_encryption_key(z, rand), bleAuthentication_const), n1), 
+           'open_ch'>
+     )
+     ]
+    variants (modulo AC)
+    1. pub_c = pub_c.12
+       z     = pub_c.12^kdf1(serial_number_const)
+    
+    2. pub_c = z.12^inv(kdf1(serial_number_const))
+       z     = z.12
+    
+    3. pub_c = x.13^x.14
+       z     = x.13^(x.14*kdf1(serial_number_const))
+    
+    4. pub_c = x.13^inv((x.14*kdf1(serial_number_const)))
+       z     = x.13^inv(x.14)
+    
+    5. pub_c = x.13^(x.14*inv(kdf1(serial_number_const)))
+       z     = x.13^x.14
+    
+    6. pub_c = x.14^(x.15*inv((x.16*kdf1(serial_number_const))))
+       z     = x.14^(x.15*inv(x.16))
+  */
+
+rule (modulo E) inencryptednonceopench_0_1111211111111[color=#405880,
+                                                       process="in(<encrypted_nonce1.2, 'open_ch'>);"]:
+   [
+   State_1111211111111( ~sec_ch.1, ~n2.2, n1.2, pub_c.3, rand.3 ),
+   In( <encrypted_nonce1.2, 'open_ch'> )
+   ]
+  -->
+   [
+   Let_111121111111111( <encrypted_nonce1.2, 
+                         kdf2(derive_encryption_key(pub_c.3^kdf1(serial_number_const), rand.3),
+                              bleAuthentication_const), 
+                         ~n2.2>,
+                        ~sec_ch.1, ~n2.2, encrypted_nonce1.2, n1.2, pub_c.3, rand.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) inencryptednonceopench_0_1111211111111[color=#405880,
+                                                          process="in(<encrypted_nonce1.2, 'open_ch'>);"]:
+     [
+     State_1111211111111( ~sec_ch, ~n2, n1, pub_c, rand ),
+     In( <encrypted_nonce1, 'open_ch'> )
+     ]
+    -->
+     [
+     Let_111121111111111( <encrypted_nonce1, 
+                           kdf2(derive_encryption_key(z, rand), bleAuthentication_const), ~n2>,
+                          ~sec_ch, ~n2, encrypted_nonce1, n1, pub_c, rand
+     )
+     ]
+    variants (modulo AC)
+    1. pub_c = pub_c.13
+       z     = pub_c.13^kdf1(serial_number_const)
+    
+    2. pub_c = z.13^inv(kdf1(serial_number_const))
+       z     = z.13
+    
+    3. pub_c = x.14^x.15
+       z     = x.14^(x.15*kdf1(serial_number_const))
+    
+    4. pub_c = x.14^inv((x.15*kdf1(serial_number_const)))
+       z     = x.14^inv(x.15)
+    
+    5. pub_c = x.14^(x.15*inv(kdf1(serial_number_const)))
+       z     = x.14^x.15
+    
+    6. pub_c = x.15^(x.16*inv((x.17*kdf1(serial_number_const))))
+       z     = x.15^(x.16*inv(x.17))
+  */
+
+rule (modulo E) letdecmesAESdecencryptednoncekdfderiveencryptionkeypubckdfserialnumberconstrandbleAuthenticationconstn_1_11112111111111[color=#ffffff,
+                                                                                                                                        process="let dec_mes_1.1=AES_dec(encrypted_nonce1.2,
+        kdf2(derive_encryption_key(pub_c.3^kdf1(serial_number_const),
+                                   rand.3),
+             bleAuthentication_const),
+        ~n2.2)"]:
+   [
+   Let_111121111111111( <AES_enc(dec_mes_1.1, k, v), k, v>, ~sec_ch.1,
+                        ~n2.2, encrypted_nonce1.2, n1.2, pub_c.3, rand.3
+   )
+   ]
+  -->
+   [
+   State_111121111111111( ~sec_ch.1, dec_mes_1.1, ~n2.2, encrypted_nonce1.2,
+                          n1.2, pub_c.3, rand.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) letdecmesAESdecencryptednoncekdfderiveencryptionkeypubckdfserialnumberconstrandbleAuthenticationconstn_1_11112111111111[color=#ffffff,
+                                                                                                                                           process="let dec_mes_1.1=AES_dec(encrypted_nonce1.2,
+        kdf2(derive_encryption_key(pub_c.3^kdf1(serial_number_const),
+                                   rand.3),
+             bleAuthentication_const),
+        ~n2.2)"]:
+     [
+     Let_111121111111111( <AES_enc(dec_mes_1, k, v), k, v>, ~sec_ch, ~n2,
+                          encrypted_nonce1, n1, pub_c, rand
+     )
+     ]
+    -->
+     [
+     State_111121111111111( ~sec_ch, dec_mes_1, ~n2, encrypted_nonce1, n1,
+                            pub_c, rand
+     )
+     ]
+  */
+
+rule (modulo E) eventSteppEnd_0_111121111111111[color=#405880,
+                                                process="event SteppEnd1( );"]:
+   [
+   State_111121111111111( ~sec_ch.1, dec_mes_1.1, ~n2.2, encrypted_nonce1.2,
+                          n1.2, pub_c.3, rand.3
+   )
+   ]
+  --[ SteppEnd1( ) ]->
+   [
+   State_1111211111111111( ~sec_ch.1, dec_mes_1.1, ~n2.2,
+                           encrypted_nonce1.2, n1.2, pub_c.3, rand.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) eventSteppEnd_0_111121111111111[color=#405880,
+                                                   process="event SteppEnd1( );"]:
+     [
+     State_111121111111111( ~sec_ch, dec_mes_1, ~n2, encrypted_nonce1, n1,
+                            pub_c, rand
+     )
+     ]
+    --[ SteppEnd1( ) ]->
+     [
+     State_1111211111111111( ~sec_ch, dec_mes_1, ~n2, encrypted_nonce1, n1,
+                             pub_c, rand
+     )
+     ]
+  */
+
+rule (modulo E) ifsmartthingsconstdecmes_0_1111211111111111[color=#405880,
+                                                            process="if smartthings_const=dec_mes_1.1"]:
+   [
+   State_1111211111111111( ~sec_ch.1, dec_mes_1.1, ~n2.2,
+                           encrypted_nonce1.2, n1.2, pub_c.3, rand.3
+   )
+   ]
+  --[
+  Pred_Eq( smartthings_const, dec_mes_1.1 ),
+  SendSn( serial_number_const,
+          AES_enc(serial_number_const,
+                  kdf2(derive_encryption_key(pub_c.3^kdf1(serial_number_const), rand.3),
+                       ~n2.2),
+                  ~n2.2)
+  )
+  ]->
+   [
+   State_1111211111111111111( ~sec_ch.1, dec_mes_1.1, ~n2.2,
+                              encrypted_nonce1.2, n1.2, pub_c.3, rand.3
+   ),
+   Out( <
+         AES_enc(serial_number_const,
+                 kdf2(derive_encryption_key(pub_c.3^kdf1(serial_number_const), rand.3),
+                      ~n2.2),
+                 ~n2.2), 
+         'open_ch'>
+   )
+   ]
+
+  /*
+  rule (modulo AC) ifsmartthingsconstdecmes_0_1111211111111111[color=#405880,
+                                                               process="if smartthings_const=dec_mes_1.1"]:
+     [
+     State_1111211111111111( ~sec_ch, dec_mes_1, ~n2, encrypted_nonce1, n1,
+                             pub_c, rand
+     )
+     ]
+    --[
+    Pred_Eq( smartthings_const, dec_mes_1 ),
+    SendSn( serial_number_const,
+            AES_enc(serial_number_const, kdf2(derive_encryption_key(z, rand), ~n2),
+                    ~n2)
+    )
+    ]->
+     [
+     State_1111211111111111111( ~sec_ch, dec_mes_1, ~n2, encrypted_nonce1, n1,
+                                pub_c, rand
+     ),
+     Out( <
+           AES_enc(serial_number_const, kdf2(derive_encryption_key(z, rand), ~n2),
+                   ~n2), 
+           'open_ch'>
+     )
+     ]
+    variants (modulo AC)
+    1. pub_c = pub_c.13
+       z     = pub_c.13^kdf1(serial_number_const)
+    
+    2. pub_c = z.13^inv(kdf1(serial_number_const))
+       z     = z.13
+    
+    3. pub_c = x.14^x.15
+       z     = x.14^(x.15*kdf1(serial_number_const))
+    
+    4. pub_c = x.14^inv((x.15*kdf1(serial_number_const)))
+       z     = x.14^inv(x.15)
+    
+    5. pub_c = x.14^(x.15*inv(kdf1(serial_number_const)))
+       z     = x.14^x.15
+    
+    6. pub_c = x.15^(x.16*inv((x.17*kdf1(serial_number_const))))
+       z     = x.15^(x.16*inv(x.17))
+  */
+
+rule (modulo E) outAESencserialnumberconstkdfderiveencryptionkeypubckdfserialnumberconstrandnnopench_0_1111211111111111111[color=#405880,
+                                                                                                                           process="out(<
+ AES_enc(serial_number_const,
+         kdf2(derive_encryption_key(pub_c.3^kdf1(serial_number_const),
+                                    rand.3),
+              ~n2.2),
+         ~n2.2), 
+ 'open_ch'>);"]:
+   [
+   State_1111211111111111111( ~sec_ch.1, dec_mes_1.1, ~n2.2,
+                              encrypted_nonce1.2, n1.2, pub_c.3, rand.3
+   )
+   ]
+  -->
+   [
+   State_11112111111111111111( ~sec_ch.1, dec_mes_1.1, ~n2.2,
+                               encrypted_nonce1.2, n1.2, pub_c.3, rand.3
+   ),
+   Out( <
+         AES_enc(serial_number_const,
+                 kdf2(derive_encryption_key(pub_c.3^kdf1(serial_number_const), rand.3),
+                      ~n2.2),
+                 ~n2.2), 
+         'open_ch'>
+   )
+   ]
+
+  /*
+  rule (modulo AC) outAESencserialnumberconstkdfderiveencryptionkeypubckdfserialnumberconstrandnnopench_0_1111211111111111111[color=#405880,
+                                                                                                                              process="out(<
+ AES_enc(serial_number_const,
+         kdf2(derive_encryption_key(pub_c.3^kdf1(serial_number_const),
+                                    rand.3),
+              ~n2.2),
+         ~n2.2), 
+ 'open_ch'>);"]:
+     [
+     State_1111211111111111111( ~sec_ch, dec_mes_1, ~n2, encrypted_nonce1, n1,
+                                pub_c, rand
+     )
+     ]
+    -->
+     [
+     State_11112111111111111111( ~sec_ch, dec_mes_1, ~n2, encrypted_nonce1,
+                                 n1, pub_c, rand
+     ),
+     Out( <
+           AES_enc(serial_number_const, kdf2(derive_encryption_key(z, rand), ~n2),
+                   ~n2), 
+           'open_ch'>
+     )
+     ]
+    variants (modulo AC)
+    1. pub_c = pub_c.13
+       z     = pub_c.13^kdf1(serial_number_const)
+    
+    2. pub_c = z.13^inv(kdf1(serial_number_const))
+       z     = z.13
+    
+    3. pub_c = x.14^x.15
+       z     = x.14^(x.15*kdf1(serial_number_const))
+    
+    4. pub_c = x.14^inv((x.15*kdf1(serial_number_const)))
+       z     = x.14^inv(x.15)
+    
+    5. pub_c = x.14^(x.15*inv(kdf1(serial_number_const)))
+       z     = x.14^x.15
+    
+    6. pub_c = x.15^(x.16*inv((x.17*kdf1(serial_number_const))))
+       z     = x.15^(x.16*inv(x.17))
+  */
+
+rule (modulo E) inencryptedparamopench_0_11112111111111111111[color=#405880,
+                                                              process="in(<encrypted_param.2, 'open_ch'>);"]:
+   [
+   State_11112111111111111111( ~sec_ch.1, dec_mes_1.1, ~n2.2,
+                               encrypted_nonce1.2, n1.2, pub_c.3, rand.3
+   ),
+   In( <encrypted_param.2, 'open_ch'> )
+   ]
+  -->
+   [
+   Let_1111211111111111111111( <encrypted_param.2, 
+                                kdf2(derive_encryption_key(pub_c.3^kdf1(serial_number_const), rand.3),
+                                     ~n2.2), 
+                                ~n2.2>,
+                               ~sec_ch.1, dec_mes_1.1, ~n2.2, encrypted_nonce1.2, encrypted_param.2,
+                               n1.2, pub_c.3, rand.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) inencryptedparamopench_0_11112111111111111111[color=#405880,
+                                                                 process="in(<encrypted_param.2, 'open_ch'>);"]:
+     [
+     State_11112111111111111111( ~sec_ch, dec_mes_1, ~n2, encrypted_nonce1,
+                                 n1, pub_c, rand
+     ),
+     In( <encrypted_param, 'open_ch'> )
+     ]
+    -->
+     [
+     Let_1111211111111111111111( <encrypted_param, 
+                                  kdf2(derive_encryption_key(z, rand), ~n2), ~n2>,
+                                 ~sec_ch, dec_mes_1, ~n2, encrypted_nonce1, encrypted_param, n1, pub_c,
+                                 rand
+     )
+     ]
+    variants (modulo AC)
+    1. pub_c = pub_c.15
+       z     = pub_c.15^kdf1(serial_number_const)
+    
+    2. pub_c = z.15^inv(kdf1(serial_number_const))
+       z     = z.15
+    
+    3. pub_c = x.16^x.17
+       z     = x.16^(x.17*kdf1(serial_number_const))
+    
+    4. pub_c = x.16^inv((x.17*kdf1(serial_number_const)))
+       z     = x.16^inv(x.17)
+    
+    5. pub_c = x.16^(x.17*inv(kdf1(serial_number_const)))
+       z     = x.16^x.17
+    
+    6. pub_c = x.17^(x.18*inv((x.19*kdf1(serial_number_const))))
+       z     = x.17^(x.18*inv(x.19))
+  */
+
+rule (modulo E) letsecureparamAESdecencryptedparamkdfderiveencryptionkeypubckdfserialnumberconstrandnn_1_111121111111111111111[color=#ffffff,
+                                                                                                                               process="let secure_param.3=AES_dec(encrypted_param.2,
+        kdf2(derive_encryption_key(pub_c.3^kdf1(serial_number_const),
+                                   rand.3),
+             ~n2.2),
+        ~n2.2)"]:
+   [
+   Let_1111211111111111111111( <AES_enc(secure_param.3, k, v), k, v>,
+                               ~sec_ch.1, dec_mes_1.1, ~n2.2, encrypted_nonce1.2, encrypted_param.2,
+                               n1.2, pub_c.3, rand.3
+   )
+   ]
+  -->
+   [
+   State_1111211111111111111111( ~sec_ch.1, dec_mes_1.1, ~n2.2,
+                                 encrypted_nonce1.2, encrypted_param.2, n1.2, pub_c.3, rand.3,
+                                 secure_param.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) letsecureparamAESdecencryptedparamkdfderiveencryptionkeypubckdfserialnumberconstrandnn_1_111121111111111111111[color=#ffffff,
+                                                                                                                                  process="let secure_param.3=AES_dec(encrypted_param.2,
+        kdf2(derive_encryption_key(pub_c.3^kdf1(serial_number_const),
+                                   rand.3),
+             ~n2.2),
+        ~n2.2)"]:
+     [
+     Let_1111211111111111111111( <AES_enc(secure_param, k, v), k, v>, ~sec_ch,
+                                 dec_mes_1, ~n2, encrypted_nonce1, encrypted_param, n1, pub_c, rand
+     )
+     ]
+    -->
+     [
+     State_1111211111111111111111( ~sec_ch, dec_mes_1, ~n2, encrypted_nonce1,
+                                   encrypted_param, n1, pub_c, rand, secure_param
+     )
+     ]
+  */
+
+rule (modulo E) outsecchchannelgetidkdfderiveencryptionkeypubckdfserialnumberconstrandprivacyconstsecureparamsecureparamsecureparamserialnumberconstidp_0_1111211111111111111111[color=#405880,
+                                                                                                                                                                                 process="out(~sec_ch.1:channel,<
+ get_id(kdf2(derive_encryption_key(pub_c.3^kdf1(serial_number_const),
+                                   rand.3),
+             privacy_const),
+        secure_param.3, secure_param.3, secure_param.3), 
+ serial_number_const, 'id_p'>);"]:
+   [
+   State_1111211111111111111111( ~sec_ch.1, dec_mes_1.1, ~n2.2,
+                                 encrypted_nonce1.2, encrypted_param.2, n1.2, pub_c.3, rand.3,
+                                 secure_param.3
+   )
+   ]
+  -->
+   [
+   Message( ~sec_ch.1,
+            <
+             get_id(kdf2(derive_encryption_key(pub_c.3^kdf1(serial_number_const),
+                                               rand.3),
+                         privacy_const),
+                    secure_param.3, secure_param.3, secure_param.3), 
+             serial_number_const, 'id_p'>
+   ),
+   Semistate_11112111111111111111111( ~sec_ch.1, dec_mes_1.1, ~n2.2,
+                                      encrypted_nonce1.2, encrypted_param.2, n1.2, pub_c.3, rand.3,
+                                      secure_param.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) outsecchchannelgetidkdfderiveencryptionkeypubckdfserialnumberconstrandprivacyconstsecureparamsecureparamsecureparamserialnumberconstidp_0_1111211111111111111111[color=#405880,
+                                                                                                                                                                                    process="out(~sec_ch.1:channel,<
+ get_id(kdf2(derive_encryption_key(pub_c.3^kdf1(serial_number_const),
+                                   rand.3),
+             privacy_const),
+        secure_param.3, secure_param.3, secure_param.3), 
+ serial_number_const, 'id_p'>);"]:
+     [
+     State_1111211111111111111111( ~sec_ch, dec_mes_1, ~n2, encrypted_nonce1,
+                                   encrypted_param, n1, pub_c, rand, secure_param
+     )
+     ]
+    -->
+     [
+     Message( ~sec_ch,
+              <
+               get_id(kdf2(derive_encryption_key(z, rand), privacy_const), secure_param,
+                      secure_param, secure_param), 
+               serial_number_const, 'id_p'>
+     ),
+     Semistate_11112111111111111111111( ~sec_ch, dec_mes_1, ~n2,
+                                        encrypted_nonce1, encrypted_param, n1, pub_c, rand, secure_param
+     )
+     ]
+    variants (modulo AC)
+    1. pub_c = pub_c.15
+       z     = pub_c.15^kdf1(serial_number_const)
+    
+    2. pub_c = z.15^inv(kdf1(serial_number_const))
+       z     = z.15
+    
+    3. pub_c = x.16^x.17
+       z     = x.16^(x.17*kdf1(serial_number_const))
+    
+    4. pub_c = x.16^inv((x.17*kdf1(serial_number_const)))
+       z     = x.16^inv(x.17)
+    
+    5. pub_c = x.16^(x.17*inv(kdf1(serial_number_const)))
+       z     = x.16^x.17
+    
+    6. pub_c = x.17^(x.18*inv((x.19*kdf1(serial_number_const))))
+       z     = x.17^(x.18*inv(x.19))
+  */
+
+rule (modulo E) outsecchchannelgetidkdfderiveencryptionkeypubckdfserialnumberconstrandprivacyconstsecureparamsecureparamsecureparamserialnumberconstidp_1_1111211111111111111111[color=#405880,
+                                                                                                                                                                                 process="out(~sec_ch.1:channel,<
+ get_id(kdf2(derive_encryption_key(pub_c.3^kdf1(serial_number_const),
+                                   rand.3),
+             privacy_const),
+        secure_param.3, secure_param.3, secure_param.3), 
+ serial_number_const, 'id_p'>);"]:
+   [
+   Semistate_11112111111111111111111( ~sec_ch.1, dec_mes_1.1, ~n2.2,
+                                      encrypted_nonce1.2, encrypted_param.2, n1.2, pub_c.3, rand.3,
+                                      secure_param.3
+   ),
+   Ack( ~sec_ch.1,
+        <
+         get_id(kdf2(derive_encryption_key(pub_c.3^kdf1(serial_number_const),
+                                           rand.3),
+                     privacy_const),
+                secure_param.3, secure_param.3, secure_param.3), 
+         serial_number_const, 'id_p'>
+   )
+   ]
+  --[ SteppEnd2( ) ]->
+   [ ]
+
+  /*
+  rule (modulo AC) outsecchchannelgetidkdfderiveencryptionkeypubckdfserialnumberconstrandprivacyconstsecureparamsecureparamsecureparamserialnumberconstidp_1_1111211111111111111111[color=#405880,
+                                                                                                                                                                                    process="out(~sec_ch.1:channel,<
+ get_id(kdf2(derive_encryption_key(pub_c.3^kdf1(serial_number_const),
+                                   rand.3),
+             privacy_const),
+        secure_param.3, secure_param.3, secure_param.3), 
+ serial_number_const, 'id_p'>);"]:
+     [
+     Semistate_11112111111111111111111( ~sec_ch, dec_mes_1, ~n2,
+                                        encrypted_nonce1, encrypted_param, n1, pub_c, rand, secure_param
+     ),
+     Ack( ~sec_ch,
+          <
+           get_id(kdf2(derive_encryption_key(z, rand), privacy_const), secure_param,
+                  secure_param, secure_param), 
+           serial_number_const, 'id_p'>
+     )
+     ]
+    --[ SteppEnd2( ) ]->
+     [ ]
+    variants (modulo AC)
+    1. pub_c = pub_c.15
+       z     = pub_c.15^kdf1(serial_number_const)
+    
+    2. pub_c = z.15^inv(kdf1(serial_number_const))
+       z     = z.15
+    
+    3. pub_c = x.16^x.17
+       z     = x.16^(x.17*kdf1(serial_number_const))
+    
+    4. pub_c = x.16^inv((x.17*kdf1(serial_number_const)))
+       z     = x.16^inv(x.17)
+    
+    5. pub_c = x.16^(x.17*inv(kdf1(serial_number_const)))
+       z     = x.16^x.17
+    
+    6. pub_c = x.17^(x.18*inv((x.19*kdf1(serial_number_const))))
+       z     = x.17^(x.18*inv(x.19))
+  */
+
+rule (modulo E) ifsmartthingsconstdecmes_1_1111211111111111[color=#405880,
+                                                            process="if smartthings_const=dec_mes_1.1"]:
+   [
+   State_1111211111111111( ~sec_ch.1, dec_mes_1.1, ~n2.2,
+                           encrypted_nonce1.2, n1.2, pub_c.3, rand.3
+   )
+   ]
+  --[ Pred_Not_Eq( smartthings_const, dec_mes_1.1 ) ]->
+   [ ]
+
+  /*
+  rule (modulo AC) ifsmartthingsconstdecmes_1_1111211111111111[color=#405880,
+                                                               process="if smartthings_const=dec_mes_1.1"]:
+     [
+     State_1111211111111111( ~sec_ch, dec_mes_1, ~n2, encrypted_nonce1, n1,
+                             pub_c, rand
+     )
+     ]
+    --[ Pred_Not_Eq( smartthings_const, dec_mes_1 ) ]->
+     [ ]
+  */
+
+rule (modulo E) p_1_11[color=#ffffff, process="!"]:
+   [ !Semistate_111( ~sec_ch.1 ) ]
+  -->
+   [
+   State_11121( ~sec_ch.1 ),
+   Message( ~sec_ch.1, <serial_number_const, 'sn_owner'> ),
+   Semistate_1111211( ~sec_ch.1 ), State_1111121( ~sec_ch.1 ),
+   State_1111111( ~sec_ch.1 )
+   ]
+
+  /*
+  rule (modulo AC) p_1_11[color=#ffffff, process="!"]:
+     [ !Semistate_111( ~sec_ch ) ]
+    -->
+     [
+     State_11121( ~sec_ch ),
+     Message( ~sec_ch, <serial_number_const, 'sn_owner'> ),
+     Semistate_1111211( ~sec_ch ), State_1111121( ~sec_ch ),
+     State_1111111( ~sec_ch )
+     ]
+  */
+
+rule (modulo E) insecchchannelidsids_0_11121[color=#804049,
+                                             process="in(~sec_ch.1:channel,<id_s.1, 'id_s'>);"]:
+   [ State_11121( ~sec_ch.1 ), Message( ~sec_ch.1, x.2 ) ]
+  -->
+   [ Let_111211( x.2, ~sec_ch.1 ), Ack( ~sec_ch.1, x.2 ) ]
+
+  /*
+  rule (modulo AC) insecchchannelidsids_0_11121[color=#804049,
+                                                process="in(~sec_ch.1:channel,<id_s.1, 'id_s'>);"]:
+     [ State_11121( ~sec_ch ), Message( ~sec_ch, x ) ]
+    -->
+     [ Let_111211( x, ~sec_ch ), Ack( ~sec_ch, x ) ]
+  */
+
+rule (modulo E) insecchchannelidsids_1_11121[color=#804049,
+                                             process="in(~sec_ch.1:channel,<id_s.1, 'id_s'>);"]:
+   [ Let_111211( <id_s.1, 'id_s'>, ~sec_ch.1 ) ]
+  -->
+   [ State_111211( ~sec_ch.1, id_s.1 ) ]
+
+  /*
+  rule (modulo AC) insecchchannelidsids_1_11121[color=#804049,
+                                                process="in(~sec_ch.1:channel,<id_s.1, 'id_s'>);"]:
+     [ Let_111211( <id_s, 'id_s'>, ~sec_ch ) ]
+    -->
+     [ State_111211( ~sec_ch, id_s ) ]
+  */
+
+rule (modulo E) insecchchannelidpsnidp_0_111211[color=#804049,
+                                                process="in(~sec_ch.1:channel,<id_p.1, sn.3, 'id_p'>);"]:
+   [ State_111211( ~sec_ch.1, id_s.1 ), Message( ~sec_ch.1, x.2 ) ]
+  -->
+   [ Let_1112111( x.2, ~sec_ch.1, id_s.1 ), Ack( ~sec_ch.1, x.2 ) ]
+
+  /*
+  rule (modulo AC) insecchchannelidpsnidp_0_111211[color=#804049,
+                                                   process="in(~sec_ch.1:channel,<id_p.1, sn.3, 'id_p'>);"]:
+     [ State_111211( ~sec_ch, id_s ), Message( ~sec_ch, x ) ]
+    -->
+     [ Let_1112111( x, ~sec_ch, id_s ), Ack( ~sec_ch, x ) ]
+  */
+
+rule (modulo E) insecchchannelidpsnidp_1_111211[color=#804049,
+                                                process="in(~sec_ch.1:channel,<id_p.1, sn.3, 'id_p'>);"]:
+   [ Let_1112111( <id_p.1, sn.3, 'id_p'>, ~sec_ch.1, id_s.1 ) ]
+  -->
+   [ State_1112111( ~sec_ch.1, id_p.1, id_s.1, sn.3 ) ]
+
+  /*
+  rule (modulo AC) insecchchannelidpsnidp_1_111211[color=#804049,
+                                                   process="in(~sec_ch.1:channel,<id_p.1, sn.3, 'id_p'>);"]:
+     [ Let_1112111( <id_p, sn, 'id_p'>, ~sec_ch, id_s ) ]
+    -->
+     [ State_1112111( ~sec_ch, id_p, id_s, sn ) ]
+  */
+
+rule (modulo E) ifidsidp_0_1112111[color=#804049,
+                                   process="if id_s.1=id_p.1"]:
+   [ State_1112111( ~sec_ch.1, id_p.1, id_s.1, sn.3 ) ]
+  --[ Pred_Eq( id_s.1, id_p.1 ), PairSuccess( sn.3 ) ]->
+   [ ]
+
+  /*
+  rule (modulo AC) ifidsidp_0_1112111[color=#804049,
+                                      process="if id_s.1=id_p.1"]:
+     [ State_1112111( ~sec_ch, id_p, id_s, sn ) ]
+    --[ Pred_Eq( id_s, id_p ), PairSuccess( sn ) ]->
+     [ ]
+  */
+
+rule (modulo E) ifidsidp_1_1112111[color=#804049,
+                                   process="if id_s.1=id_p.1"]:
+   [ State_1112111( ~sec_ch.1, id_p.1, id_s.1, sn.3 ) ]
+  --[ Pred_Not_Eq( id_s.1, id_p.1 ) ]->
+   [ ]
+
+  /*
+  rule (modulo AC) ifidsidp_1_1112111[color=#804049,
+                                      process="if id_s.1=id_p.1"]:
+     [ State_1112111( ~sec_ch, id_p, id_s, sn ) ]
+    --[ Pred_Not_Eq( id_s, id_p ) ]->
+     [ ]
+  */
+
+restriction predicate_eq:
+  "∀ #i a b. (Pred_Eq( a, b ) @ #i) ⇒ (a = b)"
+  // safety formula
+
+restriction predicate_not_eq:
+  "∀ #i a b. (Pred_Not_Eq( a, b ) @ #i) ⇒ (¬(a = b))"
+  // safety formula
+
+restriction single_session:
+  "∀ #i #j. ((Init( ) @ #i) ∧ (Init( ) @ #j)) ⇒ (#i = #j)"
+  // safety formula
+
+/* All well-formedness checks were successful. */
+
+end
+
+==============================================================================
+summary of summaries:
+
+analyzed: ./_Models_and_Results/Samsung/initialization/Samsung_initialization_Authentication_fixed_V1_foundV4.spthy
+
+  sn_sources (all-traces): analysis incomplete (1 steps)
+  pair_consistency (all-traces): falsified - found trace (24 steps)
+
+==============================================================================

@@ -1,0 +1,94 @@
+free adv.
+free att.
+free location_report.
+free location_report_index.
+free query_by_index.
+fun IES_enc/2.
+fun SHA256/1.
+fun add/2.
+fun diversify_const/0.
+fun gen/0.
+fun get_sk/1[private].
+fun kdf/2.
+fun location/0[private].
+fun mul/2.
+fun update_const/0.
+reduc   IES_dec(IES_enc(m, pk), get_sk(pk)) = m.
+reduc   fst((x_1, x_2)) = x_1.
+reduc   snd((x_1, x_2)) = x_2.
+let tracker(Pi_0_1, SKSi_0_1)=
+    out(att,(Pi_0_1, adv)).
+let server(pre_app_ch1_1)=
+    in(att,freshsealedboxlocindexlocationreport);
+    let ((sealedbox_loc_1, (index_1, =location_report)))=freshsealedboxlocindexlocationreport in
+    out(att,(sealedbox_loc_1, (index_1, location_report)));
+    in(pre_app_ch1_1,freshindexquerybyindex);
+    let ((index1_1, =query_by_index))=freshindexquerybyindex in
+    out(att,(index1_1, query_by_index));
+    if index_1 = index1_1 then
+        (out(pre_app_ch1_1,(sealedbox_loc_1, (index_1, location_report_index)))).
+let phone(pre_app_ch1_1, Pi_0_1, SKSi_0_1)=
+    let index_1=SHA256(Pi_0_1) in
+    out(pre_app_ch1_1,(index_1, query_by_index));
+    in(pre_app_ch1_1,freshsealedboxlocindexlocationreportindex);
+    let ((sealedbox_loc_1, (index1_1, =location_report_index)))=freshsealedboxlocindexlocationreportindex in
+    let loc_1=IES_dec(sealedbox_loc_1, get_sk(Pi_0_1)) in
+    0.
+
+
+query trace_equiv(
+    new pre_app_ch1_1;
+    new P_1;
+    new SKS_1;
+    let SKSi_0_1=kdf(SKS_1, update_const) in
+    let (ui_0_1, vi_0_1)=kdf(SKSi_0_1, diversify_const) in
+    let Pi_0_1=add(mul(ui_0_1, P_1), mul(vi_0_1, gen)) in
+    let SKSi_1_1=kdf(SKSi_0_1, update_const) in
+    let (ui_1_1, vi_1_1)=kdf(SKSi_1_1, diversify_const) in
+    let Pi_1_1=add(mul(ui_1_1, Pi_0_1), mul(vi_1_1, gen)) in
+    let SKSi_2_1=kdf(SKSi_1_1, update_const) in
+    let (ui_2_1, vi_2_1)=kdf(SKSi_2_1, diversify_const) in
+    let Pi_2_1=add(mul(ui_2_1, Pi_1_1), mul(vi_2_1, gen)) in
+    ((((((((((((((((((((((tracker(Pi_0_1, SKSi_0_1))
+                       | (
+                          in(att,freshPiadv);
+                          let ((Pi_1, =adv))=freshPiadv in
+                          let sealedbox_loc_1=IES_enc(location, Pi_1) in
+                          let index_1=SHA256(Pi_1) in
+                          out(att,(sealedbox_loc_1, (index_1, location_report))))))
+                     | (server(pre_app_ch1_1))))
+                   | (phone(pre_app_ch1_1, Pi_0_1, SKSi_0_1))))
+                 | (tracker(Pi_1_1, SKSi_1_1))))
+               | (
+                  in(att,freshPiadv);
+                  let ((Pi_2, =adv))=freshPiadv in
+                  let sealedbox_loc_4=IES_enc(location, Pi_2) in
+                  let index_4=SHA256(Pi_2) in
+                  out(att,(sealedbox_loc_4, (index_4, location_report))))))
+             | (server(pre_app_ch1_1))))
+           | (phone(pre_app_ch1_1, Pi_1_1, SKSi_1_1))))
+         | (tracker(Pi_2_1, SKSi_2_1))))
+       | (
+          in(att,freshPiadv);
+          let ((Pi_3, =adv))=freshPiadv in
+          let sealedbox_loc_7=IES_enc(location, Pi_3) in
+          let index_7=SHA256(Pi_3) in
+          out(att,(sealedbox_loc_7, (index_7, location_report))))))
+     | (server(pre_app_ch1_1))))
+   | (phone(pre_app_ch1_1, Pi_2_1, SKSi_2_1))),
+    new pre_app_ch1_1;
+    !^3(new P_1;
+        new SKS_1;
+        let SKSi_0_1=kdf(SKS_1, update_const) in
+        let (ui_0_1, vi_0_1)=kdf(SKSi_0_1, diversify_const) in
+        let Pi_0_1=add(mul(ui_0_1, P_1), mul(vi_0_1, gen)) in
+        ((((((tracker(Pi_0_1, SKSi_0_1))
+           | (
+              in(att,freshPiadv);
+              let ((Pi_1, =adv))=freshPiadv in
+              let sealedbox_loc_1=IES_enc(location, Pi_1) in
+              let index_1=SHA256(Pi_1) in
+              out(att,(sealedbox_loc_1, (index_1, location_report))))))
+         | (server(pre_app_ch1_1))))
+       | (phone(pre_app_ch1_1, Pi_0_1, SKSi_0_1))))).
+

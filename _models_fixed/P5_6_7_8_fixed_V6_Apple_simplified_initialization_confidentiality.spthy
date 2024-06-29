@@ -1,0 +1,349 @@
+theory Apple_AirTag
+
+begin
+
+builtins: diffie-hellman
+
+functions:
+	/* private value */
+	/* Apple cloud public-private key: Qe-Qd  */
+	/* 56->48: useful*/
+	/*s_d/0 [private], s_P/0 [private], s_SK/0 [private], s_SSS/0 [private], */
+	qe/0 [private], qa/0 [private],
+
+
+	/* constant value */
+	ServerSharedSecret_const/0,
+	PairingSession_const/0,
+	SerialNumberProtection_const/0,
+
+	zero_const/0,
+
+
+	pk/1,
+	sign/2,
+	verify/2,
+	get_point_x/1,
+
+	add/2,
+
+	SHA256/1,
+	kdf/2,
+	AES_GCM_enc/3, AES_GCM_dec/3 [destructor],
+	ECIES_enc/2, ECIES_dec/2 [destructor],
+
+	/* Calculate all id */
+	get_id/2
+
+  
+equations:
+	AES_GCM_dec(AES_GCM_enc(mes, k, v), k, v) = mes,
+	verify(sign(m,sk), pk(sk)) = m,
+	ECIES_dec(ECIES_enc(m,pk(sk)), sk) = m
+  
+
+
+export queries:
+"
+set preciseActions = true.
+not attacker(qe).
+not attacker(qa).
+query attacker(s_d).
+query attacker(s_P).
+query attacker(s_SK).
+query attacker(s_SSS).
+"
+
+options: enableStateOpt, compress-events,
+translation-allow-pattern-lookups
+
+
+let server(~sec_ch: channel, ~UUID_paired, ~token_now) = 
+	/* initial setting */
+	/* Receive: E2 */
+	/* Send: iCloudldentifier, SeedS, S2, E3(Encrypted software token) */
+	new ~iCloudldentifier;
+
+
+	in(~sec_ch, <H1, E2, 'pre_app1'>);
+	
+
+	let E2_data = ECIES_dec(E2, qe) in
+	event RecvE2(E2_data, E2);
+	
+	/* ******* fixed ******* */
+	let <SessionNonce, token, UUID, SN, data, Version, E1, SeedK1, s, r> = E2_data in 
+	event RecvUUID(UUID);
+	event RecvSessionNonce(SessionNonce);
+	
+	
+
+	if (UUID = ~UUID_paired) then (
+		0 
+	)
+	else(
+		if (token = ~token_now) then (
+			new ~token_new;
+			new ~SeedS;
+
+			let ServerSharedSecret = kdf(<~SeedS, SeedK1>, ServerSharedSecret_const) in
+			
+			let K1 = kdf(ServerSharedSecret, PairingSession_const) in
+			let IV1 = kdf(ServerSharedSecret, PairingSession_const) in
+			
+			let KSN = kdf(ServerSharedSecret, SerialNumberProtection_const) in
+			let E3 = AES_GCM_enc(~token_new, K1, IV1) in
+
+			
+			/* ECDSA Sign */
+			let S2_data = <UUID, SessionNonce, ~SeedS, H1, E1, E3> in
+			
+			let S2 = sign(S2_data, qa) in
+			event SendH1(H1);
+			event SendE1(E1);
+
+			/* ******* fixed ******* */
+			out(~sec_ch, <~iCloudldentifier, ~SeedS, S2, E3, s, r, 'pre_app1'>);
+			event SendE3(E3, ~SeedS)
+
+		)
+
+		
+		
+	)
+
+	  
+
+
+let phone(~sec_ch: channel) = 
+
+	
+
+		/* Data tran: id sharing */
+		/* Send to AirTag: SessionNonce, E1 */
+		new ~SessionNonce;
+		new ~E1;
+		
+		out(<~SessionNonce, ~E1, 'open_ch'>);
+
+		/* Receive from AirTag: C1, E2 */
+		in(<C1, E2, 'open_ch'>);
+
+		new ~s_;
+		new ~r_;
+		let pkS = 'g' ^ ~s_ in
+		
+		/* Send to Server: E2 */
+		/* Receive from Server: iCloudldentifier, SeedS, S2, E3(Encrypted software token) */
+		let H1 = SHA256(<pkS, ~r_>) in
+		event H1Source(H1);
+		out(~sec_ch, <H1, E2, 'pre_app1'>);
+		/* ******* fixed ******* */
+		in(~sec_ch, <iCloudldentifier, SeedS, S2, E3, s, r, 'pre_app1'>);
+
+
+		/* Send to AirTag: C2(S', r'), E3, SeedS, S2, iCloudldentifier */
+		out(<pkS, ~r_, E3, SeedS, S2, iCloudldentifier, 'open_ch'>);
+		event SendS2(S2);
+		
+		
+
+		/* Receive from AirTag: C3, Status, E4 */
+		in(<other_param, 'open_ch'>);
+		
+		
+		/* Verify C1 */
+		if C1 = SHA256(<s, r>) then (
+			let S = 'g' ^ s in
+			let P = add(S, pkS) in
+			let d = add(s, ~s_) in
+
+			let r_all = <r, ~r_> in
+			let SK = kdf(get_point_x(P), r_all) in
+			event Secret_d(d)
+			/*
+			let id = get_id(P, SK) in
+
+			out(~sec_ch, <id, 'id_c'>);
+
+
+			in(~sec_ch, <idp, 'id_p'>);
+			if (id = idp) then (
+				
+				out(AES_GCM_enc(s_SK, SK, zero_const));
+
+				
+				out(AES_GCM_enc(s_d, d, zero_const));
+
+				out(AES_GCM_enc(s_P, P, zero_const))
+			)
+			*/
+	)
+	
+
+
+
+let tracker(~sec_ch: channel, ~UUID, ~token) = 
+	let Qe = pk(qe) in
+	let Qa = pk(qa) in
+	out(<Qa, Qe>);
+
+	
+		/* Data tran: id sharing */
+		in(<SessionNonce, E1, 'open_ch'>);
+		/* Send: C1, E2(SessionNonce, token, UUID, SN, data, Version, E1, SeedK1) */
+		new ~s;
+		new ~r;
+		let S = 'g' ^ ~s in
+		let C1 = SHA256(<~s, ~r>) in
+
+		new ~SeedK1;
+		new ~exp_2;
+		new ~SN;
+		new ~data;
+		new ~Version;
+
+		/* ******* fixed ******* */
+		// let E2_data = <SessionNonce, ~token, ~UUID, ~SN, ~data, ~Version, E1, ~SeedK1> in
+		let E2_data = <SessionNonce, ~token, ~UUID, ~SN, ~data, ~Version, E1, ~SeedK1, ~s, ~r> in
+		
+		let E2 = ECIES_enc(E2_data, Qe) in
+		event SessionNonceEncSource(SessionNonce);
+		event E1EncSource(E1);
+		out(<C1, E2, 'open_ch'>);
+		event SendE2(E2);
+		
+		/* Receive: C2(S', r'), E3, SeedS, S2(x,y), iCloudldentifier */		
+		in(<pkS, r_, E3, SeedS, S2, iCloudldentifier, 'open_ch'>);
+
+
+
+		/* Check signature: S2(UUID, SessionNonce, SeedS, SHA-256(C2), E1, E3)*/
+		let H1 = SHA256(<pkS, r_>) in
+		let S2_data = <~UUID, SessionNonce, SeedS, H1, E1, E3> in
+
+
+		if (verify(S2, Qa) = S2_data) then (
+			let P = add(S, pkS) in
+
+			let ServerSharedSecret = kdf(<SeedS, ~SeedK1>, ServerSharedSecret_const) in
+			let K1 = kdf(ServerSharedSecret, PairingSession_const) in
+			let IV1 = kdf(ServerSharedSecret, PairingSession_const) in
+			let KSN = kdf(ServerSharedSecret, SerialNumberProtection_const) in
+
+			let Pair = <qa, Qa> in
+			event RecvS2(S2, S2_data);
+
+			/* Decrypt E3 */
+			let tk_new = AES_GCM_dec(E3, K1, IV1) in
+			event RecvE3(tk_new, E3, SeedS);
+
+			/* Send: C3, Status, E4(UUID,SN,SessionNonce,E1,token_new, Status) */
+			new ~Status;
+			let E4_data = <~UUID, ~SN, SessionNonce, E1, tk_new, ~Status> in
+			let E4 = ECIES_enc(E4_data, Qe) in 
+			let other_param = <~Status, E4> in
+			
+			out(<other_param, 'open_ch'>);
+			
+			let r_all = <~r, r_> in
+			let SK = kdf(get_point_x(P), r_all) in
+
+			let seed_all = <SeedS, ~SeedK1> in 
+			let ServerSharedSecret = kdf(seed_all, SerialNumberProtection_const) in
+			event Secret_SSS(ServerSharedSecret);
+			event Secret_P(P);
+			event Secret_SK(SK)
+
+
+			/*
+			let id = get_id(P, SK) in
+			
+			out(~sec_ch, <id, 'id_p'>);
+			in(~sec_ch, <idc, 'id_c'>);
+			if (id = idc) then (
+				out(AES_GCM_enc(s_SSS, ServerSharedSecret, zero_const))
+			)
+			*/
+	)
+
+
+
+process:
+(
+	new ~sec_ch: channel;
+	new ~UUID_paired;
+	new ~UUID;
+	event UUIDSource(~UUID);
+	new ~token;
+
+	!( 
+		server(~sec_ch, ~UUID_paired, ~token) | 
+		phone(~sec_ch) |
+		tracker(~sec_ch, ~UUID, ~token)
+	)
+	
+)
+
+// 292->219
+lemma uuid_source [output=[spthy], sources]:
+"
+(
+	 All e #i. RecvUUID(e) @ i ==> 
+		(Ex #t. UUIDSource(e) @ t & t < i) 
+)
+"
+// 219->144
+lemma e2_sources[sources, output=[spthy]]:
+"
+	All E2_data E2 #i. RecvE2(E2_data, E2) @ i ==> (
+		(Ex #t. SendE2(E2) @ t & t < i) |
+		(Ex #t. KU(E2_data) @ t & t < i)
+	)
+"
+// 144->72
+lemma e3_sources[sources, output=[spthy]]:
+"
+	All tokenNew E3 SeedS #i. RecvE3(tokenNew, E3, SeedS) @ i ==> (
+		(Ex #t. SendE3(E3, SeedS) @ t & t < i) |
+		(Ex #t. KU(tokenNew) @ t & t < i)
+	)
+"
+// 72->0
+lemma h1_source [output=[spthy], sources]:
+"
+(
+	 All e #i. SendH1(e) @ i ==> 
+		(Ex #t. H1Source(e) @ t & t < i) 
+)
+"
+
+
+
+lemma confidentiality_d [ output=[spthy] ]:
+"
+	( 
+		All x #i. (Secret_d(x) @ i ==> not (Ex #k. KU(x) @ k))
+	)
+"
+lemma confidentiality_P [ output=[spthy] ]:
+"
+	( 
+		All x #i. (Secret_P(x) @ i ==> not (Ex #k. KU(x) @ k))
+	)
+"
+
+lemma confidentiality_SK [ output=[spthy] ]:
+"
+	( 
+		All x #i. (Secret_SK(x) @ i ==> not (Ex #k. KU(x) @ k))
+	)
+"
+lemma confidentiality_SSS [ output=[spthy] ]:
+"
+	( 
+		All x #i. (Secret_SSS(x) @ i ==> not (Ex #k. KU(x) @ k))
+	)
+"
+
+end

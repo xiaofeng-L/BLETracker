@@ -1,0 +1,11 @@
+[1m[30mDeepSec - DEciding Equivalence Properties for SECurity protocols[0m
+    Version: 2.0.2
+    Git hash: 8ddc45ec79de5ec49810302ea7da32d3dc9f46e4
+    Git branch: master
+    Website: https://deepsec-prover.github.io
+
+
+Loading file ./_Models_and_Results/Samsung/location_tracking/Samsung_location_E2E_unlinkability.spthy.dps...
+
+[1m[4m[31mInternal Error[0m: Unix.Unix_error(Unix.EEXIST, "mkdir", "/root/.deepsec/result_files/lqr1b__f2kd")
+Please report the bug to vincent.cheval@loria.fr with the input file and output

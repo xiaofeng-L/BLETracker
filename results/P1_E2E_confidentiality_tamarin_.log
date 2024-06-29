@@ -1,0 +1,1445 @@
+maude tool: 'maude'
+ checking version: 3.1. OK.
+ checking installation: OK.
+
+theory Samsung_SmartTag begin
+
+// Function signature and definition of the equational theory E
+
+functions: AES_dec/3[destructor], AES_enc/3, IES_dec/2[destructor],
+           IES_enc/2, Mode_E2E/0, Mode_NoE2E/0, SHA256/1, derive_key/2,
+           fst/1[destructor], get_pk/1, location/0[private,destructor], pair/2,
+           privacy_const/0, signature_const/0, snd/1[destructor]
+equations:
+    AES_dec(AES_enc(mes, k, v), k, v) = mes,
+    IES_dec(IES_enc(m, get_pk(sk)), sk) = m,
+    fst(<x.1, x.2>) = x.1,
+    snd(<x.1, x.2>) = x.2
+
+heuristic: p
+
+
+
+
+
+
+
+
+
+
+
+
+
+lemma confidentiality [output=[spthy]]:
+  all-traces "∀ x #i. (Secret( x ) @ #i) ⇒ (¬(∃ #k. !KU( x ) @ #k))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ x #i. (Secret( x ) @ #i) ∧ ∃ #k. (!KU( x ) @ #k)"
+*/
+simplify
+solve( State_11111111111121( ~encryption_key, ~iv, ~owner_account,
+                             ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin
+       ) ▶₀ #i )
+  case p_1_
+  by solve( !KU( location ) @ #k )
+qed
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+rule (modulo E) Init[color=#ffffff, process="!"]:
+   [ ] --[ Init( ) ]-> [ !Semistate_1( ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) newrand_0_1111111111111[color=#ffffff,
+                                        process="new ~rand2.1;"]:
+   [
+   State_1111111111111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                        ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                        ~six_pin.1
+   ),
+   Fr( ~rand2.1 )
+   ]
+  -->
+   [
+   Out( <
+         AES_enc(<~rand2.1, ~seed.1, ~rand2.1>,
+                 derive_key(~encryption_key.1, privacy_const), ~privacyIV.1), 
+         Mode_E2E, 
+         AES_enc(<
+                  AES_enc(<~rand2.1, ~seed.1, ~rand2.1>,
+                          derive_key(~encryption_key.1, privacy_const), ~privacyIV.1), 
+                  Mode_E2E>,
+                 derive_key(~encryption_key.1, signature_const), ~privacyIV.1), 
+         'adv'>
+   )
+   ]
+
+  /*
+  rule (modulo AC) newrand_0_1111111111111[color=#ffffff,
+                                           process="new ~rand2.1;"]:
+     [
+     State_1111111111111( ~encryption_key, ~iv, ~owner_account, ~pre_app_ch1,
+                          ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin
+     ),
+     Fr( ~rand2 )
+     ]
+    -->
+     [
+     Out( <
+           AES_enc(<~rand2, ~seed, ~rand2>,
+                   derive_key(~encryption_key, privacy_const), ~privacyIV), 
+           Mode_E2E, 
+           AES_enc(<
+                    AES_enc(<~rand2, ~seed, ~rand2>,
+                            derive_key(~encryption_key, privacy_const), ~privacyIV), 
+                    Mode_E2E>,
+                   derive_key(~encryption_key, signature_const), ~privacyIV), 
+           'adv'>
+     )
+     ]
+  */
+
+rule (modulo E) eventSecretlocation_0_11111111111121[color=#794080,
+                                                     process="event Secret( location );"]:
+   [
+   State_11111111111121( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                         ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                         ~six_pin.1
+   ),
+   In( <privId.2, E2EMode.1, signature.2, 'adv'> )
+   ]
+  --[ Secret( location ) ]->
+   [
+   State_1111111111112111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                           ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                           ~six_pin.1, E2EMode.1, privId.2, signature.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) eventSecretlocation_0_11111111111121[color=#794080,
+                                                        process="event Secret( location );"]:
+     [
+     State_11111111111121( ~encryption_key, ~iv, ~owner_account, ~pre_app_ch1,
+                           ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin
+     ),
+     In( <privId, E2EMode, signature, 'adv'> )
+     ]
+    --[ Secret( location ) ]->
+     [
+     State_1111111111112111( ~encryption_key, ~iv, ~owner_account,
+                             ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, E2EMode,
+                             privId, signature
+     )
+     ]
+  */
+
+restriction Restr_ifEEModeModeEE_0_1111111111112111_1:
+  "∀ x #NOW.
+    (Restr_ifEEModeModeEE_0_1111111111112111_1( x ) @ #NOW) ⇒ (x = Mode_E2E)"
+  // safety formula
+
+rule (modulo E) ifEEModeModeEE_0_1111111111112111[color=#794080,
+                                                  process="if E2EMode.1 = Mode_E2E"]:
+   [
+   State_1111111111112111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                           ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                           ~six_pin.1, E2EMode.1, privId.2, signature.2
+   )
+   ]
+  --[ Restr_ifEEModeModeEE_0_1111111111112111_1( E2EMode.1 ) ]->
+   [
+   Message( ~pre_app_ch2.1, <privId.2, 'tracker_ID'> ),
+   Semistate_111111111111211111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                                 ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                                 ~six_pin.1, E2EMode.1, privId.2, signature.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) ifEEModeModeEE_0_1111111111112111[color=#794080,
+                                                     process="if E2EMode.1 = Mode_E2E"]:
+     [
+     State_1111111111112111( ~encryption_key, ~iv, ~owner_account,
+                             ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, E2EMode,
+                             privId, signature
+     )
+     ]
+    --[ Restr_ifEEModeModeEE_0_1111111111112111_1( E2EMode ) ]->
+     [
+     Message( ~pre_app_ch2, <privId, 'tracker_ID'> ),
+     Semistate_111111111111211111( ~encryption_key, ~iv, ~owner_account,
+                                   ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, E2EMode,
+                                   privId, signature
+     )
+     ]
+  */
+
+rule (modulo E) outpreappchchannelprivIdtrackerID_1_11111111111121111[color=#794080,
+                                                                      process="out(~pre_app_ch2.1:channel,<privId.2, 'tracker_ID'>);"]:
+   [
+   Semistate_111111111111211111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                                 ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                                 ~six_pin.1, E2EMode.1, privId.2, signature.2
+   ),
+   Ack( ~pre_app_ch2.1, <privId.2, 'tracker_ID'> ),
+   Message( ~pre_app_ch2.1, x.3 )
+   ]
+  -->
+   [
+   Let_1111111111112111111( x.3, ~encryption_key.1, ~iv.1, ~owner_account.1,
+                            ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                            ~six_pin.1, E2EMode.1, privId.2, signature.2
+   ),
+   Ack( ~pre_app_ch2.1, x.3 )
+   ]
+
+  // loop breaker: [1]
+  /*
+  rule (modulo AC) outpreappchchannelprivIdtrackerID_1_11111111111121111[color=#794080,
+                                                                         process="out(~pre_app_ch2.1:channel,<privId.2, 'tracker_ID'>);"]:
+     [
+     Semistate_111111111111211111( ~encryption_key, ~iv, ~owner_account,
+                                   ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, E2EMode,
+                                   privId, signature
+     ),
+     Ack( ~pre_app_ch2, <privId, 'tracker_ID'> ), Message( ~pre_app_ch2, x )
+     ]
+    -->
+     [
+     Let_1111111111112111111( x, ~encryption_key, ~iv, ~owner_account,
+                              ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, E2EMode,
+                              privId, signature
+     ),
+     Ack( ~pre_app_ch2, x )
+     ]
+    // loop breaker: [1]
+  */
+
+rule (modulo E) inpreappchchannelpubKeytrackerPubKey_1_111111111111211111[color=#794080,
+                                                                          process="in(~pre_app_ch2.1:channel,<pubKey1.1, 'tracker_PubKey'>);"]:
+   [
+   Let_1111111111112111111( <pubKey1.1, 'tracker_PubKey'>,
+                            ~encryption_key.1, ~iv.1, ~owner_account.1, ~pre_app_ch1.1,
+                            ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1, ~six_pin.1, E2EMode.1,
+                            privId.2, signature.2
+   )
+   ]
+  -->
+   [
+   State_1111111111112111111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                              ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                              ~six_pin.1, E2EMode.1, pubKey1.1, privId.2, signature.2
+   )
+   ]
+
+  // loop breaker: [0]
+  /*
+  rule (modulo AC) inpreappchchannelpubKeytrackerPubKey_1_111111111111211111[color=#794080,
+                                                                             process="in(~pre_app_ch2.1:channel,<pubKey1.1, 'tracker_PubKey'>);"]:
+     [
+     Let_1111111111112111111( <pubKey1, 'tracker_PubKey'>, ~encryption_key,
+                              ~iv, ~owner_account, ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV,
+                              ~seed, ~six_pin, E2EMode, privId, signature
+     )
+     ]
+    -->
+     [
+     State_1111111111112111111( ~encryption_key, ~iv, ~owner_account,
+                                ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, E2EMode,
+                                pubKey1, privId, signature
+     )
+     ]
+    // loop breaker: [0]
+  */
+
+rule (modulo E) outpreappchchannelprivIdEEModesignatureIESenclocationpubKeylocationreportEE_0_1111111111112111111[color=#794080,
+                                                                                                                  process="out(~pre_app_ch2.1:channel,<privId.2, E2EMode.1, signature.2, IES_enc(location, pubKey1.1), 
+ 'location_report_E2E'>);"]:
+   [
+   State_1111111111112111111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                              ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                              ~six_pin.1, E2EMode.1, pubKey1.1, privId.2, signature.2
+   )
+   ]
+  -->
+   [
+   Message( ~pre_app_ch2.1,
+            <privId.2, E2EMode.1, signature.2, IES_enc(location, pubKey1.1), 
+             'location_report_E2E'>
+   ),
+   Semistate_11111111111121111111( ~encryption_key.1, ~iv.1,
+                                   ~owner_account.1, ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1,
+                                   ~seed.1, ~six_pin.1, E2EMode.1, pubKey1.1, privId.2, signature.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) outpreappchchannelprivIdEEModesignatureIESenclocationpubKeylocationreportEE_0_1111111111112111111[color=#794080,
+                                                                                                                     process="out(~pre_app_ch2.1:channel,<privId.2, E2EMode.1, signature.2, IES_enc(location, pubKey1.1), 
+ 'location_report_E2E'>);"]:
+     [
+     State_1111111111112111111( ~encryption_key, ~iv, ~owner_account,
+                                ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, E2EMode,
+                                pubKey1, privId, signature
+     )
+     ]
+    -->
+     [
+     Message( ~pre_app_ch2,
+              <privId, E2EMode, signature, IES_enc(location, pubKey1), 
+               'location_report_E2E'>
+     ),
+     Semistate_11111111111121111111( ~encryption_key, ~iv, ~owner_account,
+                                     ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, E2EMode,
+                                     pubKey1, privId, signature
+     )
+     ]
+  */
+
+restriction Restr_ifEEModeModeEE_1_1111111111112111_1:
+  "∀ x #NOW.
+    (Restr_ifEEModeModeEE_1_1111111111112111_1( x ) @ #NOW) ⇒
+    (¬(x = Mode_E2E))"
+  // safety formula
+
+rule (modulo E) ifEEModeModeEE_1_1111111111112111[color=#794080,
+                                                  process="if E2EMode.1 = Mode_E2E"]:
+   [
+   State_1111111111112111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                           ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                           ~six_pin.1, E2EMode.1, privId.2, signature.2
+   )
+   ]
+  --[ Restr_ifEEModeModeEE_1_1111111111112111_1( E2EMode.1 ) ]->
+   [
+   Message( ~pre_app_ch2.1,
+            <privId.2, E2EMode.1, signature.2, location, 'location_report_NoE2E'>
+   ),
+   Semistate_111111111111211121( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                                 ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                                 ~six_pin.1, E2EMode.1, privId.2, signature.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) ifEEModeModeEE_1_1111111111112111[color=#794080,
+                                                     process="if E2EMode.1 = Mode_E2E"]:
+     [
+     State_1111111111112111( ~encryption_key, ~iv, ~owner_account,
+                             ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, E2EMode,
+                             privId, signature
+     )
+     ]
+    --[ Restr_ifEEModeModeEE_1_1111111111112111_1( E2EMode ) ]->
+     [
+     Message( ~pre_app_ch2,
+              <privId, E2EMode, signature, location, 'location_report_NoE2E'>
+     ),
+     Semistate_111111111111211121( ~encryption_key, ~iv, ~owner_account,
+                                   ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, E2EMode,
+                                   privId, signature
+     )
+     ]
+  */
+
+restriction Restr_ifModeEEModeEE_0_11111111111211_1:
+  "∀ #NOW.
+    (Restr_ifModeEEModeEE_0_11111111111211_1( ) @ #NOW) ⇒
+    (Mode_E2E = Mode_E2E)"
+  // safety formula
+
+rule (modulo E) ifModeEEModeEE_0_11111111111211[color=#658040,
+                                                process="if Mode_E2E = Mode_E2E"]:
+   [
+   State_11111111111211( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                         ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                         ~six_pin.1
+   ),
+   Message( ~pre_app_ch2.1, x.2 )
+   ]
+  --[ Restr_ifModeEEModeEE_0_11111111111211_1( ) ]->
+   [
+   Let_1111111111121111( x.2, ~encryption_key.1, ~iv.1, ~owner_account.1,
+                         ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                         ~six_pin.1
+   ),
+   Ack( ~pre_app_ch2.1, x.2 )
+   ]
+
+  // loop breaker: [1]
+  /*
+  rule (modulo AC) ifModeEEModeEE_0_11111111111211[color=#658040,
+                                                   process="if Mode_E2E = Mode_E2E"]:
+     [
+     State_11111111111211( ~encryption_key, ~iv, ~owner_account, ~pre_app_ch1,
+                           ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin
+     ),
+     Message( ~pre_app_ch2, x )
+     ]
+    --[ Restr_ifModeEEModeEE_0_11111111111211_1( ) ]->
+     [
+     Let_1111111111121111( x, ~encryption_key, ~iv, ~owner_account,
+                           ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin
+     ),
+     Ack( ~pre_app_ch2, x )
+     ]
+    // loop breaker: [1]
+  */
+
+rule (modulo E) inpreappchchannelprivIdtrackerID_1_111111111112111[color=#658040,
+                                                                   process="in(~pre_app_ch2.1:channel,<privId.3, 'tracker_ID'>);"]:
+   [
+   Let_1111111111121111( <privId.3, 'tracker_ID'>, ~encryption_key.1, ~iv.1,
+                         ~owner_account.1, ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1,
+                         ~seed.1, ~six_pin.1
+   )
+   ]
+  -->
+   [
+   State_1111111111121111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                           ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                           ~six_pin.1, privId.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) inpreappchchannelprivIdtrackerID_1_111111111112111[color=#658040,
+                                                                      process="in(~pre_app_ch2.1:channel,<privId.3, 'tracker_ID'>);"]:
+     [
+     Let_1111111111121111( <privId, 'tracker_ID'>, ~encryption_key, ~iv,
+                           ~owner_account, ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed,
+                           ~six_pin
+     )
+     ]
+    -->
+     [
+     State_1111111111121111( ~encryption_key, ~iv, ~owner_account,
+                             ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, privId
+     )
+     ]
+  */
+
+rule (modulo E) letrseedadvrAESdecprivIdderivekeyencryptionkeyprivacyconstprivacyIV_0_1111111111121111[color=#ffffff,
+                                                                                                       process="let <r2.1, seed_adv.1, r2.1>=AES_dec(privId.3, derive_key(~encryption_key.1, privacy_const),
+        ~privacyIV.1)"]:
+   [
+   State_1111111111121111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                           ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                           ~six_pin.1, privId.3
+   )
+   ]
+  -->
+   [
+   Let_11111111111211111( AES_dec(privId.3,
+                                  derive_key(~encryption_key.1, privacy_const), ~privacyIV.1),
+                          ~encryption_key.1, ~iv.1, ~owner_account.1, ~pre_app_ch1.1,
+                          ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1, ~six_pin.1, privId.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) letrseedadvrAESdecprivIdderivekeyencryptionkeyprivacyconstprivacyIV_0_1111111111121111[color=#ffffff,
+                                                                                                          process="let <r2.1, seed_adv.1, r2.1>=AES_dec(privId.3, derive_key(~encryption_key.1, privacy_const),
+        ~privacyIV.1)"]:
+     [
+     State_1111111111121111( ~encryption_key, ~iv, ~owner_account,
+                             ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, privId
+     )
+     ]
+    -->
+     [
+     Let_11111111111211111( z, ~encryption_key, ~iv, ~owner_account,
+                            ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, privId
+     )
+     ]
+    variants (modulo AC)
+    1. ~encryption_key
+             = ~encryption_key.15
+       ~privacyIV
+             = ~privacyIV.15
+       privId
+             = privId.17
+       z     = AES_dec(privId.17, derive_key(~encryption_key.15, privacy_const),
+                       ~privacyIV.15)
+    
+    2. ~encryption_key
+             = ~x.15
+       ~privacyIV
+             = ~x.21
+       privId
+             = AES_enc(x.24, derive_key(~x.15, privacy_const), ~x.21)
+       z     = x.24
+  */
+
+rule (modulo E) letrseedadvrAESdecprivIdderivekeyencryptionkeyprivacyconstprivacyIV_1_1111111111121111[color=#ffffff,
+                                                                                                       process="let <r2.1, seed_adv.1, r2.1>=AES_dec(privId.3, derive_key(~encryption_key.1, privacy_const),
+        ~privacyIV.1)"]:
+   [
+   Let_11111111111211111( <r2.1, seed_adv.1, r2.1>, ~encryption_key.1,
+                          ~iv.1, ~owner_account.1, ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1,
+                          ~privacyIV.1, ~seed.1, ~six_pin.1, privId.3
+   )
+   ]
+  -->
+   [
+   State_11111111111211111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                            ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                            ~six_pin.1, r2.1, seed_adv.1, privId.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) letrseedadvrAESdecprivIdderivekeyencryptionkeyprivacyconstprivacyIV_1_1111111111121111[color=#ffffff,
+                                                                                                          process="let <r2.1, seed_adv.1, r2.1>=AES_dec(privId.3, derive_key(~encryption_key.1, privacy_const),
+        ~privacyIV.1)"]:
+     [
+     Let_11111111111211111( <r2, seed_adv, r2>, ~encryption_key, ~iv,
+                            ~owner_account, ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed,
+                            ~six_pin, privId
+     )
+     ]
+    -->
+     [
+     State_11111111111211111( ~encryption_key, ~iv, ~owner_account,
+                              ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, r2,
+                              seed_adv, privId
+     )
+     ]
+  */
+
+restriction Restr_ifseedadvseed_0_11111111111211111_1:
+  "∀ x #NOW x.1.
+    (Restr_ifseedadvseed_0_11111111111211111_1( x, x.1 ) @ #NOW) ⇒ (x = x.1)"
+  // safety formula
+
+rule (modulo E) ifseedadvseed_0_11111111111211111[color=#658040,
+                                                  process="if seed_adv.1 = ~seed.1"]:
+   [
+   State_11111111111211111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                            ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                            ~six_pin.1, r2.1, seed_adv.1, privId.3
+   )
+   ]
+  --[ Restr_ifseedadvseed_0_11111111111211111_1( seed_adv.1, ~seed.1 ) ]->
+   [
+   Message( ~pre_app_ch2.1, <get_pk(~pri_1.1), 'tracker_PubKey'> ),
+   Semistate_1111111111121111111( ~encryption_key.1, ~iv.1,
+                                  ~owner_account.1, ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1,
+                                  ~seed.1, ~six_pin.1, r2.1, seed_adv.1, privId.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) ifseedadvseed_0_11111111111211111[color=#658040,
+                                                     process="if seed_adv.1 = ~seed.1"]:
+     [
+     State_11111111111211111( ~encryption_key, ~iv, ~owner_account,
+                              ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, r2,
+                              seed_adv, privId
+     )
+     ]
+    --[ Restr_ifseedadvseed_0_11111111111211111_1( seed_adv, ~seed ) ]->
+     [
+     Message( ~pre_app_ch2, <get_pk(~pri_1), 'tracker_PubKey'> ),
+     Semistate_1111111111121111111( ~encryption_key, ~iv, ~owner_account,
+                                    ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, r2,
+                                    seed_adv, privId
+     )
+     ]
+  */
+
+rule (modulo E) outpreappchchannelgetpkpritrackerPubKey_1_111111111112111111[color=#658040,
+                                                                             process="out(~pre_app_ch2.1:channel,<get_pk(~pri_1.1), 'tracker_PubKey'>);"]:
+   [
+   Semistate_1111111111121111111( ~encryption_key.1, ~iv.1,
+                                  ~owner_account.1, ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1,
+                                  ~seed.1, ~six_pin.1, r2.1, seed_adv.1, privId.3
+   ),
+   Ack( ~pre_app_ch2.1, <get_pk(~pri_1.1), 'tracker_PubKey'> ),
+   Message( ~pre_app_ch2.1, x.4 )
+   ]
+  -->
+   [
+   Let_11111111111211111111( x.4, ~encryption_key.1, ~iv.1,
+                             ~owner_account.1, ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1,
+                             ~seed.1, ~six_pin.1, r2.1, seed_adv.1, privId.3
+   ),
+   Ack( ~pre_app_ch2.1, x.4 )
+   ]
+
+  // loop breakers: [1,2]
+  /*
+  rule (modulo AC) outpreappchchannelgetpkpritrackerPubKey_1_111111111112111111[color=#658040,
+                                                                                process="out(~pre_app_ch2.1:channel,<get_pk(~pri_1.1), 'tracker_PubKey'>);"]:
+     [
+     Semistate_1111111111121111111( ~encryption_key, ~iv, ~owner_account,
+                                    ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, r2,
+                                    seed_adv, privId
+     ),
+     Ack( ~pre_app_ch2, <get_pk(~pri_1), 'tracker_PubKey'> ),
+     Message( ~pre_app_ch2, x )
+     ]
+    -->
+     [
+     Let_11111111111211111111( x, ~encryption_key, ~iv, ~owner_account,
+                               ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, r2,
+                               seed_adv, privId
+     ),
+     Ack( ~pre_app_ch2, x )
+     ]
+    // loop breakers: [1,2]
+  */
+
+rule (modulo E) inpreappchchannelprivIdEEModesignaturesealedboxloclocationreportEE_1_1111111111121111111[color=#658040,
+                                                                                                         process="in(~pre_app_ch2.1:channel,<privId.4, E2EMode.2, signature.3, sealedbox_loc.2, 
+ 'location_report_E2E'>);"]:
+   [
+   Let_11111111111211111111( <privId.4, E2EMode.2, signature.3, 
+                              sealedbox_loc.2, 'location_report_E2E'>,
+                             ~encryption_key.1, ~iv.1, ~owner_account.1, ~pre_app_ch1.1,
+                             ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1, ~six_pin.1, r2.1,
+                             seed_adv.1, privId.3
+   )
+   ]
+  -->
+   [
+   State_11111111111211111111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                               ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                               ~six_pin.1, r2.1, seed_adv.1, E2EMode.2, sealedbox_loc.2, privId.3,
+                               signature.3, privId.4
+   )
+   ]
+
+  /*
+  rule (modulo AC) inpreappchchannelprivIdEEModesignaturesealedboxloclocationreportEE_1_1111111111121111111[color=#658040,
+                                                                                                            process="in(~pre_app_ch2.1:channel,<privId.4, E2EMode.2, signature.3, sealedbox_loc.2, 
+ 'location_report_E2E'>);"]:
+     [
+     Let_11111111111211111111( <privId, E2EMode, signature, sealedbox_loc, 
+                                'location_report_E2E'>,
+                               ~encryption_key, ~iv, ~owner_account, ~pre_app_ch1, ~pre_app_ch2, ~pri_1,
+                               ~privacyIV, ~seed, ~six_pin, r2, seed_adv, privId.1
+     )
+     ]
+    -->
+     [
+     State_11111111111211111111( ~encryption_key, ~iv, ~owner_account,
+                                 ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, r2,
+                                 seed_adv, E2EMode, sealedbox_loc, privId.1, signature, privId
+     )
+     ]
+  */
+
+restriction Restr_ifsignatureAESencprivIdEEModederivekeyencryptionkeysignatureconstprivacyIV_0_11111111111211111111_1:
+  "∀ x #NOW x.1.
+    (Restr_ifsignatureAESencprivIdEEModederivekeyencryptionkeysignatureconstprivacyIV_0_11111111111211111111_1( x,
+                                                                                                                x.1
+     ) @ #NOW) ⇒
+    (x = x.1)"
+  // safety formula
+
+rule (modulo E) ifsignatureAESencprivIdEEModederivekeyencryptionkeysignatureconstprivacyIV_0_11111111111211111111[color=#658040,
+                                                                                                                  process="if signature.3 =
+AES_enc(<privId.4, E2EMode.2>,
+        derive_key(~encryption_key.1, signature_const), ~privacyIV.1)"]:
+   [
+   State_11111111111211111111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                               ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                               ~six_pin.1, r2.1, seed_adv.1, E2EMode.2, sealedbox_loc.2, privId.3,
+                               signature.3, privId.4
+   ),
+   Message( ~pre_app_ch1.1, x.5 )
+   ]
+  --[
+  Restr_ifsignatureAESencprivIdEEModederivekeyencryptionkeysignatureconstprivacyIV_0_11111111111211111111_1( signature.3,
+                                                                                                             AES_enc(<
+                                                                                                                      privId.4, 
+                                                                                                                      E2EMode.2
+                                                                                                                     >,
+                                                                                                                     derive_key(~encryption_key.1,
+                                                                                                                                signature_const),
+                                                                                                                     ~privacyIV.1)
+  )
+  ]->
+   [
+   Let_1111111111121111111111( x.5, ~encryption_key.1, ~iv.1,
+                               ~owner_account.1, ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1,
+                               ~seed.1, ~six_pin.1, r2.1, seed_adv.1, E2EMode.2, sealedbox_loc.2,
+                               privId.3, signature.3, privId.4
+   ),
+   Ack( ~pre_app_ch1.1, x.5 )
+   ]
+
+  // loop breaker: [1]
+  /*
+  rule (modulo AC) ifsignatureAESencprivIdEEModederivekeyencryptionkeysignatureconstprivacyIV_0_11111111111211111111[color=#658040,
+                                                                                                                     process="if signature.3 =
+AES_enc(<privId.4, E2EMode.2>,
+        derive_key(~encryption_key.1, signature_const), ~privacyIV.1)"]:
+     [
+     State_11111111111211111111( ~encryption_key, ~iv, ~owner_account,
+                                 ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, r2,
+                                 seed_adv, E2EMode, sealedbox_loc, privId, signature, privId.1
+     ),
+     Message( ~pre_app_ch1, x )
+     ]
+    --[
+    Restr_ifsignatureAESencprivIdEEModederivekeyencryptionkeysignatureconstprivacyIV_0_11111111111211111111_1( signature,
+                                                                                                               AES_enc(<
+                                                                                                                        privId.1, 
+                                                                                                                        E2EMode
+                                                                                                                       >,
+                                                                                                                       derive_key(~encryption_key,
+                                                                                                                                  signature_const),
+                                                                                                                       ~privacyIV)
+    )
+    ]->
+     [
+     Let_1111111111121111111111( x, ~encryption_key, ~iv, ~owner_account,
+                                 ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, r2,
+                                 seed_adv, E2EMode, sealedbox_loc, privId, signature, privId.1
+     ),
+     Ack( ~pre_app_ch1, x )
+     ]
+    // loop breaker: [1]
+  */
+
+rule (modulo E) inpreappchchannelowneraccountquerylocationEE_1_111111111112111111111[color=#658040,
+                                                                                     process="in(~pre_app_ch1.1:channel,<owner_account2.1, 'query_location_E2E'>);"]:
+   [
+   Let_1111111111121111111111( <owner_account2.1, 'query_location_E2E'>,
+                               ~encryption_key.1, ~iv.1, ~owner_account.1, ~pre_app_ch1.1,
+                               ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1, ~six_pin.1, r2.1,
+                               seed_adv.1, E2EMode.2, sealedbox_loc.2, privId.3, signature.3, privId.4
+   )
+   ]
+  -->
+   [
+   State_1111111111121111111111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                                 ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                                 ~six_pin.1, owner_account2.1, r2.1, seed_adv.1, E2EMode.2,
+                                 sealedbox_loc.2, privId.3, signature.3, privId.4
+   )
+   ]
+
+  /*
+  rule (modulo AC) inpreappchchannelowneraccountquerylocationEE_1_111111111112111111111[color=#658040,
+                                                                                        process="in(~pre_app_ch1.1:channel,<owner_account2.1, 'query_location_E2E'>);"]:
+     [
+     Let_1111111111121111111111( <owner_account2, 'query_location_E2E'>,
+                                 ~encryption_key, ~iv, ~owner_account, ~pre_app_ch1, ~pre_app_ch2, ~pri_1,
+                                 ~privacyIV, ~seed, ~six_pin, r2, seed_adv, E2EMode, sealedbox_loc,
+                                 privId, signature, privId.1
+     )
+     ]
+    -->
+     [
+     State_1111111111121111111111( ~encryption_key, ~iv, ~owner_account,
+                                   ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin,
+                                   owner_account2, r2, seed_adv, E2EMode, sealedbox_loc, privId, signature,
+                                   privId.1
+     )
+     ]
+  */
+
+restriction Restr_ifowneraccountowneraccount_0_1111111111121111111111_1:
+  "∀ x #NOW x.1.
+    (Restr_ifowneraccountowneraccount_0_1111111111121111111111_1( x, x.1
+     ) @ #NOW) ⇒
+    (x = x.1)"
+  // safety formula
+
+rule (modulo E) ifowneraccountowneraccount_0_1111111111121111111111[color=#658040,
+                                                                    process="if ~owner_account.1 = owner_account2.1"]:
+   [
+   State_1111111111121111111111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                                 ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                                 ~six_pin.1, owner_account2.1, r2.1, seed_adv.1, E2EMode.2,
+                                 sealedbox_loc.2, privId.3, signature.3, privId.4
+   )
+   ]
+  --[
+  Restr_ifowneraccountowneraccount_0_1111111111121111111111_1( ~owner_account.1,
+                                                               owner_account2.1
+  )
+  ]->
+   [
+   Message( ~pre_app_ch1.1,
+            <sealedbox_loc.2, 
+             <AES_enc(~pri_1.1, SHA256(~six_pin.1), ~iv.1), get_pk(~pri_1.1), ~iv.1>, 
+             'location_E2E_and_key_item'>
+   ),
+   Semistate_111111111112111111111111( ~encryption_key.1, ~iv.1,
+                                       ~owner_account.1, ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1,
+                                       ~privacyIV.1, ~seed.1, ~six_pin.1, owner_account2.1, r2.1, seed_adv.1,
+                                       E2EMode.2, sealedbox_loc.2, privId.3, signature.3, privId.4
+   )
+   ]
+
+  /*
+  rule (modulo AC) ifowneraccountowneraccount_0_1111111111121111111111[color=#658040,
+                                                                       process="if ~owner_account.1 = owner_account2.1"]:
+     [
+     State_1111111111121111111111( ~encryption_key, ~iv, ~owner_account,
+                                   ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin,
+                                   owner_account2, r2, seed_adv, E2EMode, sealedbox_loc, privId, signature,
+                                   privId.1
+     )
+     ]
+    --[
+    Restr_ifowneraccountowneraccount_0_1111111111121111111111_1( ~owner_account,
+                                                                 owner_account2
+    )
+    ]->
+     [
+     Message( ~pre_app_ch1,
+              <sealedbox_loc, 
+               <AES_enc(~pri_1, SHA256(~six_pin), ~iv), get_pk(~pri_1), ~iv>, 
+               'location_E2E_and_key_item'>
+     ),
+     Semistate_111111111112111111111111( ~encryption_key, ~iv, ~owner_account,
+                                         ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin,
+                                         owner_account2, r2, seed_adv, E2EMode, sealedbox_loc, privId,
+                                         signature, privId.1
+     )
+     ]
+  */
+
+rule (modulo E) inpreappchchannelprivIdEEModesignatureloclocationreportNoEE_0_11111111111212[color=#658040,
+                                                                                             process="in(~pre_app_ch2.1:channel,<privId.5, E2EMode.3, signature.4, loc.1, 'location_report_NoE2E'>);"]:
+   [
+   State_11111111111212( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                         ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                         ~six_pin.1
+   ),
+   Message( ~pre_app_ch2.1, x.2 )
+   ]
+  -->
+   [
+   Let_111111111112121( x.2, ~encryption_key.1, ~iv.1, ~owner_account.1,
+                        ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                        ~six_pin.1
+   ),
+   Ack( ~pre_app_ch2.1, x.2 )
+   ]
+
+  // loop breaker: [1]
+  /*
+  rule (modulo AC) inpreappchchannelprivIdEEModesignatureloclocationreportNoEE_0_11111111111212[color=#658040,
+                                                                                                process="in(~pre_app_ch2.1:channel,<privId.5, E2EMode.3, signature.4, loc.1, 'location_report_NoE2E'>);"]:
+     [
+     State_11111111111212( ~encryption_key, ~iv, ~owner_account, ~pre_app_ch1,
+                           ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin
+     ),
+     Message( ~pre_app_ch2, x )
+     ]
+    -->
+     [
+     Let_111111111112121( x, ~encryption_key, ~iv, ~owner_account,
+                          ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin
+     ),
+     Ack( ~pre_app_ch2, x )
+     ]
+    // loop breaker: [1]
+  */
+
+rule (modulo E) inpreappchchannelprivIdEEModesignatureloclocationreportNoEE_1_11111111111212[color=#658040,
+                                                                                             process="in(~pre_app_ch2.1:channel,<privId.5, E2EMode.3, signature.4, loc.1, 'location_report_NoE2E'>);"]:
+   [
+   Let_111111111112121( <privId.5, E2EMode.3, signature.4, loc.1, 
+                         'location_report_NoE2E'>,
+                        ~encryption_key.1, ~iv.1, ~owner_account.1, ~pre_app_ch1.1,
+                        ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1, ~six_pin.1
+   )
+   ]
+  -->
+   [
+   State_111111111112121( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                          ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                          ~six_pin.1, loc.1, E2EMode.3, signature.4, privId.5
+   )
+   ]
+
+  /*
+  rule (modulo AC) inpreappchchannelprivIdEEModesignatureloclocationreportNoEE_1_11111111111212[color=#658040,
+                                                                                                process="in(~pre_app_ch2.1:channel,<privId.5, E2EMode.3, signature.4, loc.1, 'location_report_NoE2E'>);"]:
+     [
+     Let_111111111112121( <privId, E2EMode, signature, loc, 
+                           'location_report_NoE2E'>,
+                          ~encryption_key, ~iv, ~owner_account, ~pre_app_ch1, ~pre_app_ch2, ~pri_1,
+                          ~privacyIV, ~seed, ~six_pin
+     )
+     ]
+    -->
+     [
+     State_111111111112121( ~encryption_key, ~iv, ~owner_account,
+                            ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, loc,
+                            E2EMode, signature, privId
+     )
+     ]
+  */
+
+restriction Restr_ifsignatureAESencprivIdEEModederivekeyencryptionkeysignatureconstprivacyIV_0_111111111112121_1:
+  "∀ x #NOW x.1.
+    (Restr_ifsignatureAESencprivIdEEModederivekeyencryptionkeysignatureconstprivacyIV_0_111111111112121_1( x,
+                                                                                                           x.1
+     ) @ #NOW) ⇒
+    (x = x.1)"
+  // safety formula
+
+rule (modulo E) ifsignatureAESencprivIdEEModederivekeyencryptionkeysignatureconstprivacyIV_0_111111111112121[color=#658040,
+                                                                                                             process="if signature.4 =
+AES_enc(<privId.5, E2EMode.3>,
+        derive_key(~encryption_key.1, signature_const), ~privacyIV.1)"]:
+   [
+   State_111111111112121( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                          ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                          ~six_pin.1, loc.1, E2EMode.3, signature.4, privId.5
+   ),
+   Message( ~pre_app_ch1.1, x.6 )
+   ]
+  --[
+  Restr_ifsignatureAESencprivIdEEModederivekeyencryptionkeysignatureconstprivacyIV_0_111111111112121_1( signature.4,
+                                                                                                        AES_enc(<
+                                                                                                                 privId.5, 
+                                                                                                                 E2EMode.3
+                                                                                                                >,
+                                                                                                                derive_key(~encryption_key.1,
+                                                                                                                           signature_const),
+                                                                                                                ~privacyIV.1)
+  )
+  ]->
+   [
+   Let_11111111111212111( x.6, ~encryption_key.1, ~iv.1, ~owner_account.1,
+                          ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                          ~six_pin.1, loc.1, E2EMode.3, signature.4, privId.5
+   ),
+   Ack( ~pre_app_ch1.1, x.6 )
+   ]
+
+  // loop breaker: [1]
+  /*
+  rule (modulo AC) ifsignatureAESencprivIdEEModederivekeyencryptionkeysignatureconstprivacyIV_0_111111111112121[color=#658040,
+                                                                                                                process="if signature.4 =
+AES_enc(<privId.5, E2EMode.3>,
+        derive_key(~encryption_key.1, signature_const), ~privacyIV.1)"]:
+     [
+     State_111111111112121( ~encryption_key, ~iv, ~owner_account,
+                            ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, loc,
+                            E2EMode, signature, privId
+     ),
+     Message( ~pre_app_ch1, x )
+     ]
+    --[
+    Restr_ifsignatureAESencprivIdEEModederivekeyencryptionkeysignatureconstprivacyIV_0_111111111112121_1( signature,
+                                                                                                          AES_enc(<
+                                                                                                                   privId, 
+                                                                                                                   E2EMode
+                                                                                                                  >,
+                                                                                                                  derive_key(~encryption_key,
+                                                                                                                             signature_const),
+                                                                                                                  ~privacyIV)
+    )
+    ]->
+     [
+     Let_11111111111212111( x, ~encryption_key, ~iv, ~owner_account,
+                            ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, loc,
+                            E2EMode, signature, privId
+     ),
+     Ack( ~pre_app_ch1, x )
+     ]
+    // loop breaker: [1]
+  */
+
+rule (modulo E) inpreappchchannelowneraccountquerylocationNoEE_1_1111111111121211[color=#658040,
+                                                                                  process="in(~pre_app_ch1.1:channel,<owner_account2.2, 'query_location_NoE2E'>);"]:
+   [
+   Let_11111111111212111( <owner_account2.2, 'query_location_NoE2E'>,
+                          ~encryption_key.1, ~iv.1, ~owner_account.1, ~pre_app_ch1.1,
+                          ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1, ~six_pin.1, loc.1,
+                          E2EMode.3, signature.4, privId.5
+   )
+   ]
+  -->
+   [
+   State_11111111111212111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                            ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                            ~six_pin.1, loc.1, owner_account2.2, E2EMode.3, signature.4, privId.5
+   )
+   ]
+
+  /*
+  rule (modulo AC) inpreappchchannelowneraccountquerylocationNoEE_1_1111111111121211[color=#658040,
+                                                                                     process="in(~pre_app_ch1.1:channel,<owner_account2.2, 'query_location_NoE2E'>);"]:
+     [
+     Let_11111111111212111( <owner_account2, 'query_location_NoE2E'>,
+                            ~encryption_key, ~iv, ~owner_account, ~pre_app_ch1, ~pre_app_ch2, ~pri_1,
+                            ~privacyIV, ~seed, ~six_pin, loc, E2EMode, signature, privId
+     )
+     ]
+    -->
+     [
+     State_11111111111212111( ~encryption_key, ~iv, ~owner_account,
+                              ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, loc,
+                              owner_account2, E2EMode, signature, privId
+     )
+     ]
+  */
+
+restriction Restr_ifowneraccountowneraccount_0_11111111111212111_1:
+  "∀ x #NOW x.1.
+    (Restr_ifowneraccountowneraccount_0_11111111111212111_1( x, x.1
+     ) @ #NOW) ⇒
+    (x = x.1)"
+  // safety formula
+
+rule (modulo E) ifowneraccountowneraccount_0_11111111111212111[color=#658040,
+                                                               process="if ~owner_account.1 = owner_account2.2"]:
+   [
+   State_11111111111212111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                            ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                            ~six_pin.1, loc.1, owner_account2.2, E2EMode.3, signature.4, privId.5
+   )
+   ]
+  --[
+  Restr_ifowneraccountowneraccount_0_11111111111212111_1( ~owner_account.1,
+                                                          owner_account2.2
+  )
+  ]->
+   [
+   Message( ~pre_app_ch1.1, <loc.1, 'location_NoE2E'> ),
+   Semistate_1111111111121211111( ~encryption_key.1, ~iv.1,
+                                  ~owner_account.1, ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1,
+                                  ~seed.1, ~six_pin.1, loc.1, owner_account2.2, E2EMode.3, signature.4,
+                                  privId.5
+   )
+   ]
+
+  /*
+  rule (modulo AC) ifowneraccountowneraccount_0_11111111111212111[color=#658040,
+                                                                  process="if ~owner_account.1 = owner_account2.2"]:
+     [
+     State_11111111111212111( ~encryption_key, ~iv, ~owner_account,
+                              ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, loc,
+                              owner_account2, E2EMode, signature, privId
+     )
+     ]
+    --[
+    Restr_ifowneraccountowneraccount_0_11111111111212111_1( ~owner_account,
+                                                            owner_account2
+    )
+    ]->
+     [
+     Message( ~pre_app_ch1, <loc, 'location_NoE2E'> ),
+     Semistate_1111111111121211111( ~encryption_key, ~iv, ~owner_account,
+                                    ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin, loc,
+                                    owner_account2, E2EMode, signature, privId
+     )
+     ]
+  */
+
+rule (modulo E) p_1_[color=#ffffff, process="!"]:
+   [
+   !Semistate_1( ), Fr( ~pre_app_ch1.1 ), Fr( ~pre_app_ch2.1 ),
+   Fr( ~owner_account.1 ), Fr( ~encryption_key.1 ), Fr( ~seed.1 ),
+   Fr( ~privacyIV.1 ), Fr( ~six_pin.1 ), Fr( ~iv.1 ), Fr( ~pri_1.1 )
+   ]
+  -->
+   [
+   State_111111111121( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                       ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                       ~six_pin.1
+   ),
+   State_11111111111211( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                         ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                         ~six_pin.1
+   ),
+   State_11111111111212( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                         ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                         ~six_pin.1
+   ),
+   State_11111111111121( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                         ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                         ~six_pin.1
+   ),
+   State_1111111111111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                        ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                        ~six_pin.1
+   )
+   ]
+
+  /*
+  rule (modulo AC) p_1_[color=#ffffff, process="!"]:
+     [
+     !Semistate_1( ), Fr( ~pre_app_ch1 ), Fr( ~pre_app_ch2 ),
+     Fr( ~owner_account ), Fr( ~encryption_key ), Fr( ~seed ),
+     Fr( ~privacyIV ), Fr( ~six_pin ), Fr( ~iv ), Fr( ~pri_1 )
+     ]
+    -->
+     [
+     State_111111111121( ~encryption_key, ~iv, ~owner_account, ~pre_app_ch1,
+                         ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin
+     ),
+     State_11111111111211( ~encryption_key, ~iv, ~owner_account, ~pre_app_ch1,
+                           ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin
+     ),
+     State_11111111111212( ~encryption_key, ~iv, ~owner_account, ~pre_app_ch1,
+                           ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin
+     ),
+     State_11111111111121( ~encryption_key, ~iv, ~owner_account, ~pre_app_ch1,
+                           ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin
+     ),
+     State_1111111111111( ~encryption_key, ~iv, ~owner_account, ~pre_app_ch1,
+                          ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin
+     )
+     ]
+  */
+
+restriction Restr_ifModeEEModeEE_0_111111111121_1:
+  "∀ #NOW.
+    (Restr_ifModeEEModeEE_0_111111111121_1( ) @ #NOW) ⇒
+    (Mode_E2E = Mode_E2E)"
+  // safety formula
+
+rule (modulo E) ifModeEEModeEE_0_111111111121[color=#804640,
+                                              process="if Mode_E2E = Mode_E2E"]:
+   [
+   State_111111111121( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                       ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                       ~six_pin.1
+   )
+   ]
+  --[ Restr_ifModeEEModeEE_0_111111111121_1( ) ]->
+   [
+   Message( ~pre_app_ch1.1, <~owner_account.1, 'query_location_E2E'> ),
+   Semistate_11111111112111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                             ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                             ~six_pin.1
+   )
+   ]
+
+  /*
+  rule (modulo AC) ifModeEEModeEE_0_111111111121[color=#804640,
+                                                 process="if Mode_E2E = Mode_E2E"]:
+     [
+     State_111111111121( ~encryption_key, ~iv, ~owner_account, ~pre_app_ch1,
+                         ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin
+     )
+     ]
+    --[ Restr_ifModeEEModeEE_0_111111111121_1( ) ]->
+     [
+     Message( ~pre_app_ch1, <~owner_account, 'query_location_E2E'> ),
+     Semistate_11111111112111( ~encryption_key, ~iv, ~owner_account,
+                               ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin
+     )
+     ]
+  */
+
+rule (modulo E) outpreappchchannelowneraccountquerylocationEE_1_1111111111211[color=#804640,
+                                                                              process="out(~pre_app_ch1.1:channel,<~owner_account.1, 'query_location_E2E'>);"]:
+   [
+   Semistate_11111111112111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                             ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                             ~six_pin.1
+   ),
+   Ack( ~pre_app_ch1.1, <~owner_account.1, 'query_location_E2E'> ),
+   Message( ~pre_app_ch1.1, x.2 )
+   ]
+  -->
+   [
+   Let_111111111121111( x.2, ~encryption_key.1, ~iv.1, ~owner_account.1,
+                        ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                        ~six_pin.1
+   ),
+   Ack( ~pre_app_ch1.1, x.2 )
+   ]
+
+  // loop breaker: [1]
+  /*
+  rule (modulo AC) outpreappchchannelowneraccountquerylocationEE_1_1111111111211[color=#804640,
+                                                                                 process="out(~pre_app_ch1.1:channel,<~owner_account.1, 'query_location_E2E'>);"]:
+     [
+     Semistate_11111111112111( ~encryption_key, ~iv, ~owner_account,
+                               ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin
+     ),
+     Ack( ~pre_app_ch1, <~owner_account, 'query_location_E2E'> ),
+     Message( ~pre_app_ch1, x )
+     ]
+    -->
+     [
+     Let_111111111121111( x, ~encryption_key, ~iv, ~owner_account,
+                          ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin
+     ),
+     Ack( ~pre_app_ch1, x )
+     ]
+    // loop breaker: [1]
+  */
+
+rule (modulo E) inpreappchchannelsealedboxlocencpripubKeyivlocationEEandkeyitem_1_11111111112111[color=#804640,
+                                                                                                 process="in(~pre_app_ch1.1:channel,<sealedbox_loc.3, <enc_pri1.1, pubKey1.2, ~iv.2>, 
+ 'location_E2E_and_key_item'>);"]:
+   [
+   Let_111111111121111( <sealedbox_loc.3, <enc_pri1.1, pubKey1.2, ~iv.2>, 
+                         'location_E2E_and_key_item'>,
+                        ~encryption_key.1, ~iv.1, ~owner_account.1, ~pre_app_ch1.1,
+                        ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1, ~six_pin.1
+   )
+   ]
+  -->
+   [
+   State_111111111121111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                          ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                          ~six_pin.1, enc_pri1.1, ~iv.2, pubKey1.2, sealedbox_loc.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) inpreappchchannelsealedboxlocencpripubKeyivlocationEEandkeyitem_1_11111111112111[color=#804640,
+                                                                                                    process="in(~pre_app_ch1.1:channel,<sealedbox_loc.3, <enc_pri1.1, pubKey1.2, ~iv.2>, 
+ 'location_E2E_and_key_item'>);"]:
+     [
+     Let_111111111121111( <sealedbox_loc, <enc_pri1, pubKey1, ~iv>, 
+                           'location_E2E_and_key_item'>,
+                          ~encryption_key, ~iv.1, ~owner_account, ~pre_app_ch1, ~pre_app_ch2,
+                          ~pri_1, ~privacyIV, ~seed, ~six_pin
+     )
+     ]
+    -->
+     [
+     State_111111111121111( ~encryption_key, ~iv.1, ~owner_account,
+                            ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin,
+                            enc_pri1, ~iv, pubKey1, sealedbox_loc
+     )
+     ]
+  */
+
+rule (modulo E) letlocIESdecsealedboxlocAESencencpriSHAsixpiniv_0_111111111121111[color=#ffffff,
+                                                                                  process="let loc.2=IES_dec(sealedbox_loc.3,
+        AES_enc(enc_pri1.1, SHA256(~six_pin.1), ~iv.2))"]:
+   [
+   State_111111111121111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                          ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                          ~six_pin.1, enc_pri1.1, ~iv.2, pubKey1.2, sealedbox_loc.3
+   )
+   ]
+  -->
+   [
+   Let_1111111111211111( <sealedbox_loc.3, 
+                          AES_enc(enc_pri1.1, SHA256(~six_pin.1), ~iv.2)>,
+                         ~encryption_key.1, ~iv.1, ~owner_account.1, ~pre_app_ch1.1,
+                         ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1, ~six_pin.1, enc_pri1.1,
+                         ~iv.2, pubKey1.2, sealedbox_loc.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) letlocIESdecsealedboxlocAESencencpriSHAsixpiniv_0_111111111121111[color=#ffffff,
+                                                                                     process="let loc.2=IES_dec(sealedbox_loc.3,
+        AES_enc(enc_pri1.1, SHA256(~six_pin.1), ~iv.2))"]:
+     [
+     State_111111111121111( ~encryption_key, ~iv, ~owner_account,
+                            ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin,
+                            enc_pri1, ~iv.1, pubKey1, sealedbox_loc
+     )
+     ]
+    -->
+     [
+     Let_1111111111211111( <sealedbox_loc, 
+                            AES_enc(enc_pri1, SHA256(~six_pin), ~iv.1)>,
+                           ~encryption_key, ~iv, ~owner_account, ~pre_app_ch1, ~pre_app_ch2, ~pri_1,
+                           ~privacyIV, ~seed, ~six_pin, enc_pri1, ~iv.1, pubKey1, sealedbox_loc
+     )
+     ]
+  */
+
+rule (modulo E) letlocIESdecsealedboxlocAESencencpriSHAsixpiniv_1_111111111121111[color=#ffffff,
+                                                                                  process="let loc.2=IES_dec(sealedbox_loc.3,
+        AES_enc(enc_pri1.1, SHA256(~six_pin.1), ~iv.2))"]:
+   [
+   Let_1111111111211111( <IES_enc(loc.2, get_pk(sk)), sk>,
+                         ~encryption_key.1, ~iv.1, ~owner_account.1, ~pre_app_ch1.1,
+                         ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1, ~six_pin.1, enc_pri1.1,
+                         ~iv.2, pubKey1.2, sealedbox_loc.3
+   )
+   ]
+  -->
+   [
+   State_1111111111211111( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                           ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                           ~six_pin.1, enc_pri1.1, ~iv.2, loc.2, pubKey1.2, sealedbox_loc.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) letlocIESdecsealedboxlocAESencencpriSHAsixpiniv_1_111111111121111[color=#ffffff,
+                                                                                     process="let loc.2=IES_dec(sealedbox_loc.3,
+        AES_enc(enc_pri1.1, SHA256(~six_pin.1), ~iv.2))"]:
+     [
+     Let_1111111111211111( <IES_enc(loc, get_pk(sk)), sk>, ~encryption_key,
+                           ~iv, ~owner_account, ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV,
+                           ~seed, ~six_pin, enc_pri1, ~iv.1, pubKey1, sealedbox_loc
+     )
+     ]
+    -->
+     [
+     State_1111111111211111( ~encryption_key, ~iv, ~owner_account,
+                             ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin,
+                             enc_pri1, ~iv.1, loc, pubKey1, sealedbox_loc
+     )
+     ]
+  */
+
+restriction Restr_ifModeEEModeEE_1_111111111121_1:
+  "∀ #NOW.
+    (Restr_ifModeEEModeEE_1_111111111121_1( ) @ #NOW) ⇒
+    (¬(Mode_E2E = Mode_E2E))"
+  // safety formula
+
+rule (modulo E) ifModeEEModeEE_1_111111111121[color=#804640,
+                                              process="if Mode_E2E = Mode_E2E"]:
+   [
+   State_111111111121( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                       ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                       ~six_pin.1
+   )
+   ]
+  --[ Restr_ifModeEEModeEE_1_111111111121_1( ) ]->
+   [
+   Message( ~pre_app_ch1.1, <~owner_account.1, 'query_location_NoE2E'> ),
+   Semistate_11111111112121( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                             ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                             ~six_pin.1
+   )
+   ]
+
+  /*
+  rule (modulo AC) ifModeEEModeEE_1_111111111121[color=#804640,
+                                                 process="if Mode_E2E = Mode_E2E"]:
+     [
+     State_111111111121( ~encryption_key, ~iv, ~owner_account, ~pre_app_ch1,
+                         ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin
+     )
+     ]
+    --[ Restr_ifModeEEModeEE_1_111111111121_1( ) ]->
+     [
+     Message( ~pre_app_ch1, <~owner_account, 'query_location_NoE2E'> ),
+     Semistate_11111111112121( ~encryption_key, ~iv, ~owner_account,
+                               ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin
+     )
+     ]
+  */
+
+rule (modulo E) outpreappchchannelowneraccountquerylocationNoEE_1_1111111111212[color=#804640,
+                                                                                process="out(~pre_app_ch1.1:channel,<~owner_account.1, 'query_location_NoE2E'>);"]:
+   [
+   Semistate_11111111112121( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                             ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                             ~six_pin.1
+   ),
+   Ack( ~pre_app_ch1.1, <~owner_account.1, 'query_location_NoE2E'> ),
+   Message( ~pre_app_ch1.1, x.2 )
+   ]
+  -->
+   [
+   Let_111111111121211( x.2, ~encryption_key.1, ~iv.1, ~owner_account.1,
+                        ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                        ~six_pin.1
+   ),
+   Ack( ~pre_app_ch1.1, x.2 )
+   ]
+
+  // loop breaker: [1]
+  /*
+  rule (modulo AC) outpreappchchannelowneraccountquerylocationNoEE_1_1111111111212[color=#804640,
+                                                                                   process="out(~pre_app_ch1.1:channel,<~owner_account.1, 'query_location_NoE2E'>);"]:
+     [
+     Semistate_11111111112121( ~encryption_key, ~iv, ~owner_account,
+                               ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin
+     ),
+     Ack( ~pre_app_ch1, <~owner_account, 'query_location_NoE2E'> ),
+     Message( ~pre_app_ch1, x )
+     ]
+    -->
+     [
+     Let_111111111121211( x, ~encryption_key, ~iv, ~owner_account,
+                          ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin
+     ),
+     Ack( ~pre_app_ch1, x )
+     ]
+    // loop breaker: [1]
+  */
+
+rule (modulo E) inpreappchchannellocplainlocationNoEE_1_11111111112121[color=#804640,
+                                                                       process="in(~pre_app_ch1.1:channel,<loc_plain.1, 'location_NoE2E'>);"]:
+   [
+   Let_111111111121211( <loc_plain.1, 'location_NoE2E'>, ~encryption_key.1,
+                        ~iv.1, ~owner_account.1, ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1,
+                        ~privacyIV.1, ~seed.1, ~six_pin.1
+   )
+   ]
+  -->
+   [
+   State_111111111121211( ~encryption_key.1, ~iv.1, ~owner_account.1,
+                          ~pre_app_ch1.1, ~pre_app_ch2.1, ~pri_1.1, ~privacyIV.1, ~seed.1,
+                          ~six_pin.1, loc_plain.1
+   )
+   ]
+
+  /*
+  rule (modulo AC) inpreappchchannellocplainlocationNoEE_1_11111111112121[color=#804640,
+                                                                          process="in(~pre_app_ch1.1:channel,<loc_plain.1, 'location_NoE2E'>);"]:
+     [
+     Let_111111111121211( <loc_plain, 'location_NoE2E'>, ~encryption_key, ~iv,
+                          ~owner_account, ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed,
+                          ~six_pin
+     )
+     ]
+    -->
+     [
+     State_111111111121211( ~encryption_key, ~iv, ~owner_account,
+                            ~pre_app_ch1, ~pre_app_ch2, ~pri_1, ~privacyIV, ~seed, ~six_pin,
+                            loc_plain
+     )
+     ]
+  */
+
+restriction single_session:
+  "∀ #i #j. ((Init( ) @ #i) ∧ (Init( ) @ #j)) ⇒ (#i = #j)"
+  // safety formula
+
+/* All well-formedness checks were successful. */
+
+end
+
+==============================================================================
+summary of summaries:
+
+analyzed: ./_Models_and_Results/Samsung/location_tracking/Samsung_location_E2E_confidentiality.spthy
+
+  confidentiality (all-traces): verified (3 steps)
+
+==============================================================================

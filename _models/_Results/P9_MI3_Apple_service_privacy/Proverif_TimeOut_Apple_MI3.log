@@ -1,0 +1,90 @@
+/tmp/tmp.0CsSpNPqX2/Apple_location_server_privacy.spthy.gs
+Starting the transformation...
+Parsing the file...
+Writing in the output file...
+Translation complete !
+Linear part:
+exp(exp(g,a),b) = exp(exp(g,b),a)
+Completing equations...
+Completed equations:
+exp(exp(g,a),b) = exp(exp(g,b),a)
+Convergent part:
+AES_GCM_dec(AES_GCM_enc(m,k),k) = m
+Completing equations...
+Completed equations:
+AES_GCM_dec(AES_GCM_enc(m,k),k) = m
+Process 0 (that is, the initial process):
+{1}new pre_app_ch1_1: channel;
+{2}new pre_app_ch2_1: channel;
+{3}new di_1: bitstring;
+{4}!
+(
+    {5}out(att, (exp(g,di_1),adv))
+) | (
+    {6}event Secret(location);
+    {7}in(att, (Pi_1: bitstring,=adv));
+    {8}new s_1: bitstring;
+    {9}let PKs_1: bitstring = exp(g,s_1) in
+    {10}let DHKey_1: bitstring = exp(Pi_1,s_1) in
+    {11}let sealedbox_loc_1: bitstring = AES_GCM_enc(location,DHKey_1) in
+    {12}let index_1: bitstring = SHA256(Pi_1) in
+    {13}out(pre_app_ch2_1, (sealedbox_loc_1,(PKs_1,(index_1,location_report))))
+) | (
+    {14}in(pre_app_ch2_1, (sealedbox_loc: bitstring,(PKs: bitstring,(index: bitstring,=location_report))));
+    {15}out(att, (sealedbox_loc,(PKs,(index,location_report))));
+    {16}in(pre_app_ch1_1, (index1_1: bitstring,=query_by_index));
+    {17}if (index = index1_1) then
+    {18}out(pre_app_ch1_1, (sealedbox_loc,(PKs,(index,location_report_index))))
+) | (
+    {19}let index_2: bitstring = SHA256(exp(g,di_1)) in
+    {20}out(pre_app_ch1_1, (index_2,query_by_index));
+    {21}in(pre_app_ch1_1, (sealedbox_loc_2: bitstring,(PKs_2: bitstring,(index1: bitstring,=location_report_index))));
+    {22}let DHKey: bitstring = exp(PKs_2,di_1) in
+    {23}let loc_1: bitstring = AES_GCM_dec(sealedbox_loc_2,DHKey) in
+    0
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}new pre_app_ch1_1: channel;
+{2}new pre_app_ch2_1: channel;
+{3}new di_1: bitstring;
+{4}!
+(
+    {5}out(att, (exp(g,di_1),adv))
+) | (
+    {6}event Secret(location);
+    {7}in(att, (Pi_1: bitstring,=adv));
+    {8}new s_1: bitstring;
+    {12}let index_1: bitstring = SHA256(Pi_1) in
+    {10}let DHKey_1: bitstring = exp(Pi_1,s_1) in
+    {11}let sealedbox_loc_1: bitstring = AES_GCM_enc(location,DHKey_1) in
+    {9}let PKs_1: bitstring = exp(g,s_1) in
+    {13}out(pre_app_ch2_1, (sealedbox_loc_1,(PKs_1,(index_1,location_report))))
+) | (
+    {14}in(pre_app_ch2_1, (sealedbox_loc: bitstring,(PKs: bitstring,(index: bitstring,=location_report))));
+    {15}out(att, (sealedbox_loc,(PKs,(index,location_report))));
+    {16}in(pre_app_ch1_1, (index1_1: bitstring,=query_by_index));
+    {17}if (index = index1_1) then
+    {18}out(pre_app_ch1_1, (sealedbox_loc,(PKs,(index,location_report_index))))
+) | (
+    {19}let index_2: bitstring = SHA256(exp(g,di_1)) in
+    {20}out(pre_app_ch1_1, (index_2,query_by_index));
+    {21}in(pre_app_ch1_1, (sealedbox_loc_2: bitstring,(PKs_2: bitstring,(index1: bitstring,=location_report_index))))
+)
+
+-- Query not attacker(location) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 166 rules (82 with conclusion selected). Queue: 17 rules.
+400 rules inserted. Base: 321 rules (142 with conclusion selected). Queue: 17 rules.
+600 rules inserted. Base: 476 rules (202 with conclusion selected). Queue: 17 rules.
+800 rules inserted. Base: 631 rules (262 with conclusion selected). Queue: 17 rules.
+1000 rules inserted. Base: 786 rules (322 with conclusion selected). Queue: 17 rules.
+1200 rules inserted. Base: 941 rules (382 with conclusion selected). Queue: 17 rules.
+1400 rules inserted. Base: 1096 rules (442 with conclusion selected). Queue: 17 rules.
+1600 rules inserted. Base: 1251 rules (502 with conclusion selected). Queue: 17 rules.
+1800 rules inserted. Base: 1406 rules (562 with conclusion selected). Queue: 17 rules.
+2000 rules inserted. Base: 1561 rules (622 with conclusion selected). Queue: 17 rules.
+2200 rules inserted. Base: 1716 rules (682 with conclusion selected). Queue: 17 rules.
+2400 rules inserted. Base: 1871 rules (742 with conclusion selected). Queue: 17 rules.
+2600 rules inserted. Base: 2026 rules (802 with conclusion selected). Queue: 17 rules.

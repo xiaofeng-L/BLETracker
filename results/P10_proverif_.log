@@ -1,0 +1,236 @@
+/tmp/tmp.cDpecat7FJ/Apple_simplified_initialization_authentication.spthy.gs
+Starting the transformation...
+Parsing the file...
+Writing in the output file...
+Translation complete !
+Linear part:
+exp(exp(g,a),b) = exp(exp(g,b),a)
+Completing equations...
+Completed equations:
+exp(exp(g,a),b) = exp(exp(g,b),a)
+Convergent part:
+verify(sign(m,sk),pk(sk)) = m
+Completing equations...
+Completed equations:
+verify(sign(m,sk),pk(sk)) = m
+Process 0 (that is, the initial process):
+{1}new sec_ch_1: channel;
+{2}new UUID_paired_1: bitstring;
+{3}new UUID_1: bitstring;
+{4}event UUIDSource(UUID_paired_1);
+{5}new token_1: bitstring;
+{6}!
+(
+    {7}new iCloudldentifier_1: bitstring;
+    {8}in(att, (H1_1: bitstring,(E2_1: bitstring,=pre_app1)));
+    {9}let E2_data_1: bitstring = ECIES_dec(E2_1,qe) in
+    {10}event RecvE2(E2_data_1,E2_1);
+    {11}let (SessionNonce_1: bitstring,(token_11: bitstring,(UUID_11: bitstring,(SN_1: bitstring,(data_1: bitstring,(Version_1: bitstring,(E1_1: bitstring,SeedK1_1: bitstring))))))) = E2_data_1 in
+    {12}event RecvUUID(UUID_11);
+    {13}event RecvSessionNonce(SessionNonce_1);
+    {14}if (UUID_11 = UUID_paired_1) then
+        0
+    else
+        {15}if (token_11 = token_1) then
+        {16}new token_new_1: bitstring;
+        {17}new SeedS_1: bitstring;
+        {18}let ServerSharedSecret_1: bitstring = kdf((SeedS_1,SeedK1_1),ServerSharedSecret_const) in
+        {19}let K1_1: bitstring = kdf(ServerSharedSecret_1,PairingSession_const) in
+        {20}let IV1_1: bitstring = kdf(ServerSharedSecret_1,PairingSession_const) in
+        {21}let KSN_1: bitstring = kdf(ServerSharedSecret_1,SerialNumberProtection_const) in
+        {22}let E3_1: bitstring = AES_GCM_enc(token_new_1,K1_1,IV1_1) in
+        {23}let S2_data_1: bitstring = (UUID_11,(SessionNonce_1,(SeedS_1,(H1_1,(E1_1,E3_1))))) in
+        {24}let S2_1: bitstring = sign(S2_data_1,qa) in
+        {25}event SendH1(H1_1);
+        {26}event SendE1(E1_1);
+        {27}out(att, (iCloudldentifier_1,(SeedS_1,(S2_1,(E3_1,pre_app1)))));
+        {28}event SendE3(E3_1,SeedS_1)
+) | (
+    {29}new SessionNonce: bitstring;
+    {30}new E1: bitstring;
+    {31}out(att, (SessionNonce,(E1,open_ch)));
+    {32}in(att, (C1_1: bitstring,(E2: bitstring,=open_ch)));
+    {33}new s__1: bitstring;
+    {34}new r__1: bitstring;
+    {35}let pkS_1: bitstring = exp(g,s__1) in
+    {36}let H1: bitstring = SHA256((pkS_1,r__1)) in
+    {37}event H1Source(H1);
+    {38}out(att, (H1,(E2,pre_app1)));
+    {39}in(att, (iCloudldentifier: bitstring,(SeedS: bitstring,(S2: bitstring,(E3: bitstring,=pre_app1)))));
+    {40}out(att, (pkS_1,(r__1,(E3,(SeedS,(S2,(iCloudldentifier,open_ch)))))));
+    {41}event SendS2(S2);
+    {42}in(att, (s_1: bitstring,(r_1: bitstring,(other_param_1: bitstring,=open_ch))));
+    {43}let =C1_1 = SHA256((s_1,r_1)) in
+    {44}let S_1: bitstring = exp(g,s_1) in
+    {45}let P_1: bitstring = add(S_1,pkS_1) in
+    {46}let d_1: bitstring = add(s_1,s__1) in
+    {47}let r_all_1: bitstring = (r_1,r__1) in
+    {48}let SK_1: bitstring = kdf(get_point_x(P_1),r_all_1) in
+    {49}let id_1: bitstring = get_id(P_1,SK_1) in
+    {50}out(sec_ch_1, (id_1,id_c))
+) | (
+    {51}event Bounded(UUID_paired_1);
+    {52}let Qe_1: bitstring = pk(qe) in
+    {53}let Qa_1: bitstring = pk(qa) in
+    {54}out(att, (Qa_1,Qe_1));
+    {55}in(att, (SessionNonce_2: bitstring,(E1_2: bitstring,=open_ch)));
+    {56}new s: bitstring;
+    {57}new r: bitstring;
+    {58}let S: bitstring = exp(g,s) in
+    {59}let C1: bitstring = SHA256((s,r)) in
+    {60}new SeedK1: bitstring;
+    {61}new exp_2_1: bitstring;
+    {62}new SN: bitstring;
+    {63}new data: bitstring;
+    {64}new Version: bitstring;
+    {65}let E2_data: bitstring = (SessionNonce_2,(token_1,(UUID_paired_1,(SN,(data,(Version,(E1_2,SeedK1))))))) in
+    {66}let E2_2: bitstring = ECIES_enc(E2_data,Qe_1) in
+    {67}event SessionNonceEncSource(SessionNonce_2);
+    {68}event E1EncSource(E1_2);
+    {69}out(att, (C1,(E2_2,open_ch)));
+    {70}event SendE2(E2_2);
+    {71}in(att, (pkS: bitstring,(r_: bitstring,(E3_2: bitstring,(SeedS_2: bitstring,(S2_2: bitstring,(iCloudldentifier_2: bitstring,=open_ch)))))));
+    {72}let H1_2: bitstring = SHA256((pkS,r_)) in
+    {73}let S2_data: bitstring = (UUID_paired_1,(SessionNonce_2,(SeedS_2,(H1_2,(E1_2,E3_2))))) in
+    {74}if (verify(S2_2,Qa_1) = S2_data) then
+    {75}let P: bitstring = add(S,pkS) in
+    {76}let ServerSharedSecret: bitstring = kdf((SeedS_2,SeedK1),ServerSharedSecret_const) in
+    {77}let K1: bitstring = kdf(ServerSharedSecret,PairingSession_const) in
+    {78}let IV1: bitstring = kdf(ServerSharedSecret,PairingSession_const) in
+    {79}let KSN: bitstring = kdf(ServerSharedSecret,SerialNumberProtection_const) in
+    {80}let Pair_1: bitstring = (qa,Qa_1) in
+    {81}event RecvS2(S2_2,S2_data);
+    {82}let tk_new_1: bitstring = AES_GCM_dec(E3_2,K1,IV1) in
+    {83}event RecvE3(tk_new_1,E3_2,SeedS_2);
+    {84}new Status_1: bitstring;
+    {85}let E4_data_1: bitstring = (UUID_paired_1,(SN,(SessionNonce_2,(E1_2,(tk_new_1,Status_1))))) in
+    {86}let E4_1: bitstring = ECIES_enc(E4_data_1,Qe_1) in
+    {87}let other_param: bitstring = (Status_1,E4_1) in
+    {88}out(att, (s,(r,(other_param,open_ch))));
+    {89}let r_all: bitstring = (r,r_) in
+    {90}let SK: bitstring = kdf(get_point_x(P),r_all) in
+    {91}let seed_all_1: bitstring = (SeedS_2,SeedK1) in
+    {92}let ServerSharedSecret_2: bitstring = kdf(seed_all_1,SerialNumberProtection_const) in
+    {93}let id: bitstring = get_id(P,SK) in
+    {94}out(sec_ch_1, (id,(UUID_paired_1,id_p)))
+) | (
+    {95}in(sec_ch_1, (id_c_1: bitstring,=id_c));
+    {96}in(sec_ch_1, (id_p_1: bitstring,(UUID: bitstring,=id_p)));
+    {97}let =id_c_1 = id_p_1 in
+    {98}event PairSuccess(UUID)
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}new sec_ch_1: channel;
+{2}new UUID_paired_1: bitstring;
+{3}new UUID_1: bitstring;
+{4}event UUIDSource(UUID_paired_1);
+{5}new token_1: bitstring;
+{6}!
+(
+    {7}new iCloudldentifier_1: bitstring;
+    {8}in(att, (H1_1: bitstring,(E2_1: bitstring,=pre_app1)));
+    {9}let E2_data_1: bitstring = ECIES_dec(E2_1,qe) in
+    {10}event RecvE2(E2_data_1,E2_1);
+    {11}let (SessionNonce_1: bitstring,(token_11: bitstring,(UUID_11: bitstring,(SN_1: bitstring,(data_1: bitstring,(Version_1: bitstring,(E1_1: bitstring,SeedK1_1: bitstring))))))) = E2_data_1 in
+    {12}event RecvUUID(UUID_11);
+    {13}event RecvSessionNonce(SessionNonce_1);
+    {14}if (UUID_11 = UUID_paired_1) then
+        0
+    else
+        {15}if (token_11 = token_1) then
+        {16}new token_new_1: bitstring;
+        {17}new SeedS_1: bitstring;
+        {25}event SendH1(H1_1);
+        {26}event SendE1(E1_1);
+        {18}let ServerSharedSecret_1: bitstring = kdf((SeedS_1,SeedK1_1),ServerSharedSecret_const) in
+        {20}let IV1_1: bitstring = kdf(ServerSharedSecret_1,PairingSession_const) in
+        {19}let K1_1: bitstring = kdf(ServerSharedSecret_1,PairingSession_const) in
+        {22}let E3_1: bitstring = AES_GCM_enc(token_new_1,K1_1,IV1_1) in
+        {23}let S2_data_1: bitstring = (UUID_11,(SessionNonce_1,(SeedS_1,(H1_1,(E1_1,E3_1))))) in
+        {24}let S2_1: bitstring = sign(S2_data_1,qa) in
+        {27}out(att, (iCloudldentifier_1,(SeedS_1,(S2_1,(E3_1,pre_app1)))));
+        {28}event SendE3(E3_1,SeedS_1)
+) | (
+    {29}new SessionNonce: bitstring;
+    {30}new E1: bitstring;
+    {31}out(att, (SessionNonce,(E1,open_ch)));
+    {32}in(att, (C1_1: bitstring,(E2: bitstring,=open_ch)));
+    {33}new s__1: bitstring;
+    {34}new r__1: bitstring;
+    {35}let pkS_1: bitstring = exp(g,s__1) in
+    {36}let H1: bitstring = SHA256((pkS_1,r__1)) in
+    {37}event H1Source(H1);
+    {38}out(att, (H1,(E2,pre_app1)));
+    {39}in(att, (iCloudldentifier: bitstring,(SeedS: bitstring,(S2: bitstring,(E3: bitstring,=pre_app1)))));
+    {40}out(att, (pkS_1,(r__1,(E3,(SeedS,(S2,(iCloudldentifier,open_ch)))))));
+    {41}event SendS2(S2);
+    {42}in(att, (s_1: bitstring,(r_1: bitstring,(other_param_1: bitstring,=open_ch))));
+    {43}let =C1_1 = SHA256((s_1,r_1)) in
+    {47}let r_all_1: bitstring = (r_1,r__1) in
+    {44}let S_1: bitstring = exp(g,s_1) in
+    {45}let P_1: bitstring = add(S_1,pkS_1) in
+    {48}let SK_1: bitstring = kdf(get_point_x(P_1),r_all_1) in
+    {49}let id_1: bitstring = get_id(P_1,SK_1) in
+    {50}out(sec_ch_1, (id_1,id_c))
+) | (
+    {51}event Bounded(UUID_paired_1);
+    {53}let Qa_1: bitstring = pk(qa) in
+    {52}let Qe_1: bitstring = pk(qe) in
+    {54}out(att, (Qa_1,Qe_1));
+    {55}in(att, (SessionNonce_2: bitstring,(E1_2: bitstring,=open_ch)));
+    {56}new s: bitstring;
+    {57}new r: bitstring;
+    {60}new SeedK1: bitstring;
+    {61}new exp_2_1: bitstring;
+    {62}new SN: bitstring;
+    {63}new data: bitstring;
+    {64}new Version: bitstring;
+    {67}event SessionNonceEncSource(SessionNonce_2);
+    {68}event E1EncSource(E1_2);
+    {65}let E2_data: bitstring = (SessionNonce_2,(token_1,(UUID_paired_1,(SN,(data,(Version,(E1_2,SeedK1))))))) in
+    {66}let E2_2: bitstring = ECIES_enc(E2_data,Qe_1) in
+    {59}let C1: bitstring = SHA256((s,r)) in
+    {69}out(att, (C1,(E2_2,open_ch)));
+    {70}event SendE2(E2_2);
+    {71}in(att, (pkS: bitstring,(r_: bitstring,(E3_2: bitstring,(SeedS_2: bitstring,(S2_2: bitstring,(iCloudldentifier_2: bitstring,=open_ch)))))));
+    {72}let H1_2: bitstring = SHA256((pkS,r_)) in
+    {73}let S2_data: bitstring = (UUID_paired_1,(SessionNonce_2,(SeedS_2,(H1_2,(E1_2,E3_2))))) in
+    {74}if (verify(S2_2,Qa_1) = S2_data) then
+    {81}event RecvS2(S2_2,S2_data);
+    {76}let ServerSharedSecret: bitstring = kdf((SeedS_2,SeedK1),ServerSharedSecret_const) in
+    {78}let IV1: bitstring = kdf(ServerSharedSecret,PairingSession_const) in
+    {77}let K1: bitstring = kdf(ServerSharedSecret,PairingSession_const) in
+    {82}let tk_new_1: bitstring = AES_GCM_dec(E3_2,K1,IV1) in
+    {83}event RecvE3(tk_new_1,E3_2,SeedS_2);
+    {84}new Status_1: bitstring;
+    {85}let E4_data_1: bitstring = (UUID_paired_1,(SN,(SessionNonce_2,(E1_2,(tk_new_1,Status_1))))) in
+    {86}let E4_1: bitstring = ECIES_enc(E4_data_1,Qe_1) in
+    {87}let other_param: bitstring = (Status_1,E4_1) in
+    {88}out(att, (s,(r,(other_param,open_ch))));
+    {89}let r_all: bitstring = (r,r_) in
+    {58}let S: bitstring = exp(g,s) in
+    {75}let P: bitstring = add(S,pkS) in
+    {90}let SK: bitstring = kdf(get_point_x(P),r_all) in
+    {93}let id: bitstring = get_id(P,SK) in
+    {94}out(sec_ch_1, (id,(UUID_paired_1,id_p)))
+) | (
+    {95}in(sec_ch_1, (id_c_1: bitstring,=id_c));
+    {96}in(sec_ch_1, (id_p_1: bitstring,(UUID: bitstring,=id_p)));
+    {97}let =id_c_1 = id_p_1 in
+    {98}event PairSuccess(UUID)
+)
+
+-- Query not (event(PairSuccess(device)) && event(Bounded(device))) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query not (event(PairSuccess(device)) && event(Bounded(device)))
+RESULT not (event(PairSuccess(device)) && event(Bounded(device))) is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query not (event(PairSuccess(device)) && event(Bounded(device))) is true.
+
+--------------------------------------------------------------
+

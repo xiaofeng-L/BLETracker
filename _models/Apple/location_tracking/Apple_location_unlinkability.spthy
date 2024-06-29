@@ -1,0 +1,111 @@
+theory Apple_AirTag
+
+begin
+
+
+functions: 
+	/* KDF: derive symmetric key. ANSI_X_963_KDF_SHA256 */
+	kdf/2, update_const/0, diversify_const/0,
+
+	/* P-224 Curve */
+	add/2, mul/2, gen/0,
+	IES_enc/2, IES_dec/2 [destructor],
+	get_sk/1 [private],
+
+  /* Hash function */
+	SHA256/1,
+
+	location/0 [private]
+equations:
+	IES_dec(IES_enc(m, pk), get_sk(pk)) = m
+	
+
+
+options: enableStateOpt, compress-events,
+translation-allow-pattern-lookups
+
+
+
+/* Tracker */
+let tracker(~Pi_0, ~SKSi_0) = 
+	out(<~Pi_0, 'adv'>)
+
+
+/* Other Participants */
+let participant() = 
+	event Secret(location);
+  	in(<Pi, 'adv'>);
+	let sealedbox_loc = IES_enc(location, Pi) in
+	let index = SHA256(Pi) in
+	out(<sealedbox_loc, index, 'location_report'>)
+
+
+
+/* Server */
+let server(~pre_app_ch1: channel) = 
+	in(<sealedbox_loc, index, 'location_report'>);
+	/* for privacy */
+	out(<sealedbox_loc, index, 'location_report'>);
+	in(~pre_app_ch1, <index1, 'query_by_index'>);
+	/* for privacy */
+	out(<index1, 'query_by_index'>);
+	if (index = index1) then (
+		out(~pre_app_ch1, <sealedbox_loc, index, 'location_report_index'>)
+	)
+
+
+/* phone */
+let phone(~pre_app_ch1: channel, ~Pi_0, ~SKSi_0) = 
+	let index = SHA256(~Pi_0) in
+	out(~pre_app_ch1, <index, 'query_by_index'>);
+	in(~pre_app_ch1, <sealedbox_loc, index1, 'location_report_index'>);
+	let loc = IES_dec(sealedbox_loc, get_sk(~Pi_0)) in
+	0
+
+
+equivLemma:
+(	new ~pre_app_ch1: channel;
+	(
+		new ~P;
+		new ~SKS;
+		let SKSi_0 = kdf(~SKS, update_const) in
+		let <ui_0, vi_0> = kdf(SKSi_0, diversify_const) in
+		let Pi_0 = add(mul(ui_0, ~P), mul(vi_0, gen)) in
+
+		let SKSi_1 = kdf(SKSi_0, update_const) in
+		let <ui_1, vi_1> = kdf(SKSi_1, diversify_const) in
+		let Pi_1 = add(mul(ui_1, Pi_0), mul(vi_1, gen)) in
+
+		let SKSi_2 = kdf(SKSi_1, update_const) in
+		let <ui_2, vi_2> = kdf(SKSi_2, diversify_const) in
+		let Pi_2 = add(mul(ui_2, Pi_1), mul(vi_2, gen)) in
+		tracker(Pi_0, SKSi_0) | 
+		participant() |
+		server(~pre_app_ch1) |
+		phone(~pre_app_ch1, Pi_0, SKSi_0) |
+		tracker(Pi_1, SKSi_1) | 
+		participant() |
+		server(~pre_app_ch1) |
+		phone(~pre_app_ch1, Pi_1, SKSi_1) |
+		tracker(Pi_2, SKSi_2) | 
+		participant() |
+		server(~pre_app_ch1) |
+		phone(~pre_app_ch1, Pi_2, SKSi_2)
+	)
+)
+
+(	new ~pre_app_ch1: channel;
+	!(
+		new ~P;
+		new ~SKS;
+		let SKSi_0 = kdf(~SKS, update_const) in
+		let <ui_0, vi_0> = kdf(SKSi_0, diversify_const) in
+		let Pi_0 = add(mul(ui_0, ~P), mul(vi_0, gen)) in
+		
+		tracker(Pi_0, SKSi_0) | 
+		participant() |
+		server(~pre_app_ch1) |
+		phone(~pre_app_ch1, Pi_0, SKSi_0)
+	)
+)
+end

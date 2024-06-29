@@ -1,0 +1,77 @@
+free adv.
+free att.
+free location_NoE2E.
+free location_report_NoE2E.
+fun AES_enc/3.
+fun IES_enc/2.
+fun Mode_E2E/0.
+fun Mode_NoE2E/0.
+fun SHA256/1.
+fun derive_key/2.
+fun location_plain/0[private].
+fun pk/1.
+fun privacy_const/0.
+fun signature_const/0.
+reduc   IES_dec(IES_enc(m, dhkey_ab), dhkey_ab) = m.
+reduc   AES_dec(AES_enc(mes, k, v), k, v) = mes.
+reduc   fst((x_1, x_2)) = x_1.
+reduc   snd((x_1, x_2)) = x_2.
+let tracker(encryption_key_1, seed_1, privacyIV_1, E2EMode_1, rand2_1)=
+    let privKey_1=derive_key(encryption_key_1, privacy_const) in
+    let seedi_1=(rand2_1, (seed_1, rand2_1)) in
+    let privId_1=AES_enc(seedi_1, privKey_1, privacyIV_1) in
+    out(att,(privId_1, (E2EMode_1, adv))).
+let participant(pre_app_ch2_1)=
+    
+    in(att,freshprivIdEEModeadv);
+    let ((privId_1, (E2EMode_1, =adv)))=freshprivIdEEModeadv in
+    if E2EMode_1 = Mode_NoE2E then
+        (out(pre_app_ch2_1,(privId_1, (E2EMode_1, (location_plain, location_report_NoE2E))))).
+let attacker(pre_app_ch2_1)=
+    
+    in(att,freshprivIdEEModeadv);
+    let ((privId_1, (E2EMode_1, =adv)))=freshprivIdEEModeadv in
+    if E2EMode_1 = Mode_NoE2E then
+        (out(pre_app_ch2_1,(privId_1, (E2EMode_1, (location_plain, location_report_NoE2E))));
+         out(att,(privId_1, (E2EMode_1, (location_plain, location_report_NoE2E))))).
+let server(pre_app_ch1_1, pre_app_ch2_1, encryption_key_1, seed_1,
+           privacyIV_1, E2EMode_1)=
+    if E2EMode_1 = Mode_NoE2E then
+        (in(pre_app_ch2_1,freshprivIdEEModelocationlocationreportNoEE);
+         let ((privId_1, (E2EMode_2, (location_1, =location_report_NoE2E))))=freshprivIdEEModelocationlocationreportNoEE in
+         out(pre_app_ch1_1,(location_1, location_NoE2E))).
+let phone(pre_app_ch1_1, encryption_key_1, seed_1, privacyIV_1,
+          E2EMode_1)=
+    if E2EMode_1 = Mode_NoE2E then
+        (in(pre_app_ch1_1,freshlocationlocationNoEE);
+         let ((location_1, =location_NoE2E))=freshlocationlocationNoEE in
+         let loc_1=location_1 in
+         0).
+
+
+query trace_equiv(
+    new pre_app_ch1_1;
+    new pre_app_ch2_1;
+    new encryption_key_1;
+    new seed_1;
+    new privacyIV_1;
+    !^3(((((((new rand2_1;
+              tracker(encryption_key_1, seed_1, privacyIV_1, Mode_NoE2E, rand2_1))
+           | (attacker(pre_app_ch2_1))))
+         | (server(pre_app_ch1_1, pre_app_ch2_1, encryption_key_1, seed_1,
+                   privacyIV_1, Mode_NoE2E))))
+       | (phone(pre_app_ch1_1, encryption_key_1, seed_1, privacyIV_1,
+                Mode_NoE2E)))),
+    new pre_app_ch1_1;
+    new pre_app_ch2_1;
+    !^3(new encryption_key_1;
+        new seed_1;
+        new privacyIV_1;
+        !^3(((((((new rand2_1;
+                  tracker(encryption_key_1, seed_1, privacyIV_1, Mode_NoE2E, rand2_1))
+               | (attacker(pre_app_ch2_1))))
+             | (server(pre_app_ch1_1, pre_app_ch2_1, encryption_key_1, seed_1,
+                       privacyIV_1, Mode_NoE2E))))
+           | (phone(pre_app_ch1_1, encryption_key_1, seed_1, privacyIV_1,
+                    Mode_NoE2E)))))).
+

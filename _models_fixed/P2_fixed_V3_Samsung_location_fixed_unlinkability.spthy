@@ -1,0 +1,221 @@
+/*
+(* For privacy, cloud is equipment to open channel for data communication between finder device and owner device. *)
+(* For security, cloud channel is private. *)
+(* If there is account verification while communicating with the cloud, then use account channel. *)
+*/
+
+
+theory Samsung_SmartTag
+
+begin
+
+functions:
+
+  //SmartTag spec
+  privacy_const/0, signature_const/0, Mode_E2E/0, Mode_NoE2E/0,
+  derive_key/2, 
+
+  get_sk/1 [private],
+  AES_enc/3, AES_dec/3 [destructor],
+  IES_enc/2, IES_dec/2 [destructor],
+  SHA256/1,
+
+  location/0 [private],
+
+  /* addition for mitigation */
+  kdf/2, update_const/0, diversify_const/0,
+  add/2, mul/2, gen/0
+  
+equations:
+  //Secp256k1(Secp256k1(gen, x), y) = Secp256k1(Secp256k1(gen, y), x),
+  AES_dec(AES_enc(mes, k, v), k, v) = mes,
+  IES_dec(IES_enc(m, pk), get_sk(pk)) = m
+
+
+
+/* Tracker */
+let tracker(~encryption_key, ~seed, ~privacyIV, ~E2EMode, ~rand2) = 
+  let privKey = derive_key(~encryption_key, privacy_const) in
+  let signKey = derive_key(~encryption_key, signature_const) in
+
+  let seedi = <~rand2, ~seed, ~rand2> in
+
+  /* ignore the first8bytes and first4bytes actions */
+  let privId = AES_enc(seedi, privKey, ~privacyIV) in
+  let signature = AES_enc(<privId, ~E2EMode>, signKey, ~privacyIV) in
+  out(<privId, ~E2EMode, signature, 'adv'>)
+
+
+/* Other participants as finder */
+let participant() = 
+  event Secret(location);
+  in(<privId, E2EMode, signature, 'adv'>);
+  if (E2EMode = Mode_E2E) then (
+    out(<privId, 'tracker_ID'>);
+    in(<pubKey1, 'tracker_PubKey'>);
+
+    /* IES: new pubkey; compute dhkey; encrypt */
+    let sealedbox_loc = IES_enc(location, pubKey1) in
+    out(<privId, E2EMode, signature, sealedbox_loc, 'location_report_E2E'>)
+  ) else (
+    out(<privId, E2EMode, signature, location, 'location_report_NoE2E'>)
+  )
+
+
+/* Server */
+let server(~pre_app_ch1: channel, ~encryption_key, ~seed, ~privacyIV, ~E2EMode, ~owner_account, ~enc_pri1, ~pubKey1, ~iv) = 
+  if (~E2EMode = Mode_E2E) then (
+
+    /* finder querys the public key and uploads location report */
+    in(<privId, 'tracker_ID'>);
+    let privKey = derive_key(~encryption_key, privacy_const) in
+    let <r2, seed_adv, r2> = AES_dec(privId, privKey, ~privacyIV) in
+    if (seed_adv = ~seed) then (
+      out(<~pubKey1, 'tracker_PubKey'>);
+      in(<privId, E2EMode, signature, sealedbox_loc, 'location_report_E2E'>);
+      let signKey = derive_key(~encryption_key, signature_const) in
+      if (signature = AES_enc(<privId, E2EMode>, signKey, ~privacyIV)) then (
+        
+        /* owner querys location report */
+        in(~pre_app_ch1, <owner_account2, 'query_location_E2E'>);
+        if(~owner_account = owner_account2) then (
+          out(~pre_app_ch1, <sealedbox_loc, <~enc_pri1, ~pubKey1, ~iv>, 'location_E2E_and_key_item'>)
+        )
+      )
+    )
+    
+  ) else (
+
+    /* finder uploads location report */
+    in(<privId, E2EMode, signature, loc, 'location_report_NoE2E'>);
+    let signKey = derive_key(~encryption_key, signature_const) in
+    if (signature = AES_enc(<privId, E2EMode>, signKey, ~privacyIV)) then (
+      
+      /* owner querys location report */
+      in(~pre_app_ch1, <owner_account2, 'query_location_E2E'>);
+      if(~owner_account = owner_account2) then (
+        out(~pre_app_ch1, <loc, 'location_NoE2E'>)
+      )
+    )
+  )
+
+
+
+/* Phone as owner */
+let phone(~pre_app_ch1: channel, ~owner_account, ~encryption_key, ~seed, ~privacyIV, ~E2EMode, ~six_pin, ~iv) = 
+  if (~E2EMode = Mode_E2E) then (
+    out(~pre_app_ch1, <~owner_account, 'query_location_E2E'>);
+    in(~pre_app_ch1, <sealedbox_loc, <enc_pri1, pubKey1, ~iv>, 'location_E2E_and_key_item'>);
+    let key = SHA256(~six_pin) in
+
+    /* simplified the sk's rotation and merge it with the IES encryption/decryption */
+    let pri1 = get_sk(pubKey1) in
+    let loc = IES_dec(sealedbox_loc, pri1) in
+    0
+  ) else (
+    out(~pre_app_ch1, <~owner_account, 'query_location_NoE2E'>);
+    in(~pre_app_ch1, <loc_plain, 'location_NoE2E'>);
+    let loc = loc_plain in
+    0
+  )
+
+
+
+equivLemma:
+(
+  // Private Channel
+  new ~pre_app_ch1: channel;
+
+  new ~owner_account;
+  new ~encryption_key;
+  new ~seed;
+  new ~privacyIV;
+
+  /* initialize the key item */
+  new ~six_pin;
+  let key = SHA256(~six_pin) in
+  new ~iv;
+
+  new ~P;
+  new ~SKS; 
+
+  let SKSi_0 = kdf(~SKS, update_const) in
+  let <ui_0, vi_0> = kdf(SKSi_0, diversify_const) in
+  let Pi_0 = add(mul(ui_0, ~P), mul(vi_0, gen)) in
+  let di_0 = get_sk(Pi_0) in
+  let enc_di_0 = AES_enc(di_0, key, ~iv) in
+  let enc_SKSi_0 = AES_enc(SKSi_0, key, ~iv) in
+
+  let SKSi_1 = kdf(SKSi_0, update_const) in
+  let <ui_1, vi_1> = kdf(SKSi_1, diversify_const) in
+  let Pi_1 = add(mul(ui_1, Pi_0), mul(vi_1, gen)) in
+  let di_1 = get_sk(Pi_1) in
+  let enc_di_1 = AES_enc(di_1, key, ~iv) in
+  let enc_SKSi_1 = AES_enc(SKSi_1, key, ~iv) in
+
+  let SKSi_2 = kdf(SKSi_1, update_const) in
+  let <ui_2, vi_2> = kdf(SKSi_2, diversify_const) in
+  let Pi_2 = add(mul(ui_2, Pi_1), mul(vi_2, gen)) in
+  let di_2 = get_sk(Pi_2) in
+  let enc_di_2 = AES_enc(di_2, key, ~iv) in
+  let enc_SKSi_2 = AES_enc(SKSi_2, key, ~iv) in
+
+  new ~rand2_1; 
+  new ~rand2_2; 
+  new ~rand2_3; 
+
+  (
+  tracker(~encryption_key, ~seed, ~privacyIV, Mode_E2E, ~rand2_1) |
+  participant() |
+  server(~pre_app_ch1, ~encryption_key, ~seed, ~privacyIV, Mode_E2E, ~owner_account, enc_di_0, Pi_0, ~iv) |
+  phone(~pre_app_ch1, ~owner_account, ~encryption_key, ~seed, ~privacyIV, Mode_E2E, ~six_pin, ~iv) |
+  tracker(~encryption_key, ~seed, ~privacyIV, Mode_E2E, ~rand2_2) |
+  participant() |
+  server(~pre_app_ch1, ~encryption_key, ~seed, ~privacyIV, Mode_E2E, ~owner_account, enc_di_1, Pi_1, ~iv) |
+  phone(~pre_app_ch1, ~owner_account, ~encryption_key, ~seed, ~privacyIV, Mode_E2E, ~six_pin, ~iv) |
+  tracker(~encryption_key, ~seed, ~privacyIV, Mode_E2E, ~rand2_3) |
+  participant() |
+  server(~pre_app_ch1, ~encryption_key, ~seed, ~privacyIV, Mode_E2E, ~owner_account, enc_di_2, Pi_2, ~iv) |
+  phone(~pre_app_ch1, ~owner_account, ~encryption_key, ~seed, ~privacyIV, Mode_E2E, ~six_pin, ~iv)
+  )
+)
+
+(
+ !(
+    // Private Channel
+    new ~pre_app_ch1: channel;
+    new ~pre_app_ch2: channel;
+
+    new ~owner_account;
+    new ~encryption_key;
+    new ~seed;
+    new ~privacyIV;
+    new ~rand2; 
+
+    /* initialize the key item */
+    new ~six_pin;
+    let key = SHA256(~six_pin) in
+    new ~iv;
+
+    new ~P;
+    new ~SKS; 
+
+    let SKSi_0 = kdf(~SKS, update_const) in
+    let <ui_0, vi_0> = kdf(SKSi_0, diversify_const) in
+    let Pi_0 = add(mul(ui_0, ~P), mul(vi_0, gen)) in
+    let di_0 = get_sk(Pi_0) in
+    let enc_di_0 = AES_enc(di_0, key, ~iv) in
+    let enc_SKSi_0 = AES_enc(SKSi_0, key, ~iv) in
+
+
+    (
+    tracker(~encryption_key, ~seed, ~privacyIV, Mode_E2E, ~rand2) |
+    participant() |
+    server(~pre_app_ch1, ~encryption_key, ~seed, ~privacyIV, Mode_E2E, ~owner_account, enc_di_0, Pi_0, ~iv) |
+    phone(~pre_app_ch1, ~owner_account, ~encryption_key, ~seed, ~privacyIV, Mode_E2E, ~six_pin, ~iv) 
+    )
+    
+  )
+)
+
+end

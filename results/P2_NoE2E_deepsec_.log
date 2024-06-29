@@ -1,0 +1,15 @@
+[1m[30mDeepSec - DEciding Equivalence Properties for SECurity protocols[0m
+    Version: 2.0.2
+    Git hash: 8ddc45ec79de5ec49810302ea7da32d3dc9f46e4
+    Git branch: master
+    Website: https://deepsec-prover.github.io
+
+
+Loading file ./_Models_and_Results/Samsung/location_tracking/Samsung_location_NoE2E_unlinkability.spthy.dps...
+
+Starting verification...
+
+Starting verification of Samsung_location_NoE2E_unlinkability.spthy.dps...
+Verifying query 1...The following attack trace has been found on the 2nd process: out(att,ax_1);out(att,ax_2);out(att,ax_3);out(att,ax_4)          
+Result query 1: The two processes are [1m[31mnot trace equivalent[0m. Verified in < 1s using 2MB of memory.          
+Verification complete.
