@@ -1,42 +1,48 @@
 # BLETracker
 ## File explanation
 
-### "model" folder
-The **model** folder contains our models implemented in SAPIC+, which can be translated to the TAMARIN models and ProVerif models using SAPIC+.  
+### "_models" folder
+The **_models** folder contains our models implemented in SAPIC+, which can be translated to the TAMARIN, ProVerif, and DeepSec models using SAPIC+.  
+**.spthy** is the SAPIC+ models, **.spthy.dps** is the DeepSec models translated by SAPIC+.
 
-- **model/Apple_initialization.spthy** contains the model of Apple initialization protocol.
-- **model/Apple_initialization_Authentication.spthy** contains the model of Apple initialization protocol for authentication.
-- **model/P12_P13_Apple_broadcast.spthy** contains the model of the Apple location tracking protocol for anonymity.
-- **model/Apple_location.spthy** contains the model of Apple location tracking protocol.
+f_Apple_Initial_C_P5_6_7_8="./_models/Apple/initialization/Apple_simplified_initialization_confidentiality_V6.spthy"
+f_Apple_Initial_A_P10="./_models/Apple/initialization/Apple_simplified_initialization_authentication.spthy"
+f_Apple_LocTrack_C_P9_confidentiality="./_models/Apple/location_tracking/Apple_location_confidentiality.spthy"
+f_Apple_LocTrack_C_P9_server_privacy="./_models/Apple/location_tracking/Apple_location_server_privacy.spthy"
+f_Apple_LocTrack_A_P11="./_models/Apple/location_tracking/Apple_location_unlinkability.spthy.dps"
 
-
-- **model/Samsung_initialization_Confidentiality.spthy** contains the model of the Samsung initialization protocol.
-- **model/Samsung_initialization_Authentication.spthy** contains the model of the Samsung initialization protocol for authentication.
-- **model/Samsung_initialization_Authentication_fixed_V1.spthy** contains the model of the Samsung broadcast protocol for authentication after fixing V1.
-- **model/P2_Samsung_broadcast_ID.spthy** contains the model of the location tracking protocol for the anonymity of SmartTag's ID.
-- **model/P5_Samsung_broadcast_AdvAddr.spthy** contains the model of the Samsung location tracking protocol for the anonymity of SmartTag's BLE MAC address.
-- **model/P6_Samsung_broadcast_pubkey.spthy** contains the model of the Samsung location tracking protocol for the anonymity of SmartTag's public key.
-- **model/Samsung_location_E2E.spthy** contains the model of Samsung location tracking protocol with the end-to-end mode (E2E).
-- **model/Samsung_location_NoE2E.spthy** contains the model of Samsung location tracking protocol without the end-to-end mode (NoE2E).
+f_Samsung_Initial_C_P4="./_models/Samsung/Samsung/initialization/Samsung_initialization_Confidentiality_foundV5.spthy"
+f_Samsung_Initial_A_P3="./_models/Samsung/initialization/Samsung_initialization_Authentication_foundV1.spthy"
+f_Samsung_Initial_A_P3_fixV1="./_models/Samsung/initialization/Samsung_initialization_Authentication_fixed_V1_foundV4.spthy"
+f_Samsung_LocTrack_C_P1_E2E_confidentiality="./_models/Samsung/location_tracking/Samsung_location_E2E_confidentiality.spthy"
+f_Samsung_LocTrack_C_P1_E2E_server_privacy="./_models/Samsung/location_tracking/Samsung_location_E2E_server_privacy.spthy"
+f_Samsung_LocTrack_C_P1_NoE2E_confidentiality="./_models/Samsung/location_tracking/Samsung_location_NoE2E_confidentiality.spthy"
+f_Samsung_LocTrack_C_P1_NoE2E_server_privacy="./_models/Samsung/location_tracking/Samsung_location_NoE2E_server_privacy.spthy"
+f_Samsung_LocTrack_A_P2_E2E="./_models/Samsung/location_tracking/Samsung_location_E2E_unlinkability.spthy.dps"
+f_Samsung_LocTrack_A_P2_NoE2E="./_models/Samsung/location_tracking/Samsung_location_NoE2E_unlinkability.spthy.dps"
 
 
 ### "fixed_model" folder
 The **fixed_model** folder contains the models with our changes.
 
-- **fixed_model/Apple_initialization_Confidentiality.spthy** contains the fixed model of the Apple initialization protocol.
-
-- **fixed_model/Samsung_initialization_Confidentiality.spthy** contains the fixed model of the Samsung initialization protocol with all relevant changes for confidentiality.
-- **fixed_model/Samsung_initialization_Authentication.spthy** contains the fixed model of the Samsung initialization protocol with all relevant changes for authentication.
-- **fixed_model/Samsung_location_E2E.spthy** contains the fixed model of the Samsung location tracking protocol for confidentiality.
-- **fixed_model/P6_Samsung_broadcast_pubkey.spthy** contains the fixed model of the Samsung location tracking protocol for the anonymity of SmartTag's public key.
-
+f_fixed_Samsung_LocTrack_P1_server_privacy="./_models_fixed/P1_fixed_MI1_2_Samsung_location_fixed_server_privacy.spthy"
+f_fixed_Samsung_LocTrack_P2="./_models_fixed/P2_fixed_V3_Samsung_location_fixed_unlinkability.spthy.dps"
+f_fixed_Samsung_Initial_P3="./_models_fixed/P3_fixed_V1_V5_Samsung_initialization_Authentication.spthy"
+f_fixed_Samsung_Initial_P4="./_models_fixed/P4_fixed_V4_Samsung_initialization_confidentiality.spthy"
+f_fixed_Apple_Initial_P5_6_7_8="./_models_fixed/P5_6_7_8_fixed_V6_Apple_simplified_initialization_confidentiality"
+f_fixed_Apple_LocTrack_P9_server_privacy="./_models_fixed/P9_fixed_MI3_Apple_location_server_privacy.spthy"
+f_fixed_Apple_Initial_P10="./_models_fixed/P10_fixed_V6_Apple_simplified_initialization_authentication.spthy"
+f_fixed_Apple_LocTrack_P11="./_models_fixed/P11_fixed_Apple_location_unlinkability.spthy.dps"
 
 ### "result" folder
-We identified three new vulnerabilities by a formal analysis and rediscovered three vulnerabilities found by reverse engineering.
-- Rediscover: V1(ProVerif), V3(ProVerif), V4(ProVerif)
-- Identify: V5(TAMARIN), V6(ProVerif), V7(ProVerif)
+We log the verification results of all properties in the folder.
 
-The **result** folder contains all the attack traces generated by TAMARIN and ProVerif when detecting the violations.
+### "attack_trace" folder
+We identified three new vulnerabilities by a formal analysis and rediscovered three vulnerabilities found by reverse engineering.
+- Rediscover: V1(ProVerif), V3(ProVerif), V4(ProVerif), MI1(ProVerif) 
+- Identify: V5(TAMARIN), V6(ProVerif), V7(ProVerif), MI2(ProVerif), MI3(Tamarin)
+
+The **attack_trace** folder contains all the attack traces generated by TAMARIN and ProVerif when detecting the violations.
 - The **.html** files contain the attack traces in the text generated by ProVerif.
 - The **.pdf** files contain the attack traces in the graph generated by ProVerif.
 - The **.txt** files contain the attack traces in the text generated by TAMARIN.
@@ -47,13 +53,13 @@ We perform our reverse engineering on Samsung Find My Mobile using Galaxy S7 and
 
 We take ethical issues seriously. In this study, we used our two Samsung devices and accounts for our experiments, and we took measures to minimize the impact on Samsung's services and only tested our own devices. Therefore, we provide the details of the Samsung Find My Mobile protocol and will not provide our attack scripts.
 
-- The **resources** folder contains the firmware of the SmartTag with version 01.01.26 and relevant applications.
-- The **results** folder contains part of our reverse engineering efforts.
-  * The **results/Samsung_initialization_traffic.zip** file contains the traffic while registering a SmartTag with version 01.02.06. But for anonymous submissions, we only reserve the related traffic.
-  * The **results/advertisement_compute.py** file contains the calculation of the advertisement generation process from the register results.
-  * The **results/hashed_sn.py** file contains the calculation of the value field "hashed_sn" via the MAC address of a SmartTag.
-- The **Review** folder is only available for reviewers and will not be released when published in the BLETracker repository.
-  * The **PoC_BLEtraffic.zip** file contains a **attack_pair_bad_ECDH.py** file to decrypt the entire BLE traffic for the initialization phase, which is shown in **smartTagb_s7_white_01_02_06.pcapng**.
+- The **RE/resources** folder contains the firmware of the SmartTag with version 01.01.26 and relevant applications.
+- The **RE/results** folder contains part of our reverse engineering efforts.
+  * The **RE/results/Samsung_initialization_traffic.zip** file contains the traffic while registering a SmartTag with version 01.02.06. But for anonymous submissions, we only reserve the related traffic.
+  * The **RE/results/advertisement_compute.py** file contains the calculation of the advertisement generation process from the register results.
+  * The **RE/results/hashed_sn.py** file contains the calculation of the value field "hashed_sn" via the MAC address of a SmartTag.
+- The **RE/Review** folder is only available for reviewers and will not be released when published in the BLETracker repository.
+  * The **RE/Review/PoC_BLEtraffic.zip** file contains a **RE/Review/attack_pair_bad_ECDH.py** file to decrypt the entire BLE traffic for the initialization phase, which is shown in **smartTagb_s7_white_01_02_06.pcapng**.
 - The **Reverse Engineering for Samsung Find My Mobile.zip** contains the detailed process when we reverse-engineered Samsung Find My Mobile from shallow to deep.
 ## How to run
 1. **Download the Image**
