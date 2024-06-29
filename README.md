@@ -22,8 +22,8 @@ f_Samsung_LocTrack_A_P2_E2E="./_models/Samsung/location_tracking/Samsung_locatio
 f_Samsung_LocTrack_A_P2_NoE2E="./_models/Samsung/location_tracking/Samsung_location_NoE2E_unlinkability.spthy.dps"
 
 
-### "fixed_model" folder
-The **fixed_model** folder contains the models with our changes.
+### "_fixed_model" folder
+The **_fixed_model** folder contains the models with our changes.
 
 f_fixed_Samsung_LocTrack_P1_server_privacy="./_models_fixed/P1_fixed_MI1_2_Samsung_location_fixed_server_privacy.spthy"
 f_fixed_Samsung_LocTrack_P2="./_models_fixed/P2_fixed_V3_Samsung_location_fixed_unlinkability.spthy.dps"
