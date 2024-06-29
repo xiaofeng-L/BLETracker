@@ -179,6 +179,7 @@ let tracker(~sec_ch: channel, ~UUID, ~token) =
 	event Bounded(~UUID);
 	let Qe = pk(qe) in
 	let Qa = pk(qa) in
+	out(<Qa, Qe>);
 
 	
 		/* Data tran: id sharing */
@@ -279,60 +280,12 @@ process:
 	
 )
 
-lemma uuid_source [output=[spthy], sources]:
-"
-(
-	 All e #i. RecvUUID(e) @ i ==> 
-		(Ex #t. UUIDSource(e) @ t & t < i) 
-)
-"
-
-lemma S2_verify_sources[sources, output=[spthy]]:
-"
-	All S2 S2_data #i. RecvS2(S2, S2_data) @ i ==> (
-		(Ex #t. SendS2(S2) @ t & t < i) |
-		(Ex #t. KU(S2_data) @ t & t < i)
-	)
-"
-
 lemma e2_sources[sources, output=[spthy]]:
 "
 	All E2_data E2 #i. RecvE2(E2_data, E2) @ i ==> (
 		(Ex #t. SendE2(E2) @ t & t < i) |
 		(Ex #t. KU(E2_data) @ t & t < i)
 	)
-"
-
-lemma e3_sources[sources, output=[spthy]]:
-"
-	All tokenNew E3 SeedS #i. RecvE3(tokenNew, E3, SeedS) @ i ==> (
-		(Ex #t. SendE3(E3, SeedS) @ t & t < i) |
-		(Ex #t. KU(tokenNew) @ t & t < i)
-	)
-"
-
-lemma h1_source [output=[spthy], sources]:
-"
-(
-	 All e #i. SendH1(e) @ i ==> 
-		(Ex #t. H1Source(e) @ t & t < i) 
-)
-"
-
-lemma session_source [output=[spthy], sources]:
-"
-(
-	 All e #i. RecvSessionNonce(e) @ i ==> 
-		(Ex #t. SessionNonceEncSource(e) @ t & t < i) 
-)
-"
-
-lemma e1_source [output=[spthy], sources]:
-"
-(
-	 All e #i. SendE1(e) @ i ==> 
-		(Ex #t. E1EncSource(e) @ t & t < i) 
-)
 "
 
 lemma pair_consistency[output=[spthy]]:

@@ -87,23 +87,8 @@ let server(~sec_ch : channel) =
 	event StepsEnd1();
 	
 	if (sn_p1 = sn_owner) then (
-		out(<bound_const, 'pre_app1'>);
-		in(<sn_p, encryption_key_c, 'pre_app1'>);
-		if (sn_p = sn_owner) then (
-			out(<bound_const, 'pre_app1'>)
-		)
-		else(
-			if ((sn = sn_p) & (encryption_key = encryption_key_c)) then (
-				event StepsEnd2();
-				new ~secure_param;
-				event SendSecureParam(~secure_param);
-				out(<~secure_param, 'pre_app1'>);
-				
-				let privacy_key = kdf2(encryption_key, privacy_const) in
-				let id = get_id(privacy_key, ~secure_param, ~secure_param, ~secure_param) in
-				out(~sec_ch, <id, 'id_s'>)
-			)
-		)
+		out(<bound_const, 'pre_app1'>)
+
 	)
 	else (
 		out(<unbound_const, 'pre_app1'>);
