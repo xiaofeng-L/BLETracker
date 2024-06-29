@@ -1,0 +1,930 @@
+/tmp/tmp.PRFOvhqnah/Apple_simplified_initialization_confidentiality_V6.spthy.gs
+Starting the transformation...
+Parsing the file...
+Writing in the output file...
+Translation complete !
+Linear part:
+exp(exp(g,a),b) = exp(exp(g,b),a)
+Completing equations...
+Completed equations:
+exp(exp(g,a),b) = exp(exp(g,b),a)
+Convergent part:
+verify(sign(m,sk),pk(sk)) = m
+Completing equations...
+Completed equations:
+verify(sign(m,sk),pk(sk)) = m
+Process 0 (that is, the initial process):
+{1}new sec_ch_1: channel;
+{2}new UUID_paired_1: bitstring;
+{3}new UUID_1: bitstring;
+{4}event UUIDSource(UUID_1);
+{5}new token_1: bitstring;
+{6}!
+(
+    {7}new iCloudldentifier_1: bitstring;
+    {8}in(sec_ch_1, (H1_1: bitstring,(E2_1: bitstring,=pre_app1)));
+    {9}let E2_data_1: bitstring = ECIES_dec(E2_1,qe) in
+    {10}event RecvE2(E2_data_1,E2_1);
+    {11}let (SessionNonce_1: bitstring,(token_11: bitstring,(UUID_11: bitstring,(SN_1: bitstring,(data_1: bitstring,(Version_1: bitstring,(E1_1: bitstring,SeedK1_1: bitstring))))))) = E2_data_1 in
+    {12}event RecvUUID(UUID_11);
+    {13}event RecvSessionNonce(SessionNonce_1);
+    {14}if (UUID_11 = UUID_paired_1) then
+        0
+    else
+        {15}if (token_11 = token_1) then
+        {16}new token_new_1: bitstring;
+        {17}new SeedS_1: bitstring;
+        {18}let ServerSharedSecret_1: bitstring = kdf((SeedS_1,SeedK1_1),ServerSharedSecret_const) in
+        {19}let K1_1: bitstring = kdf(ServerSharedSecret_1,PairingSession_const) in
+        {20}let IV1_1: bitstring = kdf(ServerSharedSecret_1,PairingSession_const) in
+        {21}let KSN_1: bitstring = kdf(ServerSharedSecret_1,SerialNumberProtection_const) in
+        {22}let E3_1: bitstring = AES_GCM_enc(token_new_1,K1_1,IV1_1) in
+        {23}let S2_data_1: bitstring = (UUID_11,(SessionNonce_1,(SeedS_1,(H1_1,(E1_1,E3_1))))) in
+        {24}let S2_1: bitstring = sign(S2_data_1,qa) in
+        {25}event SendH1(H1_1);
+        {26}event SendE1(E1_1);
+        {27}out(sec_ch_1, (iCloudldentifier_1,(SeedS_1,(S2_1,(E3_1,pre_app1)))));
+        {28}event SendE3(E3_1,SeedS_1)
+) | (
+    {29}new SessionNonce: bitstring;
+    {30}new E1: bitstring;
+    {31}out(att, (SessionNonce,(E1,open_ch)));
+    {32}in(att, (C1_1: bitstring,(E2: bitstring,=open_ch)));
+    {33}new s__1: bitstring;
+    {34}new r__1: bitstring;
+    {35}let pkS_1: bitstring = exp(g,s__1) in
+    {36}let H1: bitstring = SHA256((pkS_1,r__1)) in
+    {37}event H1Source(H1);
+    {38}out(sec_ch_1, (H1,(E2,pre_app1)));
+    {39}in(sec_ch_1, (iCloudldentifier: bitstring,(SeedS: bitstring,(S2: bitstring,(E3: bitstring,=pre_app1)))));
+    {40}out(att, (pkS_1,(r__1,(E3,(SeedS,(S2,(iCloudldentifier,open_ch)))))));
+    {41}event SendS2(S2);
+    {42}in(att, (s_1: bitstring,(r_1: bitstring,(other_param_1: bitstring,=open_ch))));
+    {43}let =C1_1 = SHA256((s_1,r_1)) in
+    {44}let S_1: bitstring = exp(g,s_1) in
+    {45}let P_1: bitstring = add(S_1,pkS_1) in
+    {46}let d_1: bitstring = add(s_1,s__1) in
+    {47}let r_all_1: bitstring = (r_1,r__1) in
+    {48}let SK_1: bitstring = kdf(get_point_x(P_1),r_all_1) in
+    {49}event Secret_d(d_1);
+    {50}event Secret_P(P_1);
+    {51}event Secret_SK(SK_1);
+    {52}out(att, AES_GCM_enc(s_SK,SK_1,zero_const));
+    {53}out(att, AES_GCM_enc(s_d,d_1,zero_const));
+    {54}out(att, AES_GCM_enc(s_P,P_1,zero_const))
+) | (
+    {55}let Qe_1: bitstring = pk(qe) in
+    {56}let Qa_1: bitstring = pk(qa) in
+    {57}out(att, (Qe_1,Qa_1));
+    {58}in(att, (SessionNonce_2: bitstring,(E1_2: bitstring,=open_ch)));
+    {59}new s: bitstring;
+    {60}new r: bitstring;
+    {61}let S: bitstring = exp(g,s) in
+    {62}let C1: bitstring = SHA256((s,r)) in
+    {63}new SeedK1: bitstring;
+    {64}new exp_2_1: bitstring;
+    {65}new SN: bitstring;
+    {66}new data: bitstring;
+    {67}new Version: bitstring;
+    {68}let E2_data: bitstring = (SessionNonce_2,(token_1,(UUID_1,(SN,(data,(Version,(E1_2,SeedK1))))))) in
+    {69}let E2_2: bitstring = ECIES_enc(E2_data,Qe_1) in
+    {70}event SessionNonceEncSource(SessionNonce_2);
+    {71}event E1EncSource(E1_2);
+    {72}out(att, (C1,(E2_2,open_ch)));
+    {73}event SendE2(E2_2);
+    {74}in(att, (pkS: bitstring,(r_: bitstring,(E3_2: bitstring,(SeedS_2: bitstring,(S2_2: bitstring,(iCloudldentifier_2: bitstring,=open_ch)))))));
+    {75}let H1_2: bitstring = SHA256((pkS,r_)) in
+    {76}let S2_data: bitstring = (UUID_1,(SessionNonce_2,(SeedS_2,(H1_2,(E1_2,E3_2))))) in
+    {77}if (verify(S2_2,Qa_1) = S2_data) then
+    {78}let P: bitstring = add(S,pkS) in
+    {79}let ServerSharedSecret: bitstring = kdf((SeedS_2,SeedK1),ServerSharedSecret_const) in
+    {80}let K1: bitstring = kdf(ServerSharedSecret,PairingSession_const) in
+    {81}let IV1: bitstring = kdf(ServerSharedSecret,PairingSession_const) in
+    {82}let KSN: bitstring = kdf(ServerSharedSecret,SerialNumberProtection_const) in
+    {83}let Pair_1: bitstring = (qa,Qa_1) in
+    {84}event RecvS2(S2_2,S2_data);
+    {85}let tk_new_1: bitstring = AES_GCM_dec(E3_2,K1,IV1) in
+    {86}event RecvE3(tk_new_1,E3_2,SeedS_2);
+    {87}new Status_1: bitstring;
+    {88}let E4_data_1: bitstring = (UUID_1,(SN,(SessionNonce_2,(E1_2,(tk_new_1,Status_1))))) in
+    {89}let E4_1: bitstring = ECIES_enc(E4_data_1,Qe_1) in
+    {90}let other_param: bitstring = (Status_1,E4_1) in
+    {91}out(att, (s,(r,(other_param,open_ch))));
+    {92}let r_all: bitstring = (r,r_) in
+    {93}let SK: bitstring = kdf(get_point_x(P),r_all) in
+    {94}let seed_all_1: bitstring = (SeedS_2,SeedK1) in
+    {95}let ServerSharedSecret_2: bitstring = kdf(seed_all_1,SerialNumberProtection_const) in
+    {96}event Secret_SSS(ServerSharedSecret_2);
+    {97}out(att, AES_GCM_enc(s_SSS,ServerSharedSecret_2,zero_const))
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}new sec_ch_1: channel;
+{2}new UUID_paired_1: bitstring;
+{3}new UUID_1: bitstring;
+{4}event UUIDSource(UUID_1);
+{5}new token_1: bitstring;
+{6}!
+(
+    {7}new iCloudldentifier_1: bitstring;
+    {8}in(sec_ch_1, (H1_1: bitstring,(E2_1: bitstring,=pre_app1)));
+    {9}let E2_data_1: bitstring = ECIES_dec(E2_1,qe) in
+    {10}event RecvE2(E2_data_1,E2_1);
+    {11}let (SessionNonce_1: bitstring,(token_11: bitstring,(UUID_11: bitstring,(SN_1: bitstring,(data_1: bitstring,(Version_1: bitstring,(E1_1: bitstring,SeedK1_1: bitstring))))))) = E2_data_1 in
+    {12}event RecvUUID(UUID_11);
+    {13}event RecvSessionNonce(SessionNonce_1);
+    {14}if (UUID_11 = UUID_paired_1) then
+        0
+    else
+        {15}if (token_11 = token_1) then
+        {16}new token_new_1: bitstring;
+        {17}new SeedS_1: bitstring;
+        {25}event SendH1(H1_1);
+        {26}event SendE1(E1_1);
+        {18}let ServerSharedSecret_1: bitstring = kdf((SeedS_1,SeedK1_1),ServerSharedSecret_const) in
+        {20}let IV1_1: bitstring = kdf(ServerSharedSecret_1,PairingSession_const) in
+        {19}let K1_1: bitstring = kdf(ServerSharedSecret_1,PairingSession_const) in
+        {22}let E3_1: bitstring = AES_GCM_enc(token_new_1,K1_1,IV1_1) in
+        {23}let S2_data_1: bitstring = (UUID_11,(SessionNonce_1,(SeedS_1,(H1_1,(E1_1,E3_1))))) in
+        {24}let S2_1: bitstring = sign(S2_data_1,qa) in
+        {27}out(sec_ch_1, (iCloudldentifier_1,(SeedS_1,(S2_1,(E3_1,pre_app1)))));
+        {28}event SendE3(E3_1,SeedS_1)
+) | (
+    {29}new SessionNonce: bitstring;
+    {30}new E1: bitstring;
+    {31}out(att, (SessionNonce,(E1,open_ch)));
+    {32}in(att, (C1_1: bitstring,(E2: bitstring,=open_ch)));
+    {33}new s__1: bitstring;
+    {34}new r__1: bitstring;
+    {35}let pkS_1: bitstring = exp(g,s__1) in
+    {36}let H1: bitstring = SHA256((pkS_1,r__1)) in
+    {37}event H1Source(H1);
+    {38}out(sec_ch_1, (H1,(E2,pre_app1)));
+    {39}in(sec_ch_1, (iCloudldentifier: bitstring,(SeedS: bitstring,(S2: bitstring,(E3: bitstring,=pre_app1)))));
+    {40}out(att, (pkS_1,(r__1,(E3,(SeedS,(S2,(iCloudldentifier,open_ch)))))));
+    {41}event SendS2(S2);
+    {42}in(att, (s_1: bitstring,(r_1: bitstring,(other_param_1: bitstring,=open_ch))));
+    {43}let =C1_1 = SHA256((s_1,r_1)) in
+    {46}let d_1: bitstring = add(s_1,s__1) in
+    {49}event Secret_d(d_1);
+    {44}let S_1: bitstring = exp(g,s_1) in
+    {45}let P_1: bitstring = add(S_1,pkS_1) in
+    {50}event Secret_P(P_1);
+    {47}let r_all_1: bitstring = (r_1,r__1) in
+    {48}let SK_1: bitstring = kdf(get_point_x(P_1),r_all_1) in
+    {51}event Secret_SK(SK_1);
+    {52}out(att, AES_GCM_enc(s_SK,SK_1,zero_const));
+    {53}out(att, AES_GCM_enc(s_d,d_1,zero_const));
+    {54}out(att, AES_GCM_enc(s_P,P_1,zero_const))
+) | (
+    {56}let Qa_1: bitstring = pk(qa) in
+    {55}let Qe_1: bitstring = pk(qe) in
+    {57}out(att, (Qe_1,Qa_1));
+    {58}in(att, (SessionNonce_2: bitstring,(E1_2: bitstring,=open_ch)));
+    {59}new s: bitstring;
+    {60}new r: bitstring;
+    {63}new SeedK1: bitstring;
+    {64}new exp_2_1: bitstring;
+    {65}new SN: bitstring;
+    {66}new data: bitstring;
+    {67}new Version: bitstring;
+    {70}event SessionNonceEncSource(SessionNonce_2);
+    {71}event E1EncSource(E1_2);
+    {68}let E2_data: bitstring = (SessionNonce_2,(token_1,(UUID_1,(SN,(data,(Version,(E1_2,SeedK1))))))) in
+    {69}let E2_2: bitstring = ECIES_enc(E2_data,Qe_1) in
+    {62}let C1: bitstring = SHA256((s,r)) in
+    {72}out(att, (C1,(E2_2,open_ch)));
+    {73}event SendE2(E2_2);
+    {74}in(att, (pkS: bitstring,(r_: bitstring,(E3_2: bitstring,(SeedS_2: bitstring,(S2_2: bitstring,(iCloudldentifier_2: bitstring,=open_ch)))))));
+    {75}let H1_2: bitstring = SHA256((pkS,r_)) in
+    {76}let S2_data: bitstring = (UUID_1,(SessionNonce_2,(SeedS_2,(H1_2,(E1_2,E3_2))))) in
+    {77}if (verify(S2_2,Qa_1) = S2_data) then
+    {84}event RecvS2(S2_2,S2_data);
+    {79}let ServerSharedSecret: bitstring = kdf((SeedS_2,SeedK1),ServerSharedSecret_const) in
+    {81}let IV1: bitstring = kdf(ServerSharedSecret,PairingSession_const) in
+    {80}let K1: bitstring = kdf(ServerSharedSecret,PairingSession_const) in
+    {85}let tk_new_1: bitstring = AES_GCM_dec(E3_2,K1,IV1) in
+    {86}event RecvE3(tk_new_1,E3_2,SeedS_2);
+    {87}new Status_1: bitstring;
+    {88}let E4_data_1: bitstring = (UUID_1,(SN,(SessionNonce_2,(E1_2,(tk_new_1,Status_1))))) in
+    {89}let E4_1: bitstring = ECIES_enc(E4_data_1,Qe_1) in
+    {90}let other_param: bitstring = (Status_1,E4_1) in
+    {91}out(att, (s,(r,(other_param,open_ch))));
+    {94}let seed_all_1: bitstring = (SeedS_2,SeedK1) in
+    {95}let ServerSharedSecret_2: bitstring = kdf(seed_all_1,SerialNumberProtection_const) in
+    {96}event Secret_SSS(ServerSharedSecret_2);
+    {97}out(att, AES_GCM_enc(s_SSS,ServerSharedSecret_2,zero_const))
+)
+
+-- Query not attacker(s_d) in process 1.
+Translating the process into Horn clauses...
+Completing...
+ok, secrecy assumption verified: fact unreachable attacker(qe)
+ok, secrecy assumption verified: fact unreachable attacker(qa)
+Starting query not attacker(s_d)
+RESULT not attacker(s_d) is true.
+-- Query not attacker(s_P) in process 1.
+Translating the process into Horn clauses...
+Completing...
+ok, secrecy assumption verified: fact unreachable attacker(qe)
+ok, secrecy assumption verified: fact unreachable attacker(qa)
+Starting query not attacker(s_P)
+goal reachable: attacker(other_param_2) && begin(@p_act(@occ42_2,(s_2,(r_2,(other_param_2,open_ch[]))))) && attacker(C1_2) && attacker(SessionNonce_3) && attacker(E1_3) && begin(@p_act(@occ58_2,(SessionNonce_3,(E1_3,open_ch[])))) && begin(@p_act(@occ32_2,(C1_2,(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[])))) && begin(@p_act(@occ8_2,(SHA256((exp(g,s_),r__2)),(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),pre_app1[])))) && begin(@p_act(@occ39_2,(iCloudldentifier_3,(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s_),r__2)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),pre_app1[])))))) && attacker(s_2) && attacker(r_2) && attacker(E2_3) && begin(@p_act(@occ32_3,(SHA256((s_2,r_2)),(E2_3,open_ch[])))) -> attacker(s_P)
+Abbreviations:
+@occ42_2 = @occ42_1[!1 = @sid]
+@occ58_2 = @occ58_1[!1 = @sid_1]
+@occ32_2 = @occ32_1[!1 = @sid_2]
+SN_2 = SN[E1_2 = E1_3,SessionNonce_2 = SessionNonce_3,!1 = @sid_1]
+data_2 = data[E1_2 = E1_3,SessionNonce_2 = SessionNonce_3,!1 = @sid_1]
+Version_2 = Version[E1_2 = E1_3,SessionNonce_2 = SessionNonce_3,!1 = @sid_1]
+SeedK1_2 = SeedK1[E1_2 = E1_3,SessionNonce_2 = SessionNonce_3,!1 = @sid_1]
+@occ8_2 = @occ8_1[!1 = @sid_3]
+s_ = s__1[E2 = ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),C1_1 = C1_2,!1 = @sid_2]
+r__2 = r__1[E2 = ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),C1_1 = C1_2,!1 = @sid_2]
+@occ39_2 = @occ39_1[!1 = @sid]
+iCloudldentifier_3 = iCloudldentifier_1[!1 = @sid_3]
+SeedS_3 = SeedS_1[E2_1 = ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),H1_1 = SHA256((exp(g,s_),r__2)),!1 = @sid_3]
+token_new = token_new_1[E2_1 = ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),H1_1 = SHA256((exp(g,s_),r__2)),!1 = @sid_3]
+@occ32_3 = @occ32_1[!1 = @sid]
+
+Derivation:
+Abbreviations:
+s_ = s__1[E2 = E2_3,C1_1 = SHA256((s_2,r_2)),!1 = @sid]
+@occ42_2 = @occ42_1[!1 = @sid]
+iCloudldentifier_3 = iCloudldentifier_1[!1 = @sid_1]
+SN_2 = SN[E1_2 = E1_3,SessionNonce_2 = SessionNonce_3,!1 = @sid_2]
+data_2 = data[E1_2 = E1_3,SessionNonce_2 = SessionNonce_3,!1 = @sid_2]
+Version_2 = Version[E1_2 = E1_3,SessionNonce_2 = SessionNonce_3,!1 = @sid_2]
+SeedK1_2 = SeedK1[E1_2 = E1_3,SessionNonce_2 = SessionNonce_3,!1 = @sid_2]
+s__2 = s__1[E2 = ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),C1_1 = C1_2,!1 = @sid_3]
+r__2 = r__1[E2 = ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),C1_1 = C1_2,!1 = @sid_3]
+SeedS_3 = SeedS_1[E2_1 = ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),H1_1 = SHA256((exp(g,s__2),r__2)),!1 = @sid_1]
+token_new = token_new_1[E2_1 = ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),H1_1 = SHA256((exp(g,s__2),r__2)),!1 = @sid_1]
+@occ39_2 = @occ39_1[!1 = @sid]
+@occ32_2 = @occ32_1[!1 = @sid]
+r__3 = r__1[E2 = E2_3,C1_1 = SHA256((s_2,r_2)),!1 = @sid]
+s_3 = s[E1_2 = E1_3,SessionNonce_2 = SessionNonce_3,!1 = @sid_2]
+r_3 = r[E1_2 = E1_3,SessionNonce_2 = SessionNonce_3,!1 = @sid_2]
+@occ58_2 = @occ58_1[!1 = @sid_2]
+@occ32_3 = @occ32_1[!1 = @sid_3]
+@occ8_2 = @occ8_1[!1 = @sid_1]
+
+1. Using the function zero_const the attacker may obtain zero_const.
+attacker(zero_const).
+
+2. The attacker initially knows open_ch[].
+attacker(open_ch[]).
+
+3. We assume as hypothesis that
+attacker(E2_3).
+
+4. By 3, the attacker may know E2_3.
+By 2, the attacker may know open_ch[].
+Using the function 2-tuple the attacker may obtain (E2_3,open_ch[]).
+attacker((E2_3,open_ch[])).
+
+5. We assume as hypothesis that
+attacker(r_2).
+
+6. We assume as hypothesis that
+attacker(s_2).
+
+7. By 6, the attacker may know s_2.
+By 5, the attacker may know r_2.
+Using the function 2-tuple the attacker may obtain (s_2,r_2).
+attacker((s_2,r_2)).
+
+8. By 7, the attacker may know (s_2,r_2).
+Using the function SHA256 the attacker may obtain SHA256((s_2,r_2)).
+attacker(SHA256((s_2,r_2))).
+
+9. By 8, the attacker may know SHA256((s_2,r_2)).
+By 4, the attacker may know (E2_3,open_ch[]).
+Using the function 2-tuple the attacker may obtain (SHA256((s_2,r_2)),(E2_3,open_ch[])).
+attacker((SHA256((s_2,r_2)),(E2_3,open_ch[]))).
+
+10. We assume as hypothesis that
+attacker(E1_3).
+
+11. By 10, the attacker may know E1_3.
+By 2, the attacker may know open_ch[].
+Using the function 2-tuple the attacker may obtain (E1_3,open_ch[]).
+attacker((E1_3,open_ch[])).
+
+12. We assume as hypothesis that
+attacker(SessionNonce_3).
+
+13. By 12, the attacker may know SessionNonce_3.
+By 11, the attacker may know (E1_3,open_ch[]).
+Using the function 2-tuple the attacker may obtain (SessionNonce_3,(E1_3,open_ch[])).
+attacker((SessionNonce_3,(E1_3,open_ch[]))).
+
+14. The event @p_act(@occ58_2,(SessionNonce_3,(E1_3,open_ch[]))) records how variables are instantiated at {58}.
+The message (SessionNonce_3,(E1_3,open_ch[])) that the attacker may have by 13 may be received at input {58}.
+So the message (SHA256((s_3,r_3)),(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[])) may be sent to the attacker at output {72}.
+attacker((SHA256((s_3,r_3)),(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[]))).
+
+15. By 14, the attacker may know (SHA256((s_3,r_3)),(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[])).
+Using the function 2-proj-2-tuple the attacker may obtain (ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[]).
+attacker((ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[])).
+
+16. By 15, the attacker may know (ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[]).
+Using the function 1-proj-2-tuple the attacker may obtain ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)).
+attacker(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe))).
+
+17. By 16, the attacker may know ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)).
+By 2, the attacker may know open_ch[].
+Using the function 2-tuple the attacker may obtain (ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[]).
+attacker((ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[])).
+
+18. We assume as hypothesis that
+attacker(C1_2).
+
+19. By 18, the attacker may know C1_2.
+By 17, the attacker may know (ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[]).
+Using the function 2-tuple the attacker may obtain (C1_2,(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[])).
+attacker((C1_2,(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[]))).
+
+20. The event @p_act(@occ32_3,(C1_2,(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[]))) records how variables are instantiated at {32}.
+The message (C1_2,(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[])) that the attacker may have by 19 may be received at input {32}.
+So the message (SHA256((exp(g,s__2),r__2)),(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),pre_app1[])) may be sent on channel sec_ch_1[] at output {38}.
+mess(sec_ch_1[],(SHA256((exp(g,s__2),r__2)),(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),pre_app1[]))).
+
+21. The event @p_act(@occ8_2,(SHA256((exp(g,s__2),r__2)),(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),pre_app1[]))) records how variables are instantiated at {8}.
+The message (SHA256((exp(g,s__2),r__2)),(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),pre_app1[])) that may be sent on channel sec_ch_1[] by 20 may be received at input {8}.
+We have UUID_1[] ≠ UUID_paired_1[].
+So the message (iCloudldentifier_3,(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__2)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),pre_app1[])))) may be sent on channel sec_ch_1[] at output {27}.
+mess(sec_ch_1[],(iCloudldentifier_3,(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__2)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),pre_app1[]))))).
+
+22. The event @p_act(@occ32_2,(SHA256((s_2,r_2)),(E2_3,open_ch[]))) records how variables are instantiated at {32}.
+The message (SHA256((s_2,r_2)),(E2_3,open_ch[])) that the attacker may have by 9 may be received at input {32}.
+The event @p_act(@occ39_2,(iCloudldentifier_3,(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__2)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),pre_app1[]))))) records how variables are instantiated at {39}.
+The message (iCloudldentifier_3,(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__2)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),pre_app1[])))) that may be sent on channel sec_ch_1[] by 21 may be received at input {39}.
+So the message (exp(g,s_),(r__3,(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__2)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(iCloudldentifier_3,open_ch[])))))) may be sent to the attacker at output {40}.
+attacker((exp(g,s_),(r__3,(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__2)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(iCloudldentifier_3,open_ch[]))))))).
+
+23. By 22, the attacker may know (exp(g,s_),(r__3,(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__2)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(iCloudldentifier_3,open_ch[])))))).
+Using the function 1-proj-2-tuple the attacker may obtain exp(g,s_).
+attacker(exp(g,s_)).
+
+24. Using the function g the attacker may obtain g.
+attacker(g).
+
+25. By 24, the attacker may know g.
+By 6, the attacker may know s_2.
+Using the function exp the attacker may obtain exp(g,s_2).
+attacker(exp(g,s_2)).
+
+26. By 25, the attacker may know exp(g,s_2).
+By 23, the attacker may know exp(g,s_).
+Using the function add the attacker may obtain add(exp(g,s_2),exp(g,s_)).
+attacker(add(exp(g,s_2),exp(g,s_))).
+
+27. We assume as hypothesis that
+attacker(other_param_2).
+
+28. By 27, the attacker may know other_param_2.
+By 2, the attacker may know open_ch[].
+Using the function 2-tuple the attacker may obtain (other_param_2,open_ch[]).
+attacker((other_param_2,open_ch[])).
+
+29. By 5, the attacker may know r_2.
+By 28, the attacker may know (other_param_2,open_ch[]).
+Using the function 2-tuple the attacker may obtain (r_2,(other_param_2,open_ch[])).
+attacker((r_2,(other_param_2,open_ch[]))).
+
+30. By 6, the attacker may know s_2.
+By 29, the attacker may know (r_2,(other_param_2,open_ch[])).
+Using the function 2-tuple the attacker may obtain (s_2,(r_2,(other_param_2,open_ch[]))).
+attacker((s_2,(r_2,(other_param_2,open_ch[])))).
+
+31. The event @p_act(@occ32_2,(SHA256((s_2,r_2)),(E2_3,open_ch[]))) records how variables are instantiated at {32}.
+The message (SHA256((s_2,r_2)),(E2_3,open_ch[])) that the attacker may have by 9 may be received at input {32}.
+The event @p_act(@occ39_2,(iCloudldentifier_3,(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__2)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),pre_app1[]))))) records how variables are instantiated at {39}.
+The message (iCloudldentifier_3,(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__2)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),pre_app1[])))) that may be sent on channel sec_ch_1[] by 21 may be received at input {39}.
+The event @p_act(@occ42_2,(s_2,(r_2,(other_param_2,open_ch[])))) records how variables are instantiated at {42}.
+The message (s_2,(r_2,(other_param_2,open_ch[]))) that the attacker may have by 30 may be received at input {42}.
+So the message AES_GCM_enc(s_P,add(exp(g,s_2),exp(g,s_)),zero_const) may be sent to the attacker at output {54}.
+attacker(AES_GCM_enc(s_P,add(exp(g,s_2),exp(g,s_)),zero_const)).
+
+32. By 31, the attacker may know AES_GCM_enc(s_P,add(exp(g,s_2),exp(g,s_)),zero_const).
+By 26, the attacker may know add(exp(g,s_2),exp(g,s_)).
+By 1, the attacker may know zero_const.
+Using the function AES_GCM_dec the attacker may obtain s_P.
+attacker(s_P).
+
+33. By 32, attacker(s_P).
+The goal is reached, represented in the following fact:
+attacker(s_P).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new sec_ch_1: channel creating sec_ch at {1}
+
+new UUID_paired_1: bitstring creating UUID_paired at {2}
+
+new UUID_1: bitstring creating UUID at {3}
+
+event UUIDSource(UUID) at {4}
+
+new token_1: bitstring creating token at {5}
+
+out(att, (~M,~M_1)) with ~M = pk(qe), ~M_1 = pk(qa) at {57} in copy a
+
+new SessionNonce: bitstring creating SessionNonce_3 at {29} in copy a
+
+new E1: bitstring creating E1_3 at {30} in copy a
+
+out(att, (~M_2,(~M_3,~M_4))) with ~M_2 = SessionNonce_3, ~M_3 = E1_3, ~M_4 = open_ch at {31} in copy a
+
+new iCloudldentifier_1: bitstring creating iCloudldentifier_3 at {7} in copy a
+
+out(att, (~M_5,~M_6)) with ~M_5 = pk(qe), ~M_6 = pk(qa) at {57} in copy a_1
+
+new SessionNonce: bitstring creating SessionNonce_4 at {29} in copy a_1
+
+new E1: bitstring creating E1_4 at {30} in copy a_1
+
+out(att, (~M_7,(~M_8,~M_9))) with ~M_7 = SessionNonce_4, ~M_8 = E1_4, ~M_9 = open_ch at {31} in copy a_1
+
+new iCloudldentifier_1: bitstring creating iCloudldentifier_4 at {7} in copy a_1
+
+out(att, (~M_10,~M_11)) with ~M_10 = pk(qe), ~M_11 = pk(qa) at {57} in copy a_2
+
+new SessionNonce: bitstring creating SessionNonce_5 at {29} in copy a_2
+
+new E1: bitstring creating E1_5 at {30} in copy a_2
+
+out(att, (~M_12,(~M_13,~M_14))) with ~M_12 = SessionNonce_5, ~M_13 = E1_5, ~M_14 = open_ch at {31} in copy a_2
+
+new iCloudldentifier_1: bitstring creating iCloudldentifier_5 at {7} in copy a_2
+
+out(att, (~M_15,~M_16)) with ~M_15 = pk(qe), ~M_16 = pk(qa) at {57} in copy a_3
+
+new SessionNonce: bitstring creating SessionNonce_6 at {29} in copy a_3
+
+new E1: bitstring creating E1_6 at {30} in copy a_3
+
+out(att, (~M_17,(~M_18,~M_19))) with ~M_17 = SessionNonce_6, ~M_18 = E1_6, ~M_19 = open_ch at {31} in copy a_3
+
+new iCloudldentifier_1: bitstring creating iCloudldentifier_6 at {7} in copy a_3
+
+in(att, (a_4,(a_5,open_ch))) at {58} in copy a_3
+
+new s: bitstring creating s_2 at {59} in copy a_3
+
+new r: bitstring creating r_2 at {60} in copy a_3
+
+new SeedK1: bitstring creating SeedK1_2 at {63} in copy a_3
+
+new exp_2_1: bitstring creating exp_1 at {64} in copy a_3
+
+new SN: bitstring creating SN_2 at {65} in copy a_3
+
+new data: bitstring creating data_2 at {66} in copy a_3
+
+new Version: bitstring creating Version_2 at {67} in copy a_3
+
+event SessionNonceEncSource(a_4) at {70} in copy a_3
+
+event E1EncSource(a_5) at {71} in copy a_3
+
+out(att, (~M_20,(~M_21,~M_22))) with ~M_20 = SHA256((s_2,r_2)), ~M_21 = ECIES_enc((a_4,(token,(UUID,(SN_2,(data_2,(Version_2,(a_5,SeedK1_2))))))),pk(qe)), ~M_22 = open_ch at {72} in copy a_3
+
+event SendE2(ECIES_enc((a_4,(token,(UUID,(SN_2,(data_2,(Version_2,(a_5,SeedK1_2))))))),pk(qe))) at {73} in copy a_3
+
+in(att, (a_6,(~M_21,open_ch))) with ~M_21 = ECIES_enc((a_4,(token,(UUID,(SN_2,(data_2,(Version_2,(a_5,SeedK1_2))))))),pk(qe)) at {32} in copy a_2
+
+new s__1: bitstring creating s_ at {33} in copy a_2
+
+new r__1: bitstring creating r__2 at {34} in copy a_2
+
+event H1Source(SHA256((exp(g,s_),r__2))) at {37} in copy a_2
+
+out(sec_ch, (SHA256((exp(g,s_),r__2)),(ECIES_enc((a_4,(token,(UUID,(SN_2,(data_2,(Version_2,(a_5,SeedK1_2))))))),pk(qe)),pre_app1))) at {38} in copy a_2 received at {8} in copy a_1
+
+event RecvE2((a_4,(token,(UUID,(SN_2,(data_2,(Version_2,(a_5,SeedK1_2))))))),ECIES_enc((a_4,(token,(UUID,(SN_2,(data_2,(Version_2,(a_5,SeedK1_2))))))),pk(qe))) at {10} in copy a_1
+
+event RecvUUID(UUID) at {12} in copy a_1
+
+event RecvSessionNonce(a_4) at {13} in copy a_1
+
+new token_new_1: bitstring creating token_new at {16} in copy a_1
+
+new SeedS_1: bitstring creating SeedS_3 at {17} in copy a_1
+
+event SendH1(SHA256((exp(g,s_),r__2))) at {25} in copy a_1
+
+event SendE1(a_5) at {26} in copy a_1
+
+in(att, (SHA256((a_7,a_8)),(a_9,open_ch))) at {32} in copy a
+
+new s__1: bitstring creating s__2 at {33} in copy a
+
+new r__1: bitstring creating r__3 at {34} in copy a
+
+event H1Source(SHA256((exp(g,s__2),r__3))) at {37} in copy a
+
+out(sec_ch, (SHA256((exp(g,s__2),r__3)),(a_9,pre_app1))) at {38} in copy a received at {8} in copy a_3
+
+out(sec_ch, (iCloudldentifier_4,(SeedS_3,(sign((UUID,(a_4,(SeedS_3,(SHA256((exp(g,s_),r__2)),(a_5,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),pre_app1))))) at {27} in copy a_1 received at {39} in copy a
+
+out(att, (~M_23,(~M_24,(~M_25,(~M_26,(~M_27,(~M_28,~M_29))))))) with ~M_23 = exp(g,s__2), ~M_24 = r__3, ~M_25 = AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)), ~M_26 = SeedS_3, ~M_27 = sign((UUID,(a_4,(SeedS_3,(SHA256((exp(g,s_),r__2)),(a_5,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa), ~M_28 = iCloudldentifier_4, ~M_29 = open_ch at {40} in copy a
+
+event SendS2(sign((UUID,(a_4,(SeedS_3,(SHA256((exp(g,s_),r__2)),(a_5,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa)) at {41} in copy a
+
+event SendE3(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),SeedS_3) at {28} in copy a_1
+
+in(att, (a_7,(a_8,(a_10,open_ch)))) at {42} in copy a
+
+event Secret_d(add(a_7,s__2)) at {49} in copy a
+
+event Secret_P(add(exp(g,a_7),exp(g,s__2))) at {50} in copy a
+
+event Secret_SK(kdf(get_point_x(add(exp(g,a_7),exp(g,s__2))),(a_8,r__3))) at {51} in copy a
+
+out(att, ~M_30) with ~M_30 = AES_GCM_enc(s_SK,kdf(get_point_x(add(exp(g,a_7),exp(g,s__2))),(a_8,r__3)),zero_const) at {52} in copy a
+
+out(att, ~M_31) with ~M_31 = AES_GCM_enc(s_d,add(a_7,s__2),zero_const) at {53} in copy a
+
+out(att, ~M_32) with ~M_32 = AES_GCM_enc(s_P,add(exp(g,a_7),exp(g,s__2)),zero_const) at {54} in copy a
+
+The attacker has the message AES_GCM_dec(~M_32,add(exp(g,a_7),~M_23),zero_const) = s_P.
+A trace has been found.
+RESULT not attacker(s_P) is false.
+-- Query not attacker(s_SK) in process 1.
+Translating the process into Horn clauses...
+Completing...
+ok, secrecy assumption verified: fact unreachable attacker(qe)
+ok, secrecy assumption verified: fact unreachable attacker(qa)
+Starting query not attacker(s_SK)
+goal reachable: attacker(other_param_2) && begin(@p_act(@occ42_3,(s_2,(r_2,(other_param_2,open_ch[]))))) && attacker(C1_2) && attacker(SessionNonce_3) && attacker(E1_3) && begin(@p_act(@occ58_3,(SessionNonce_3,(E1_3,open_ch[])))) && begin(@p_act(@occ32_3,(C1_2,(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[])))) && begin(@p_act(@occ8_3,(SHA256((exp(g,s_),r__2)),(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),pre_app1[])))) && begin(@p_act(@occ39_3,(iCloudldentifier_3,(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s_),r__2)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),pre_app1[])))))) && attacker(s_2) && attacker(r_2) && attacker(E2_3) && begin(@p_act(@occ32_4,(SHA256((s_2,r_2)),(E2_3,open_ch[])))) -> attacker(s_SK)
+Abbreviations:
+@occ42_3 = @occ42_2[!1 = @sid]
+@occ58_3 = @occ58_2[!1 = @sid_1]
+@occ32_3 = @occ32_2[!1 = @sid_2]
+SN_2 = SN[E1_2 = E1_3,SessionNonce_2 = SessionNonce_3,!1 = @sid_1]
+data_2 = data[E1_2 = E1_3,SessionNonce_2 = SessionNonce_3,!1 = @sid_1]
+Version_2 = Version[E1_2 = E1_3,SessionNonce_2 = SessionNonce_3,!1 = @sid_1]
+SeedK1_2 = SeedK1[E1_2 = E1_3,SessionNonce_2 = SessionNonce_3,!1 = @sid_1]
+@occ8_3 = @occ8_2[!1 = @sid_3]
+s_ = s__1[E2 = ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),C1_1 = C1_2,!1 = @sid_2]
+r__2 = r__1[E2 = ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),C1_1 = C1_2,!1 = @sid_2]
+@occ39_3 = @occ39_2[!1 = @sid]
+iCloudldentifier_3 = iCloudldentifier_1[!1 = @sid_3]
+SeedS_3 = SeedS_1[E2_1 = ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),H1_1 = SHA256((exp(g,s_),r__2)),!1 = @sid_3]
+token_new = token_new_1[E2_1 = ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),H1_1 = SHA256((exp(g,s_),r__2)),!1 = @sid_3]
+@occ32_4 = @occ32_2[!1 = @sid]
+
+Derivation:
+Abbreviations:
+s_ = s__1[E2 = E2_3,C1_1 = SHA256((s_2,r_2)),!1 = @sid]
+r__2 = r__1[E2 = E2_3,C1_1 = SHA256((s_2,r_2)),!1 = @sid]
+@occ42_3 = @occ42_2[!1 = @sid]
+iCloudldentifier_3 = iCloudldentifier_1[!1 = @sid_1]
+SN_2 = SN[E1_2 = E1_3,SessionNonce_2 = SessionNonce_3,!1 = @sid_2]
+data_2 = data[E1_2 = E1_3,SessionNonce_2 = SessionNonce_3,!1 = @sid_2]
+Version_2 = Version[E1_2 = E1_3,SessionNonce_2 = SessionNonce_3,!1 = @sid_2]
+SeedK1_2 = SeedK1[E1_2 = E1_3,SessionNonce_2 = SessionNonce_3,!1 = @sid_2]
+s__2 = s__1[E2 = ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),C1_1 = C1_2,!1 = @sid_3]
+r__3 = r__1[E2 = ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),C1_1 = C1_2,!1 = @sid_3]
+SeedS_3 = SeedS_1[E2_1 = ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),H1_1 = SHA256((exp(g,s__2),r__3)),!1 = @sid_1]
+token_new = token_new_1[E2_1 = ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),H1_1 = SHA256((exp(g,s__2),r__3)),!1 = @sid_1]
+@occ39_3 = @occ39_2[!1 = @sid]
+@occ32_3 = @occ32_2[!1 = @sid]
+s_3 = s[E1_2 = E1_3,SessionNonce_2 = SessionNonce_3,!1 = @sid_2]
+r_3 = r[E1_2 = E1_3,SessionNonce_2 = SessionNonce_3,!1 = @sid_2]
+@occ58_3 = @occ58_2[!1 = @sid_2]
+@occ32_4 = @occ32_2[!1 = @sid_3]
+@occ8_3 = @occ8_2[!1 = @sid_1]
+
+1. Using the function zero_const the attacker may obtain zero_const.
+attacker(zero_const).
+
+2. The attacker initially knows open_ch[].
+attacker(open_ch[]).
+
+3. We assume as hypothesis that
+attacker(E2_3).
+
+4. By 3, the attacker may know E2_3.
+By 2, the attacker may know open_ch[].
+Using the function 2-tuple the attacker may obtain (E2_3,open_ch[]).
+attacker((E2_3,open_ch[])).
+
+5. We assume as hypothesis that
+attacker(r_2).
+
+6. We assume as hypothesis that
+attacker(s_2).
+
+7. By 6, the attacker may know s_2.
+By 5, the attacker may know r_2.
+Using the function 2-tuple the attacker may obtain (s_2,r_2).
+attacker((s_2,r_2)).
+
+8. By 7, the attacker may know (s_2,r_2).
+Using the function SHA256 the attacker may obtain SHA256((s_2,r_2)).
+attacker(SHA256((s_2,r_2))).
+
+9. By 8, the attacker may know SHA256((s_2,r_2)).
+By 4, the attacker may know (E2_3,open_ch[]).
+Using the function 2-tuple the attacker may obtain (SHA256((s_2,r_2)),(E2_3,open_ch[])).
+attacker((SHA256((s_2,r_2)),(E2_3,open_ch[]))).
+
+10. We assume as hypothesis that
+attacker(E1_3).
+
+11. By 10, the attacker may know E1_3.
+By 2, the attacker may know open_ch[].
+Using the function 2-tuple the attacker may obtain (E1_3,open_ch[]).
+attacker((E1_3,open_ch[])).
+
+12. We assume as hypothesis that
+attacker(SessionNonce_3).
+
+13. By 12, the attacker may know SessionNonce_3.
+By 11, the attacker may know (E1_3,open_ch[]).
+Using the function 2-tuple the attacker may obtain (SessionNonce_3,(E1_3,open_ch[])).
+attacker((SessionNonce_3,(E1_3,open_ch[]))).
+
+14. The event @p_act(@occ58_3,(SessionNonce_3,(E1_3,open_ch[]))) records how variables are instantiated at {58}.
+The message (SessionNonce_3,(E1_3,open_ch[])) that the attacker may have by 13 may be received at input {58}.
+So the message (SHA256((s_3,r_3)),(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[])) may be sent to the attacker at output {72}.
+attacker((SHA256((s_3,r_3)),(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[]))).
+
+15. By 14, the attacker may know (SHA256((s_3,r_3)),(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[])).
+Using the function 2-proj-2-tuple the attacker may obtain (ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[]).
+attacker((ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[])).
+
+16. By 15, the attacker may know (ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[]).
+Using the function 1-proj-2-tuple the attacker may obtain ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)).
+attacker(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe))).
+
+17. By 16, the attacker may know ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)).
+By 2, the attacker may know open_ch[].
+Using the function 2-tuple the attacker may obtain (ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[]).
+attacker((ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[])).
+
+18. We assume as hypothesis that
+attacker(C1_2).
+
+19. By 18, the attacker may know C1_2.
+By 17, the attacker may know (ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[]).
+Using the function 2-tuple the attacker may obtain (C1_2,(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[])).
+attacker((C1_2,(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[]))).
+
+20. The event @p_act(@occ32_4,(C1_2,(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[]))) records how variables are instantiated at {32}.
+The message (C1_2,(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),open_ch[])) that the attacker may have by 19 may be received at input {32}.
+So the message (SHA256((exp(g,s__2),r__3)),(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),pre_app1[])) may be sent on channel sec_ch_1[] at output {38}.
+mess(sec_ch_1[],(SHA256((exp(g,s__2),r__3)),(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),pre_app1[]))).
+
+21. The event @p_act(@occ8_3,(SHA256((exp(g,s__2),r__3)),(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),pre_app1[]))) records how variables are instantiated at {8}.
+The message (SHA256((exp(g,s__2),r__3)),(ECIES_enc((SessionNonce_3,(token_1[],(UUID_1[],(SN_2,(data_2,(Version_2,(E1_3,SeedK1_2))))))),pk(qe)),pre_app1[])) that may be sent on channel sec_ch_1[] by 20 may be received at input {8}.
+We have UUID_1[] ≠ UUID_paired_1[].
+So the message (iCloudldentifier_3,(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__3)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),pre_app1[])))) may be sent on channel sec_ch_1[] at output {27}.
+mess(sec_ch_1[],(iCloudldentifier_3,(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__3)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),pre_app1[]))))).
+
+22. The event @p_act(@occ32_3,(SHA256((s_2,r_2)),(E2_3,open_ch[]))) records how variables are instantiated at {32}.
+The message (SHA256((s_2,r_2)),(E2_3,open_ch[])) that the attacker may have by 9 may be received at input {32}.
+The event @p_act(@occ39_3,(iCloudldentifier_3,(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__3)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),pre_app1[]))))) records how variables are instantiated at {39}.
+The message (iCloudldentifier_3,(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__3)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),pre_app1[])))) that may be sent on channel sec_ch_1[] by 21 may be received at input {39}.
+So the message (exp(g,s_),(r__2,(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__3)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(iCloudldentifier_3,open_ch[])))))) may be sent to the attacker at output {40}.
+attacker((exp(g,s_),(r__2,(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__3)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(iCloudldentifier_3,open_ch[]))))))).
+
+23. By 22, the attacker may know (exp(g,s_),(r__2,(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__3)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(iCloudldentifier_3,open_ch[])))))).
+Using the function 2-proj-2-tuple the attacker may obtain (r__2,(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__3)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(iCloudldentifier_3,open_ch[]))))).
+attacker((r__2,(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__3)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(iCloudldentifier_3,open_ch[])))))).
+
+24. By 23, the attacker may know (r__2,(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__3)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(iCloudldentifier_3,open_ch[]))))).
+Using the function 1-proj-2-tuple the attacker may obtain r__2.
+attacker(r__2).
+
+25. By 5, the attacker may know r_2.
+By 24, the attacker may know r__2.
+Using the function 2-tuple the attacker may obtain (r_2,r__2).
+attacker((r_2,r__2)).
+
+26. By 22, the attacker may know (exp(g,s_),(r__2,(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__3)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(iCloudldentifier_3,open_ch[])))))).
+Using the function 1-proj-2-tuple the attacker may obtain exp(g,s_).
+attacker(exp(g,s_)).
+
+27. Using the function g the attacker may obtain g.
+attacker(g).
+
+28. By 27, the attacker may know g.
+By 6, the attacker may know s_2.
+Using the function exp the attacker may obtain exp(g,s_2).
+attacker(exp(g,s_2)).
+
+29. By 28, the attacker may know exp(g,s_2).
+By 26, the attacker may know exp(g,s_).
+Using the function add the attacker may obtain add(exp(g,s_2),exp(g,s_)).
+attacker(add(exp(g,s_2),exp(g,s_))).
+
+30. By 29, the attacker may know add(exp(g,s_2),exp(g,s_)).
+Using the function get_point_x the attacker may obtain get_point_x(add(exp(g,s_2),exp(g,s_))).
+attacker(get_point_x(add(exp(g,s_2),exp(g,s_)))).
+
+31. By 30, the attacker may know get_point_x(add(exp(g,s_2),exp(g,s_))).
+By 25, the attacker may know (r_2,r__2).
+Using the function kdf the attacker may obtain kdf(get_point_x(add(exp(g,s_2),exp(g,s_))),(r_2,r__2)).
+attacker(kdf(get_point_x(add(exp(g,s_2),exp(g,s_))),(r_2,r__2))).
+
+32. We assume as hypothesis that
+attacker(other_param_2).
+
+33. By 32, the attacker may know other_param_2.
+By 2, the attacker may know open_ch[].
+Using the function 2-tuple the attacker may obtain (other_param_2,open_ch[]).
+attacker((other_param_2,open_ch[])).
+
+34. By 5, the attacker may know r_2.
+By 33, the attacker may know (other_param_2,open_ch[]).
+Using the function 2-tuple the attacker may obtain (r_2,(other_param_2,open_ch[])).
+attacker((r_2,(other_param_2,open_ch[]))).
+
+35. By 6, the attacker may know s_2.
+By 34, the attacker may know (r_2,(other_param_2,open_ch[])).
+Using the function 2-tuple the attacker may obtain (s_2,(r_2,(other_param_2,open_ch[]))).
+attacker((s_2,(r_2,(other_param_2,open_ch[])))).
+
+36. The event @p_act(@occ32_3,(SHA256((s_2,r_2)),(E2_3,open_ch[]))) records how variables are instantiated at {32}.
+The message (SHA256((s_2,r_2)),(E2_3,open_ch[])) that the attacker may have by 9 may be received at input {32}.
+The event @p_act(@occ39_3,(iCloudldentifier_3,(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__3)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),pre_app1[]))))) records how variables are instantiated at {39}.
+The message (iCloudldentifier_3,(SeedS_3,(sign((UUID_1[],(SessionNonce_3,(SeedS_3,(SHA256((exp(g,s__2),r__3)),(E1_3,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),pre_app1[])))) that may be sent on channel sec_ch_1[] by 21 may be received at input {39}.
+The event @p_act(@occ42_3,(s_2,(r_2,(other_param_2,open_ch[])))) records how variables are instantiated at {42}.
+The message (s_2,(r_2,(other_param_2,open_ch[]))) that the attacker may have by 35 may be received at input {42}.
+So the message AES_GCM_enc(s_SK,kdf(get_point_x(add(exp(g,s_2),exp(g,s_))),(r_2,r__2)),zero_const) may be sent to the attacker at output {52}.
+attacker(AES_GCM_enc(s_SK,kdf(get_point_x(add(exp(g,s_2),exp(g,s_))),(r_2,r__2)),zero_const)).
+
+37. By 36, the attacker may know AES_GCM_enc(s_SK,kdf(get_point_x(add(exp(g,s_2),exp(g,s_))),(r_2,r__2)),zero_const).
+By 31, the attacker may know kdf(get_point_x(add(exp(g,s_2),exp(g,s_))),(r_2,r__2)).
+By 1, the attacker may know zero_const.
+Using the function AES_GCM_dec the attacker may obtain s_SK.
+attacker(s_SK).
+
+38. By 37, attacker(s_SK).
+The goal is reached, represented in the following fact:
+attacker(s_SK).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new sec_ch_1: channel creating sec_ch at {1}
+
+new UUID_paired_1: bitstring creating UUID_paired at {2}
+
+new UUID_1: bitstring creating UUID at {3}
+
+event UUIDSource(UUID) at {4}
+
+new token_1: bitstring creating token at {5}
+
+out(att, (~M,~M_1)) with ~M = pk(qe), ~M_1 = pk(qa) at {57} in copy a
+
+new SessionNonce: bitstring creating SessionNonce_3 at {29} in copy a
+
+new E1: bitstring creating E1_3 at {30} in copy a
+
+out(att, (~M_2,(~M_3,~M_4))) with ~M_2 = SessionNonce_3, ~M_3 = E1_3, ~M_4 = open_ch at {31} in copy a
+
+new iCloudldentifier_1: bitstring creating iCloudldentifier_3 at {7} in copy a
+
+out(att, (~M_5,~M_6)) with ~M_5 = pk(qe), ~M_6 = pk(qa) at {57} in copy a_1
+
+new SessionNonce: bitstring creating SessionNonce_4 at {29} in copy a_1
+
+new E1: bitstring creating E1_4 at {30} in copy a_1
+
+out(att, (~M_7,(~M_8,~M_9))) with ~M_7 = SessionNonce_4, ~M_8 = E1_4, ~M_9 = open_ch at {31} in copy a_1
+
+new iCloudldentifier_1: bitstring creating iCloudldentifier_4 at {7} in copy a_1
+
+out(att, (~M_10,~M_11)) with ~M_10 = pk(qe), ~M_11 = pk(qa) at {57} in copy a_2
+
+new SessionNonce: bitstring creating SessionNonce_5 at {29} in copy a_2
+
+new E1: bitstring creating E1_5 at {30} in copy a_2
+
+out(att, (~M_12,(~M_13,~M_14))) with ~M_12 = SessionNonce_5, ~M_13 = E1_5, ~M_14 = open_ch at {31} in copy a_2
+
+new iCloudldentifier_1: bitstring creating iCloudldentifier_5 at {7} in copy a_2
+
+out(att, (~M_15,~M_16)) with ~M_15 = pk(qe), ~M_16 = pk(qa) at {57} in copy a_3
+
+new SessionNonce: bitstring creating SessionNonce_6 at {29} in copy a_3
+
+new E1: bitstring creating E1_6 at {30} in copy a_3
+
+out(att, (~M_17,(~M_18,~M_19))) with ~M_17 = SessionNonce_6, ~M_18 = E1_6, ~M_19 = open_ch at {31} in copy a_3
+
+new iCloudldentifier_1: bitstring creating iCloudldentifier_6 at {7} in copy a_3
+
+in(att, (a_4,(a_5,open_ch))) at {58} in copy a_3
+
+new s: bitstring creating s_2 at {59} in copy a_3
+
+new r: bitstring creating r_2 at {60} in copy a_3
+
+new SeedK1: bitstring creating SeedK1_2 at {63} in copy a_3
+
+new exp_2_1: bitstring creating exp_1 at {64} in copy a_3
+
+new SN: bitstring creating SN_2 at {65} in copy a_3
+
+new data: bitstring creating data_2 at {66} in copy a_3
+
+new Version: bitstring creating Version_2 at {67} in copy a_3
+
+event SessionNonceEncSource(a_4) at {70} in copy a_3
+
+event E1EncSource(a_5) at {71} in copy a_3
+
+out(att, (~M_20,(~M_21,~M_22))) with ~M_20 = SHA256((s_2,r_2)), ~M_21 = ECIES_enc((a_4,(token,(UUID,(SN_2,(data_2,(Version_2,(a_5,SeedK1_2))))))),pk(qe)), ~M_22 = open_ch at {72} in copy a_3
+
+event SendE2(ECIES_enc((a_4,(token,(UUID,(SN_2,(data_2,(Version_2,(a_5,SeedK1_2))))))),pk(qe))) at {73} in copy a_3
+
+in(att, (a_6,(~M_21,open_ch))) with ~M_21 = ECIES_enc((a_4,(token,(UUID,(SN_2,(data_2,(Version_2,(a_5,SeedK1_2))))))),pk(qe)) at {32} in copy a_2
+
+new s__1: bitstring creating s_ at {33} in copy a_2
+
+new r__1: bitstring creating r__2 at {34} in copy a_2
+
+event H1Source(SHA256((exp(g,s_),r__2))) at {37} in copy a_2
+
+out(sec_ch, (SHA256((exp(g,s_),r__2)),(ECIES_enc((a_4,(token,(UUID,(SN_2,(data_2,(Version_2,(a_5,SeedK1_2))))))),pk(qe)),pre_app1))) at {38} in copy a_2 received at {8} in copy a_1
+
+event RecvE2((a_4,(token,(UUID,(SN_2,(data_2,(Version_2,(a_5,SeedK1_2))))))),ECIES_enc((a_4,(token,(UUID,(SN_2,(data_2,(Version_2,(a_5,SeedK1_2))))))),pk(qe))) at {10} in copy a_1
+
+event RecvUUID(UUID) at {12} in copy a_1
+
+event RecvSessionNonce(a_4) at {13} in copy a_1
+
+new token_new_1: bitstring creating token_new at {16} in copy a_1
+
+new SeedS_1: bitstring creating SeedS_3 at {17} in copy a_1
+
+event SendH1(SHA256((exp(g,s_),r__2))) at {25} in copy a_1
+
+event SendE1(a_5) at {26} in copy a_1
+
+in(att, (SHA256((a_7,a_8)),(a_9,open_ch))) at {32} in copy a
+
+new s__1: bitstring creating s__2 at {33} in copy a
+
+new r__1: bitstring creating r__3 at {34} in copy a
+
+event H1Source(SHA256((exp(g,s__2),r__3))) at {37} in copy a
+
+out(sec_ch, (SHA256((exp(g,s__2),r__3)),(a_9,pre_app1))) at {38} in copy a received at {8} in copy a_3
+
+out(sec_ch, (iCloudldentifier_4,(SeedS_3,(sign((UUID,(a_4,(SeedS_3,(SHA256((exp(g,s_),r__2)),(a_5,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa),(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),pre_app1))))) at {27} in copy a_1 received at {39} in copy a
+
+out(att, (~M_23,(~M_24,(~M_25,(~M_26,(~M_27,(~M_28,~M_29))))))) with ~M_23 = exp(g,s__2), ~M_24 = r__3, ~M_25 = AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)), ~M_26 = SeedS_3, ~M_27 = sign((UUID,(a_4,(SeedS_3,(SHA256((exp(g,s_),r__2)),(a_5,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa), ~M_28 = iCloudldentifier_4, ~M_29 = open_ch at {40} in copy a
+
+event SendS2(sign((UUID,(a_4,(SeedS_3,(SHA256((exp(g,s_),r__2)),(a_5,AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const))))))),qa)) at {41} in copy a
+
+event SendE3(AES_GCM_enc(token_new,kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const),kdf(kdf((SeedS_3,SeedK1_2),ServerSharedSecret_const),PairingSession_const)),SeedS_3) at {28} in copy a_1
+
+in(att, (a_7,(a_8,(a_10,open_ch)))) at {42} in copy a
+
+event Secret_d(add(a_7,s__2)) at {49} in copy a
+
+event Secret_P(add(exp(g,a_7),exp(g,s__2))) at {50} in copy a
+
+event Secret_SK(kdf(get_point_x(add(exp(g,a_7),exp(g,s__2))),(a_8,r__3))) at {51} in copy a
+
+out(att, ~M_30) with ~M_30 = AES_GCM_enc(s_SK,kdf(get_point_x(add(exp(g,a_7),exp(g,s__2))),(a_8,r__3)),zero_const) at {52} in copy a
+
+out(att, ~M_31) with ~M_31 = AES_GCM_enc(s_d,add(a_7,s__2),zero_const) at {53} in copy a
+
+out(att, ~M_32) with ~M_32 = AES_GCM_enc(s_P,add(exp(g,a_7),exp(g,s__2)),zero_const) at {54} in copy a
+
+The attacker has the message AES_GCM_dec(~M_30,kdf(get_point_x(add(exp(g,a_7),~M_23)),(a_8,~M_24)),zero_const) = s_SK.
+A trace has been found.
+RESULT not attacker(s_SK) is false.
+-- Query not attacker(s_SSS) in process 1.
+Translating the process into Horn clauses...
+Completing...
+ok, secrecy assumption verified: fact unreachable attacker(qe)
+ok, secrecy assumption verified: fact unreachable attacker(qa)
+Starting query not attacker(s_SSS)
+RESULT not attacker(s_SSS) is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query not attacker(s_d) is true.
+
+Query not attacker(s_P) is false.
+
+Query not attacker(s_SK) is false.
+
+Query not attacker(s_SSS) is true.
+
+--------------------------------------------------------------
+

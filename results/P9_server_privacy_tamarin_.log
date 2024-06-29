@@ -1,0 +1,583 @@
+maude tool: 'maude'
+ checking version: 3.1. OK.
+ checking installation: OK.
+
+theory Apple_AirTag begin
+
+// Function signature and definition of the equational theory E
+
+builtins: diffie-hellman
+functions: AES_GCM_dec/2[destructor], AES_GCM_enc/2, SHA256/1, add/2,
+           diversify_const/0, fst/1[destructor], gen/0, kdf/2,
+           location/0[private,destructor], mul/2, pair/2, snd/1[destructor],
+           update_const/0, zero_const/0
+equations:
+    AES_GCM_dec(AES_GCM_enc(m, k), k) = m,
+    fst(<x.1, x.2>) = x.1,
+    snd(<x.1, x.2>) = x.2
+
+heuristic: p
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+lemma confidentiality [output=[spthy]]:
+  all-traces "∀ x #i. (Secret( x ) @ #i) ⇒ (¬(∃ #k. !KU( x ) @ #k))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ x #i. (Secret( x ) @ #i) ∧ ∃ #k. (!KU( x ) @ #k)"
+*/
+simplify
+solve( State_11111121( ~di, ~pre_app_ch1, ~pre_app_ch2 ) ▶₀ #i )
+  case p_1_111
+  solve( !KU( location ) @ #k )
+    case outsealedboxlocPKsindexlocationreport_0_11111211_case_1
+    solve( Let_11111211( <sealedbox_loc, PKs, index, 'location_report'>,
+                         ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1
+           ) ▶₀ #vr.4 )
+      case inpreappchchannelsealedboxlocPKsindexlocationreport_0_1111121
+      solve( (#vr.3, 0) ~~> (#k, 0) )
+        case d_0_AES_GCM_dec
+        solve( (#vr.9, 0) ~~> (#k, 0) )
+          case location
+          solve( splitEqs(0) )
+            case split_case_1
+            solve( splitEqs(1) )
+              case split_case_2
+              solve( !KU( Pi.1^~s.1 ) @ #vk.5 )
+                case outsealedboxlocPKsindexlocationreport_0_11111211_case_2
+                solve( Let_11111211( <sealedbox_loc, PKs, index, 'location_report'>,
+                                     ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1
+                       ) ▶₀ #vr.13 )
+                  case inpreappchchannelsealedboxlocPKsindexlocationreport_0_1111121
+                  solve( (#vr.12, 0) ~~> (#vk, 0) )
+                    case exp
+                    SOLVED // trace found
+                  qed
+                qed
+              qed
+            qed
+          qed
+        qed
+      qed
+    qed
+  qed
+qed
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+rule (modulo E) Init[color=#ffffff,
+                     process="new ~pre_app_ch1.1:channel;"]:
+   [ Fr( ~pre_app_ch1.1 ), Fr( ~pre_app_ch2.1 ), Fr( ~di.1 ) ]
+  --[ Init( ) ]->
+   [ !Semistate_1111( ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1 ) ]
+
+  /*
+  rule (modulo AC) Init[color=#ffffff,
+                        process="new ~pre_app_ch1.1:channel;"]:
+     [ Fr( ~pre_app_ch1 ), Fr( ~pre_app_ch2 ), Fr( ~di ) ]
+    --[ Init( ) ]->
+     [ !Semistate_1111( ~di, ~pre_app_ch1, ~pre_app_ch2 ) ]
+  */
+
+rule (modulo E) eventSecretlocation_0_11111121[color=#794080,
+                                               process="event Secret( location );"]:
+   [
+   State_11111121( ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1 ),
+   In( <Pi.1, 'adv'> ), Fr( ~s.1 )
+   ]
+  --[ Secret( location ) ]->
+   [
+   Message( ~pre_app_ch2.1,
+            <AES_GCM_enc(location, Pi.1^~s.1), 'g'^~s.1, SHA256(Pi.1), 
+             'location_report'>
+   ),
+   Semistate_111111211111( ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1, ~s.1, Pi.1
+   )
+   ]
+
+  /*
+  rule (modulo AC) eventSecretlocation_0_11111121[color=#794080,
+                                                  process="event Secret( location );"]:
+     [
+     State_11111121( ~di, ~pre_app_ch1, ~pre_app_ch2 ), In( <Pi, 'adv'> ),
+     Fr( ~s )
+     ]
+    --[ Secret( location ) ]->
+     [
+     Message( ~pre_app_ch2,
+              <AES_GCM_enc(location, z), 'g'^~s, SHA256(Pi), 'location_report'>
+     ),
+     Semistate_111111211111( ~di, ~pre_app_ch1, ~pre_app_ch2, ~s, Pi )
+     ]
+    variants (modulo AC)
+    1. ~s    = ~s.11
+       Pi    = Pi.12
+       z     = Pi.12^~s.11
+    
+    2. ~s    = ~s.13
+       Pi    = z.16^inv(~s.13)
+       z     = z.16
+    
+    3. ~s    = ~s.52
+       Pi    = x.97^x.98
+       z     = x.97^(~s.52*x.98)
+    
+    4. ~s    = ~s.53
+       Pi    = x.99^inv((~s.53*x.100))
+       z     = x.99^inv(x.100)
+    
+    5. ~s    = ~s.53
+       Pi    = x.99^(x.100*inv(~s.53))
+       z     = x.99^x.100
+    
+    6. ~s    = ~s.54
+       Pi    = x.100^(x.101*inv((~s.54*x.102)))
+       z     = x.100^(x.101*inv(x.102))
+  */
+
+rule (modulo E) inpreappchchannelsealedboxlocPKsindexlocationreport_0_1111121[color=#658040,
+                                                                              process="in(~pre_app_ch2.1:channel,<sealedbox_loc.2, PKs.2, index.2, 'location_report'>);"]:
+   [
+   State_1111121( ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1 ),
+   Message( ~pre_app_ch2.1, x.2 )
+   ]
+  -->
+   [
+   Let_11111211( x.2, ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1 ),
+   Ack( ~pre_app_ch2.1, x.2 )
+   ]
+
+  /*
+  rule (modulo AC) inpreappchchannelsealedboxlocPKsindexlocationreport_0_1111121[color=#658040,
+                                                                                 process="in(~pre_app_ch2.1:channel,<sealedbox_loc.2, PKs.2, index.2, 'location_report'>);"]:
+     [
+     State_1111121( ~di, ~pre_app_ch1, ~pre_app_ch2 ),
+     Message( ~pre_app_ch2, x )
+     ]
+    -->
+     [
+     Let_11111211( x, ~di, ~pre_app_ch1, ~pre_app_ch2 ),
+     Ack( ~pre_app_ch2, x )
+     ]
+  */
+
+rule (modulo E) inpreappchchannelsealedboxlocPKsindexlocationreport_1_1111121[color=#658040,
+                                                                              process="in(~pre_app_ch2.1:channel,<sealedbox_loc.2, PKs.2, index.2, 'location_report'>);"]:
+   [
+   Let_11111211( <sealedbox_loc.2, PKs.2, index.2, 'location_report'>,
+                 ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1
+   )
+   ]
+  -->
+   [
+   State_11111211( ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1, PKs.2, index.2,
+                   sealedbox_loc.2
+   )
+   ]
+
+  // loop breaker: [0]
+  /*
+  rule (modulo AC) inpreappchchannelsealedboxlocPKsindexlocationreport_1_1111121[color=#658040,
+                                                                                 process="in(~pre_app_ch2.1:channel,<sealedbox_loc.2, PKs.2, index.2, 'location_report'>);"]:
+     [
+     Let_11111211( <sealedbox_loc, PKs, index, 'location_report'>, ~di,
+                   ~pre_app_ch1, ~pre_app_ch2
+     )
+     ]
+    -->
+     [
+     State_11111211( ~di, ~pre_app_ch1, ~pre_app_ch2, PKs, index,
+                     sealedbox_loc
+     )
+     ]
+    // loop breaker: [0]
+  */
+
+rule (modulo E) outsealedboxlocPKsindexlocationreport_0_11111211[color=#658040,
+                                                                 process="out(<sealedbox_loc.2, PKs.2, index.2, 'location_report'>);"]:
+   [
+   State_11111211( ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1, PKs.2, index.2,
+                   sealedbox_loc.2
+   )
+   ]
+  -->
+   [
+   State_111112111( ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1, PKs.2, index.2,
+                    sealedbox_loc.2
+   ),
+   Out( <sealedbox_loc.2, PKs.2, index.2, 'location_report'> )
+   ]
+
+  /*
+  rule (modulo AC) outsealedboxlocPKsindexlocationreport_0_11111211[color=#658040,
+                                                                    process="out(<sealedbox_loc.2, PKs.2, index.2, 'location_report'>);"]:
+     [
+     State_11111211( ~di, ~pre_app_ch1, ~pre_app_ch2, PKs, index,
+                     sealedbox_loc
+     )
+     ]
+    -->
+     [
+     State_111112111( ~di, ~pre_app_ch1, ~pre_app_ch2, PKs, index,
+                      sealedbox_loc
+     ),
+     Out( <sealedbox_loc, PKs, index, 'location_report'> )
+     ]
+  */
+
+rule (modulo E) inpreappchchannelindexquerybyindex_0_111112111[color=#658040,
+                                                               process="in(~pre_app_ch1.1:channel,<index1.1, 'query_by_index'>);"]:
+   [
+   State_111112111( ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1, PKs.2, index.2,
+                    sealedbox_loc.2
+   ),
+   Message( ~pre_app_ch1.1, x.3 )
+   ]
+  -->
+   [
+   Let_1111121111( x.3, ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1, PKs.2,
+                   index.2, sealedbox_loc.2
+   ),
+   Ack( ~pre_app_ch1.1, x.3 )
+   ]
+
+  // loop breaker: [1]
+  /*
+  rule (modulo AC) inpreappchchannelindexquerybyindex_0_111112111[color=#658040,
+                                                                  process="in(~pre_app_ch1.1:channel,<index1.1, 'query_by_index'>);"]:
+     [
+     State_111112111( ~di, ~pre_app_ch1, ~pre_app_ch2, PKs, index,
+                      sealedbox_loc
+     ),
+     Message( ~pre_app_ch1, x )
+     ]
+    -->
+     [
+     Let_1111121111( x, ~di, ~pre_app_ch1, ~pre_app_ch2, PKs, index,
+                     sealedbox_loc
+     ),
+     Ack( ~pre_app_ch1, x )
+     ]
+    // loop breaker: [1]
+  */
+
+rule (modulo E) inpreappchchannelindexquerybyindex_1_111112111[color=#658040,
+                                                               process="in(~pre_app_ch1.1:channel,<index1.1, 'query_by_index'>);"]:
+   [
+   Let_1111121111( <index1.1, 'query_by_index'>, ~di.1, ~pre_app_ch1.1,
+                   ~pre_app_ch2.1, PKs.2, index.2, sealedbox_loc.2
+   )
+   ]
+  -->
+   [
+   State_1111121111( ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1, index1.1, PKs.2,
+                     index.2, sealedbox_loc.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) inpreappchchannelindexquerybyindex_1_111112111[color=#658040,
+                                                                  process="in(~pre_app_ch1.1:channel,<index1.1, 'query_by_index'>);"]:
+     [
+     Let_1111121111( <index1, 'query_by_index'>, ~di, ~pre_app_ch1,
+                     ~pre_app_ch2, PKs, index, sealedbox_loc
+     )
+     ]
+    -->
+     [
+     State_1111121111( ~di, ~pre_app_ch1, ~pre_app_ch2, index1, PKs, index,
+                       sealedbox_loc
+     )
+     ]
+  */
+
+rule (modulo E) outindexquerybyindex_0_1111121111[color=#658040,
+                                                  process="out(<index1.1, 'query_by_index'>);"]:
+   [
+   State_1111121111( ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1, index1.1, PKs.2,
+                     index.2, sealedbox_loc.2
+   )
+   ]
+  -->
+   [
+   State_11111211111( ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1, index1.1,
+                      PKs.2, index.2, sealedbox_loc.2
+   ),
+   Out( <index1.1, 'query_by_index'> )
+   ]
+
+  /*
+  rule (modulo AC) outindexquerybyindex_0_1111121111[color=#658040,
+                                                     process="out(<index1.1, 'query_by_index'>);"]:
+     [
+     State_1111121111( ~di, ~pre_app_ch1, ~pre_app_ch2, index1, PKs, index,
+                       sealedbox_loc
+     )
+     ]
+    -->
+     [
+     State_11111211111( ~di, ~pre_app_ch1, ~pre_app_ch2, index1, PKs, index,
+                        sealedbox_loc
+     ),
+     Out( <index1, 'query_by_index'> )
+     ]
+  */
+
+restriction Restr_ifindexindex_0_11111211111_1:
+  "∀ x #NOW x.1.
+    (Restr_ifindexindex_0_11111211111_1( x, x.1 ) @ #NOW) ⇒ (x = x.1)"
+  // safety formula
+
+rule (modulo E) ifindexindex_0_11111211111[color=#658040,
+                                           process="if index.2 = index1.1"]:
+   [
+   State_11111211111( ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1, index1.1,
+                      PKs.2, index.2, sealedbox_loc.2
+   )
+   ]
+  --[ Restr_ifindexindex_0_11111211111_1( index.2, index1.1 ) ]->
+   [
+   Message( ~pre_app_ch1.1,
+            <sealedbox_loc.2, PKs.2, index.2, 'location_report_index'>
+   ),
+   Semistate_1111121111111( ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1, index1.1,
+                            PKs.2, index.2, sealedbox_loc.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) ifindexindex_0_11111211111[color=#658040,
+                                              process="if index.2 = index1.1"]:
+     [
+     State_11111211111( ~di, ~pre_app_ch1, ~pre_app_ch2, index1, PKs, index,
+                        sealedbox_loc
+     )
+     ]
+    --[ Restr_ifindexindex_0_11111211111_1( index, index1 ) ]->
+     [
+     Message( ~pre_app_ch1,
+              <sealedbox_loc, PKs, index, 'location_report_index'>
+     ),
+     Semistate_1111121111111( ~di, ~pre_app_ch1, ~pre_app_ch2, index1, PKs,
+                              index, sealedbox_loc
+     )
+     ]
+  */
+
+rule (modulo E) p_1_111[color=#ffffff, process="!"]:
+   [ !Semistate_1111( ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1 ) ]
+  -->
+   [
+   Message( ~pre_app_ch1.1, <SHA256('g'^~di.1), 'query_by_index'> ),
+   Semistate_1111211( ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1 ),
+   State_1111121( ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1 ),
+   State_11111121( ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1 ),
+   Out( <'g'^~di.1, 'adv'> )
+   ]
+
+  /*
+  rule (modulo AC) p_1_111[color=#ffffff, process="!"]:
+     [ !Semistate_1111( ~di, ~pre_app_ch1, ~pre_app_ch2 ) ]
+    -->
+     [
+     Message( ~pre_app_ch1, <SHA256('g'^~di), 'query_by_index'> ),
+     Semistate_1111211( ~di, ~pre_app_ch1, ~pre_app_ch2 ),
+     State_1111121( ~di, ~pre_app_ch1, ~pre_app_ch2 ),
+     State_11111121( ~di, ~pre_app_ch1, ~pre_app_ch2 ),
+     Out( <'g'^~di, 'adv'> )
+     ]
+  */
+
+rule (modulo E) outpreappchchannelSHAgdiquerybyindex_1_111121[color=#804640,
+                                                              process="out(~pre_app_ch1.1:channel,<SHA256('g'^~di.1), 'query_by_index'>);"]:
+   [
+   Semistate_1111211( ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1 ),
+   Ack( ~pre_app_ch1.1, <SHA256('g'^~di.1), 'query_by_index'> ),
+   Message( ~pre_app_ch1.1, x.2 )
+   ]
+  -->
+   [
+   Let_11112111( x.2, ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1 ),
+   Ack( ~pre_app_ch1.1, x.2 )
+   ]
+
+  // loop breaker: [1]
+  /*
+  rule (modulo AC) outpreappchchannelSHAgdiquerybyindex_1_111121[color=#804640,
+                                                                 process="out(~pre_app_ch1.1:channel,<SHA256('g'^~di.1), 'query_by_index'>);"]:
+     [
+     Semistate_1111211( ~di, ~pre_app_ch1, ~pre_app_ch2 ),
+     Ack( ~pre_app_ch1, <SHA256('g'^~di), 'query_by_index'> ),
+     Message( ~pre_app_ch1, x )
+     ]
+    -->
+     [
+     Let_11112111( x, ~di, ~pre_app_ch1, ~pre_app_ch2 ),
+     Ack( ~pre_app_ch1, x )
+     ]
+    // loop breaker: [1]
+  */
+
+rule (modulo E) inpreappchchannelsealedboxlocPKsindexlocationreportindex_1_1111211[color=#804640,
+                                                                                   process="in(~pre_app_ch1.1:channel,<sealedbox_loc.3, PKs.3, index1.2, 'location_report_index'>);"]:
+   [
+   Let_11112111( <sealedbox_loc.3, PKs.3, index1.2, 'location_report_index'
+                 >,
+                 ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1
+   )
+   ]
+  -->
+   [
+   State_11112111( ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1, index1.2, PKs.3,
+                   sealedbox_loc.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) inpreappchchannelsealedboxlocPKsindexlocationreportindex_1_1111211[color=#804640,
+                                                                                      process="in(~pre_app_ch1.1:channel,<sealedbox_loc.3, PKs.3, index1.2, 'location_report_index'>);"]:
+     [
+     Let_11112111( <sealedbox_loc, PKs, index1, 'location_report_index'>, ~di,
+                   ~pre_app_ch1, ~pre_app_ch2
+     )
+     ]
+    -->
+     [
+     State_11112111( ~di, ~pre_app_ch1, ~pre_app_ch2, index1, PKs,
+                     sealedbox_loc
+     )
+     ]
+  */
+
+rule (modulo E) letlocAESGCMdecsealedboxlocPKsdi_0_11112111[color=#ffffff,
+                                                            process="let loc.1=AES_GCM_dec(sealedbox_loc.3, PKs.3^~di.1)"]:
+   [
+   State_11112111( ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1, index1.2, PKs.3,
+                   sealedbox_loc.3
+   )
+   ]
+  -->
+   [
+   Let_111121111( <sealedbox_loc.3, PKs.3^~di.1>, ~di.1, ~pre_app_ch1.1,
+                  ~pre_app_ch2.1, index1.2, PKs.3, sealedbox_loc.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) letlocAESGCMdecsealedboxlocPKsdi_0_11112111[color=#ffffff,
+                                                               process="let loc.1=AES_GCM_dec(sealedbox_loc.3, PKs.3^~di.1)"]:
+     [
+     State_11112111( ~di, ~pre_app_ch1, ~pre_app_ch2, index1, PKs,
+                     sealedbox_loc
+     )
+     ]
+    -->
+     [
+     Let_111121111( <sealedbox_loc, z>, ~di, ~pre_app_ch1, ~pre_app_ch2,
+                    index1, PKs, sealedbox_loc
+     )
+     ]
+    variants (modulo AC)
+    1. ~di   = ~di.11
+       PKs   = PKs.13
+       z     = PKs.13^~di.11
+    
+    2. ~di   = ~x.11
+       PKs   = x.15^inv(~x.11)
+       z     = x.15
+    
+    3. ~di   = ~x.11
+       PKs   = x.15^inv((~x.11*x.16))
+       z     = x.15^inv(x.16)
+    
+    4. ~di   = ~x.11
+       PKs   = x.15^(x.16*inv(~x.11))
+       z     = x.15^x.16
+    
+    5. ~di   = ~x.11
+       PKs   = x.15^(x.16*inv((~x.11*x.17)))
+       z     = x.15^(x.16*inv(x.17))
+    
+    6. ~di   = ~di.13
+       PKs   = x.11^x.12
+       z     = x.11^(x.12*~di.13)
+  */
+
+rule (modulo E) letlocAESGCMdecsealedboxlocPKsdi_1_11112111[color=#ffffff,
+                                                            process="let loc.1=AES_GCM_dec(sealedbox_loc.3, PKs.3^~di.1)"]:
+   [
+   Let_111121111( <AES_GCM_enc(loc.1, k), k>, ~di.1, ~pre_app_ch1.1,
+                  ~pre_app_ch2.1, index1.2, PKs.3, sealedbox_loc.3
+   )
+   ]
+  -->
+   [
+   State_111121111( ~di.1, ~pre_app_ch1.1, ~pre_app_ch2.1, loc.1, index1.2,
+                    PKs.3, sealedbox_loc.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) letlocAESGCMdecsealedboxlocPKsdi_1_11112111[color=#ffffff,
+                                                               process="let loc.1=AES_GCM_dec(sealedbox_loc.3, PKs.3^~di.1)"]:
+     [
+     Let_111121111( <AES_GCM_enc(loc, k), k>, ~di, ~pre_app_ch1, ~pre_app_ch2,
+                    index1, PKs, sealedbox_loc
+     )
+     ]
+    -->
+     [
+     State_111121111( ~di, ~pre_app_ch1, ~pre_app_ch2, loc, index1, PKs,
+                      sealedbox_loc
+     )
+     ]
+  */
+
+restriction single_session:
+  "∀ #i #j. ((Init( ) @ #i) ∧ (Init( ) @ #j)) ⇒ (#i = #j)"
+  // safety formula
+
+/* All well-formedness checks were successful. */
+
+end
+
+==============================================================================
+summary of summaries:
+
+analyzed: ./_Models_and_Results/Apple/location_tracking/Apple_location_server_privacy.spthy
+
+  confidentiality (all-traces): falsified - found trace (12 steps)
+
+==============================================================================
