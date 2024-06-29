@@ -186,6 +186,7 @@ let phone(~sec_ch: channel) =
 let tracker(~sec_ch: channel, ~UUID, ~token) = 
 	let Qe = pk(qe) in
 	let Qa = pk(qa) in
+	out(<Qa, Qe>);
 
 	
 		/* Data tran: id sharing */
@@ -284,6 +285,7 @@ process:
 	
 )
 
+// 292->219
 lemma uuid_source [output=[spthy], sources]:
 "
 (
@@ -291,15 +293,7 @@ lemma uuid_source [output=[spthy], sources]:
 		(Ex #t. UUIDSource(e) @ t & t < i) 
 )
 "
-
-lemma S2_verify_sources[sources, output=[spthy]]:
-"
-	All S2 S2_data #i. RecvS2(S2, S2_data) @ i ==> (
-		(Ex #t. SendS2(S2) @ t & t < i) |
-		(Ex #t. KU(S2_data) @ t & t < i)
-	)
-"
-
+// 219->144
 lemma e2_sources[sources, output=[spthy]]:
 "
 	All E2_data E2 #i. RecvE2(E2_data, E2) @ i ==> (
@@ -307,7 +301,7 @@ lemma e2_sources[sources, output=[spthy]]:
 		(Ex #t. KU(E2_data) @ t & t < i)
 	)
 "
-
+// 144->72
 lemma e3_sources[sources, output=[spthy]]:
 "
 	All tokenNew E3 SeedS #i. RecvE3(tokenNew, E3, SeedS) @ i ==> (
@@ -315,7 +309,7 @@ lemma e3_sources[sources, output=[spthy]]:
 		(Ex #t. KU(tokenNew) @ t & t < i)
 	)
 "
-
+// 72->0
 lemma h1_source [output=[spthy], sources]:
 "
 (
@@ -324,21 +318,6 @@ lemma h1_source [output=[spthy], sources]:
 )
 "
 
-lemma session_source [output=[spthy], sources]:
-"
-(
-	 All e #i. RecvSessionNonce(e) @ i ==> 
-		(Ex #t. SessionNonceEncSource(e) @ t & t < i) 
-)
-"
-
-lemma e1_source [output=[spthy], sources]:
-"
-(
-	 All e #i. SendE1(e) @ i ==> 
-		(Ex #t. E1EncSource(e) @ t & t < i) 
-)
-"
 
 
 lemma confidentiality_d [ output=[spthy] ]:
