@@ -88,8 +88,10 @@ We take ethical issues seriously. In this study, we used our two Samsung devices
 3. **Execute**
    
     For short, you can run the "run.sh" to verify all properties.
+    "modify_session2trace.sh" file is used to modify the translations of Sapic+ about unlinkability from verifying session equivalence to verifying trace equivalence. 
+      usage: ./modify_session2trace.sh ***.dps
 
-4. **Others**
+5. **Others**
    
     To verify a certain property, you can follow directly execute the following command.
    
