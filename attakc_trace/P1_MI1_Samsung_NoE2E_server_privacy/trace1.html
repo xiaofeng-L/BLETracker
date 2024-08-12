@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+                      <html>
+                    <head>
+                    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+                    <title>ProVerif: trace for query 1</title>
+                    <link rel="stylesheet" href="cssproverif.css">
+                                                                           </head>
+                                                                         <body>
+                                                                         <H1>Trace</H1>
+<span class="keyword">new</span> <span class="name">pre_app_ch1_1</span>: <span class="type">channel</span> creating <span class="name">pre_app_ch1</span> at <a href="process_1.html#occ1" target="process" class="occ">{1}</a><br>
+<br>
+<span class="keyword">new</span> <span class="name">pre_app_ch2_1</span>: <span class="type">channel</span> creating <span class="name">pre_app_ch2</span> at <a href="process_1.html#occ2" target="process" class="occ">{2}</a><br>
+<br>
+<span class="keyword">new</span> <span class="name">owner_account_1</span>: <span class="type">bitstring</span> creating <span class="name">owner_account</span> at <a href="process_1.html#occ3" target="process" class="occ">{3}</a><br>
+<br>
+<span class="keyword">new</span> <span class="name">encryption_key_1</span>: <span class="type">bitstring</span> creating <span class="name">encryption_key</span> at <a href="process_1.html#occ4" target="process" class="occ">{4}</a><br>
+<br>
+<span class="keyword">new</span> <span class="name">seed_1</span>: <span class="type">bitstring</span> creating <span class="name">seed</span> at <a href="process_1.html#occ5" target="process" class="occ">{5}</a><br>
+<br>
+<span class="keyword">new</span> <span class="name">privacyIV_1</span>: <span class="type">bitstring</span> creating <span class="name">privacyIV</span> at <a href="process_1.html#occ6" target="process" class="occ">{6}</a><br>
+<br>
+<span class="keyword">event</span> <span class="fun">Secret</span>(<span class="fun">location_plain</span>) at <a href="process_1.html#occ14" target="process" class="occ">{14}</a> in copy <span class="name">a</span>, <span class="name">a_1</span><br>
+<br>
+<span class="keyword">new</span> <span class="name">rand2_1</span>: <span class="type">bitstring</span> creating <span class="name">rand2</span> at <a href="process_1.html#occ8" target="process" class="occ">{8}</a> in copy <span class="name">a</span><br>
+<br>
+<span class="keyword">out</span>(<span class="name">att</span>, <span class="fun"></span>(<span class="var">~M</span>,<span class="fun"></span>(<span class="var">~M_1</span>,<span class="var">~M_2</span>))) with <span class="var">~M</span> = <span class="fun">AES_enc</span>(<span class="fun"></span>(<span class="name">rand2</span>,<span class="fun"></span>(<span class="name">seed</span>,<span class="name">rand2</span>)),<span class="fun">derive_key</span>(<span class="name">encryption_key</span>,<span class="fun">privacy_const</span>),<span class="name">privacyIV</span>), <span class="var">~M_1</span> = <span class="fun">Mode_NoE2E</span>, <span class="var">~M_2</span> = <span class="name">adv</span> at <a href="process_1.html#occ12" target="process" class="occ">{12}</a> in copy <span class="name">a</span><br>
+<br>
+<span class="keyword">event</span> <span class="fun">Secret</span>(<span class="fun">location_plain</span>) at <a href="process_1.html#occ14" target="process" class="occ">{14}</a> in copy <span class="name">a_2</span>, <span class="name">a_3</span><br>
+<br>
+<span class="keyword">new</span> <span class="name">rand2_1</span>: <span class="type">bitstring</span> creating <span class="name">rand2_2</span> at <a href="process_1.html#occ8" target="process" class="occ">{8}</a> in copy <span class="name">a_2</span><br>
+<br>
+<span class="keyword">out</span>(<span class="name">att</span>, <span class="fun"></span>(<span class="var">~M_3</span>,<span class="fun"></span>(<span class="var">~M_4</span>,<span class="var">~M_5</span>))) with <span class="var">~M_3</span> = <span class="fun">AES_enc</span>(<span class="fun"></span>(<span class="name">rand2_2</span>,<span class="fun"></span>(<span class="name">seed</span>,<span class="name">rand2_2</span>)),<span class="fun">derive_key</span>(<span class="name">encryption_key</span>,<span class="fun">privacy_const</span>),<span class="name">privacyIV</span>), <span class="var">~M_4</span> = <span class="fun">Mode_NoE2E</span>, <span class="var">~M_5</span> = <span class="name">adv</span> at <a href="process_1.html#occ12" target="process" class="occ">{12}</a> in copy <span class="name">a_2</span><br>
+<br>
+<span class="keyword">in</span>(<span class="name">att</span>, <span class="fun"></span>(<span class="name">a_4</span>,<span class="fun"></span>(<span class="fun">Mode_NoE2E</span>,<span class="name">adv</span>))) at <a href="process_1.html#occ15" target="process" class="occ">{15}</a> in copy <span class="name">a_2</span>, <span class="name">a_3</span><br>
+<br>
+<span class="keyword">out</span>(<span class="name">pre_app_ch2</span>, <span class="fun"></span>(<span class="name">a_4</span>,<span class="fun"></span>(<span class="fun">Mode_NoE2E</span>,<span class="fun"></span>(<span class="fun">location_plain</span>,<span class="name">location_report_NoE2E</span>)))) at <a href="process_1.html#occ17" target="process" class="occ">{17}</a> in copy <span class="name">a_2</span>, <span class="name">a_3</span> received at <a href="process_1.html#occ20" target="process" class="occ">{20}</a> in copy <span class="name">a</span>, <span class="name">a_1</span>, <span class="name">a_5</span><br>
+<br>
+<span class="keyword">out</span>(<span class="name">att</span>, <span class="fun"></span>(<span class="var">~M_6</span>,<span class="fun"></span>(<span class="var">~M_7</span>,<span class="fun"></span>(<span class="var">~M_8</span>,<span class="var">~M_9</span>)))) with <span class="var">~M_6</span> = <span class="name">a_4</span>, <span class="var">~M_7</span> = <span class="fun">Mode_NoE2E</span>, <span class="var">~M_8</span> = <span class="fun">location_plain</span>, <span class="var">~M_9</span> = <span class="name">location_report_NoE2E_privacy</span> at <a href="process_1.html#occ21" target="process" class="occ">{21}</a> in copy <span class="name">a</span>, <span class="name">a_1</span>, <span class="name">a_5</span><br>
+<br>
+The attacker has the message <span class="var">~M_8</span> = <span class="fun">location_plain</span>.<br>
+A trace has been found.<br>
+</body>
+</html>
