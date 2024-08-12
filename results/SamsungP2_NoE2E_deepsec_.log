@@ -1,0 +1,14 @@
+[1m[30mDeepSec - DEciding Equivalence Properties for SECurity protocols[0m
+    Version: 2.0.2
+    Git hash: 8ddc45ec79de5ec49810302ea7da32d3dc9f46e4
+    Git branch: master
+    Website: https://deepsec-prover.github.io
+
+
+Loading file /tmp/tmp.4OS1Mf9iU4/Samsung_location_NoE2E_unlinkability.spthy.dps...
+
+Starting verification...
+
+Starting verification of Samsung_location_NoE2E_unlinkability.spthy.dps...
+Verifying query 1...Verifying query 1... [round 1 jobs generation: 153; minimum nb of jobs required: 200;  run time: 1s]          Verifying query 1... [round 1 jobs verification:: 0% (204 jobs remaning); run time: 1s]                       Verifying query 1... [round 1 jobs verification:: 73% (55 jobs remaning); run time: 2s]          Result query 1: The two processes are [1m[32msession equivalent[0m. Verified in 2s using 10MB of memory.          
+Verification complete.

@@ -1,0 +1,602 @@
+/tmp/tmp.1peHHC4m2M/Samsung_initialization_Authentication_foundV1.spthy.gs
+Starting the transformation...
+Parsing the file...
+Writing in the output file...
+Translation complete !
+Linear part:
+exp(exp(g,a),b) = exp(exp(g,b),a)
+Completing equations...
+Completed equations:
+exp(exp(g,a),b) = exp(exp(g,b),a)
+Convergent part: No equation.
+Process 0 (that is, the initial process):
+{1}new sec_ch_1: channel;
+{2}!
+(
+    {3}in(sec_ch_1, (sn_owner_1: bitstring,=sn_owner));
+    {4}event Bounded(sn_owner_1);
+    {5}let sn1_1: bitstring = serial_number_const in
+    {6}in(att, (hashed_sn_p_1: bitstring,(rand_1: bitstring,=pre_app1)));
+    {7}let sn_1: bitstring = hash_table(hashed_sn_p_1) in
+    {8}let pri_p_1: bitstring = kdf1(sn_1) in
+    {9}let pub_p_1: bitstring = exp(g,pri_p_1) in
+    {10}new pri_c_1: bitstring;
+    {11}let pub_c_1: bitstring = exp(g,pri_c_1) in
+    {12}let dhkey_PC_1: bitstring = exp(pub_p_1,pri_c_1) in
+    {13}let encryption_key_1: bitstring = derive_encryption_key(dhkey_PC_1,rand_1) in
+    {14}event SendPubkey(sec_ch_1,pri_c_1,pub_c_1);
+    {15}out(att, (encryption_key_1,(pub_c_1,pre_app1)));
+    {16}in(att, (sn_p1_1: bitstring,=pre_app1));
+    {17}event StepsEnd1;
+    {18}if (sn_p1_1 = sn_owner_1) then
+    (
+        {19}out(att, (bound_const,pre_app1));
+        {20}in(att, (sn_p_1: bitstring,(encryption_key_c_1: bitstring,=pre_app1)));
+        {21}if ((sn_1 = sn_p_1) && (encryption_key_1 = encryption_key_c_1)) then
+        {22}event StepsEnd2;
+        {23}new secure_param_1: bitstring;
+        {24}event SendSecureParam(secure_param_1);
+        {25}out(att, (secure_param_1,pre_app1));
+        {26}let privacy_key_1: bitstring = kdf2(encryption_key_1,privacy_const) in
+        {27}let id_1: bitstring = get_id(privacy_key_1,secure_param_1,secure_param_1,secure_param_1) in
+        {28}out(sec_ch_1, (id_1,id_s))
+    )
+    else
+        {29}out(att, (unbound_const,pre_app1));
+        {30}in(att, (sn_p_2: bitstring,(encryption_key_c_2: bitstring,=pre_app1)));
+        {31}if ((sn_1 = sn_p_2) && (encryption_key_1 = encryption_key_c_2)) then
+        {32}event StepsEnd2;
+        {33}new secure_param_2: bitstring;
+        {34}event SendSecureParam(secure_param_2);
+        {35}out(att, (secure_param_2,pre_app1));
+        {36}let privacy_key_2: bitstring = kdf2(encryption_key_1,privacy_const) in
+        {37}let id_2: bitstring = get_id(privacy_key_2,secure_param_2,secure_param_2,secure_param_2) in
+        {38}out(sec_ch_1, (id_2,id_s))
+) | (
+    {39}!
+    (
+        {40}in(att, (hashed_sn_p: bitstring,=open_ch));
+        {41}new rand: bitstring;
+        {42}out(att, (hashed_sn_p,(rand,pre_app1)));
+        {43}in(att, (encryption_key: bitstring,(pub_c: bitstring,=pre_app1)));
+        {44}event ReceivePubKey(sec_ch_1,pub_c);
+        {45}out(att, (rand,(pub_c,open_ch)));
+        {46}let auth_key_1: bitstring = kdf2(encryption_key,bleAuthentication_const) in
+        {47}new n1_1: bitstring;
+        {48}out(att, (n1_1,open_ch));
+        {49}in(att, (n2_1: bitstring,=open_ch));
+        {50}let encrypted_nonce1_1: bitstring = AES_enc(smartthings_const,auth_key_1,n2_1) in
+        {51}out(att, (encrypted_nonce1_1,open_ch));
+        {52}in(att, (encrypted_nonce2_1: bitstring,=open_ch));
+        {53}let dec_mes_2_1: bitstring = AES_dec(encrypted_nonce2_1,auth_key_1,n1_1) in
+        {54}event StepcEnd1;
+        {55}let =smartthings_const = dec_mes_2_1 in
+        {56}let link_key_1: bitstring = kdf2(encryption_key,n2_1) in
+        {57}in(att, (encrypted_sn_p1_1: bitstring,=open_ch));
+        {58}let sn_p1: bitstring = AES_dec(encrypted_sn_p1_1,link_key_1,n2_1) in
+        {59}event ReceiveSn(sn_p1,encrypted_sn_p1_1);
+        {60}out(att, (sn_p1,pre_app1));
+        {61}in(att, (encrypted_sn_p_1: bitstring,=open_ch));
+        {62}let sn_p: bitstring = AES_dec(encrypted_sn_p_1,link_key_1,n2_1) in
+        {63}event ReceiveSn(sn_p,encrypted_sn_p_1);
+        {64}out(att, (sn_p,(encryption_key,pre_app1)));
+        {65}in(att, (isbound_1: bitstring,=pre_app1));
+        {66}if (isbound_1 = unbound_const) then
+        {67}in(att, (secure_param: bitstring,=pre_app1));
+        {68}event ReceiveSecureParam(secure_param);
+        {69}let encrypted_param_1: bitstring = AES_enc(secure_param,link_key_1,n2_1) in
+        {70}out(att, (encrypted_param_1,open_ch));
+        {71}let privacy_key: bitstring = kdf2(encryption_key,privacy_const) in
+        {72}let id: bitstring = get_id(privacy_key,secure_param,secure_param,secure_param) in
+        {73}event StepcEnd2
+    ) | (
+        {74}!
+        (
+            {75}let sn: bitstring = serial_number_const in
+            {76}out(sec_ch_1, (sn,sn_owner));
+            {77}let hashed_sn_1: bitstring = derive_hashed_sn(sn) in
+            {78}let pri_p: bitstring = kdf1(sn) in
+            {79}let pub_p: bitstring = exp(g,pri_p) in
+            {80}out(att, (hashed_sn_1,open_ch));
+            {81}in(att, (rand_2: bitstring,(pub_c_2: bitstring,=open_ch)));
+            {82}let dhkey_CP_1: bitstring = exp(pub_c_2,pri_p) in
+            {83}let encryption_key_2: bitstring = derive_encryption_key(dhkey_CP_1,rand_2) in
+            {84}let auth_key: bitstring = kdf2(encryption_key_2,bleAuthentication_const) in
+            {85}new n2: bitstring;
+            {86}out(att, (n2,open_ch));
+            {87}in(att, (n1: bitstring,=open_ch));
+            {88}let encrypted_nonce2: bitstring = AES_enc(smartthings_const,auth_key,n1) in
+            {89}out(att, (encrypted_nonce2,open_ch));
+            {90}in(att, (encrypted_nonce1: bitstring,=open_ch));
+            {91}let dec_mes_1_1: bitstring = AES_dec(encrypted_nonce1,auth_key,n2) in
+            {92}event SteppEnd1;
+            {93}let =smartthings_const = dec_mes_1_1 in
+            {94}let link_key: bitstring = kdf2(encryption_key_2,n2) in
+            {95}let encrypted_sn_p: bitstring = AES_enc(sn,link_key,n2) in
+            {96}event SendSn(encrypted_sn_p);
+            {97}out(att, (encrypted_sn_p,open_ch));
+            {98}out(att, (encrypted_sn_p,open_ch));
+            {99}in(att, (encrypted_param: bitstring,=open_ch));
+            {100}let secure_param_3: bitstring = AES_dec(encrypted_param,link_key,n2) in
+            {101}let privacy_key_3: bitstring = kdf2(encryption_key_2,privacy_const) in
+            {102}let id_3: bitstring = get_id(privacy_key_3,secure_param_3,secure_param_3,secure_param_3) in
+            {103}out(sec_ch_1, (id_3,(sn,id_p)));
+            {104}event SteppEnd2
+        ) | (
+            {105}!
+            {106}in(sec_ch_1, (id_s_1: bitstring,=id_s));
+            {107}in(sec_ch_1, (id_p_1: bitstring,(sn_2: bitstring,=id_p)));
+            {108}let =id_s_1 = id_p_1 in
+            {109}event PairSuccess(sn_2)
+        )
+    )
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}new sec_ch_1: channel;
+{2}!
+(
+    {3}in(sec_ch_1, (sn_owner_1: bitstring,=sn_owner));
+    {4}event Bounded(sn_owner_1);
+    {6}in(att, (hashed_sn_p_1: bitstring,(rand_1: bitstring,=pre_app1)));
+    {7}let sn_1: bitstring = hash_table(hashed_sn_p_1) in
+    {10}new pri_c_1: bitstring;
+    {11}let pub_c_1: bitstring = exp(g,pri_c_1) in
+    {14}event SendPubkey(sec_ch_1,pri_c_1,pub_c_1);
+    {8}let pri_p_1: bitstring = kdf1(sn_1) in
+    {9}let pub_p_1: bitstring = exp(g,pri_p_1) in
+    {12}let dhkey_PC_1: bitstring = exp(pub_p_1,pri_c_1) in
+    {13}let encryption_key_1: bitstring = derive_encryption_key(dhkey_PC_1,rand_1) in
+    {15}out(att, (encryption_key_1,(pub_c_1,pre_app1)));
+    {16}in(att, (sn_p1_1: bitstring,=pre_app1));
+    {17}event StepsEnd1;
+    {18}if (sn_p1_1 = sn_owner_1) then
+    (
+        {19}out(att, (bound_const,pre_app1));
+        {20}in(att, (sn_p_1: bitstring,(encryption_key_c_1: bitstring,=pre_app1)));
+        {21}if ((sn_1 = sn_p_1) && (encryption_key_1 = encryption_key_c_1)) then
+        {22}event StepsEnd2;
+        {23}new secure_param_1: bitstring;
+        {24}event SendSecureParam(secure_param_1);
+        {25}out(att, (secure_param_1,pre_app1));
+        {26}let privacy_key_1: bitstring = kdf2(encryption_key_1,privacy_const) in
+        {27}let id_1: bitstring = get_id(privacy_key_1,secure_param_1,secure_param_1,secure_param_1) in
+        {28}out(sec_ch_1, (id_1,id_s))
+    )
+    else
+        {29}out(att, (unbound_const,pre_app1));
+        {30}in(att, (sn_p_2: bitstring,(encryption_key_c_2: bitstring,=pre_app1)));
+        {31}if ((sn_1 = sn_p_2) && (encryption_key_1 = encryption_key_c_2)) then
+        {32}event StepsEnd2;
+        {33}new secure_param_2: bitstring;
+        {34}event SendSecureParam(secure_param_2);
+        {35}out(att, (secure_param_2,pre_app1));
+        {36}let privacy_key_2: bitstring = kdf2(encryption_key_1,privacy_const) in
+        {37}let id_2: bitstring = get_id(privacy_key_2,secure_param_2,secure_param_2,secure_param_2) in
+        {38}out(sec_ch_1, (id_2,id_s))
+) | (
+    {39}!
+    (
+        {40}in(att, (hashed_sn_p: bitstring,=open_ch));
+        {41}new rand: bitstring;
+        {42}out(att, (hashed_sn_p,(rand,pre_app1)));
+        {43}in(att, (encryption_key: bitstring,(pub_c: bitstring,=pre_app1)));
+        {44}event ReceivePubKey(sec_ch_1,pub_c);
+        {45}out(att, (rand,(pub_c,open_ch)));
+        {47}new n1_1: bitstring;
+        {48}out(att, (n1_1,open_ch));
+        {49}in(att, (n2_1: bitstring,=open_ch));
+        {46}let auth_key_1: bitstring = kdf2(encryption_key,bleAuthentication_const) in
+        {50}let encrypted_nonce1_1: bitstring = AES_enc(smartthings_const,auth_key_1,n2_1) in
+        {51}out(att, (encrypted_nonce1_1,open_ch));
+        {52}in(att, (encrypted_nonce2_1: bitstring,=open_ch));
+        {53}let dec_mes_2_1: bitstring = AES_dec(encrypted_nonce2_1,auth_key_1,n1_1) in
+        {54}event StepcEnd1;
+        {55}let =smartthings_const = dec_mes_2_1 in
+        {57}in(att, (encrypted_sn_p1_1: bitstring,=open_ch));
+        {56}let link_key_1: bitstring = kdf2(encryption_key,n2_1) in
+        {58}let sn_p1: bitstring = AES_dec(encrypted_sn_p1_1,link_key_1,n2_1) in
+        {59}event ReceiveSn(sn_p1,encrypted_sn_p1_1);
+        {60}out(att, (sn_p1,pre_app1));
+        {61}in(att, (encrypted_sn_p_1: bitstring,=open_ch));
+        {62}let sn_p: bitstring = AES_dec(encrypted_sn_p_1,link_key_1,n2_1) in
+        {63}event ReceiveSn(sn_p,encrypted_sn_p_1);
+        {64}out(att, (sn_p,(encryption_key,pre_app1)));
+        {65}in(att, (isbound_1: bitstring,=pre_app1));
+        {66}if (isbound_1 = unbound_const) then
+        {67}in(att, (secure_param: bitstring,=pre_app1));
+        {68}event ReceiveSecureParam(secure_param);
+        {69}let encrypted_param_1: bitstring = AES_enc(secure_param,link_key_1,n2_1) in
+        {70}out(att, (encrypted_param_1,open_ch));
+        {73}event StepcEnd2
+    ) | (
+        {74}!
+        (
+            {75}let sn: bitstring = serial_number_const in
+            {76}out(sec_ch_1, (sn,sn_owner));
+            {77}let hashed_sn_1: bitstring = derive_hashed_sn(sn) in
+            {80}out(att, (hashed_sn_1,open_ch));
+            {81}in(att, (rand_2: bitstring,(pub_c_2: bitstring,=open_ch)));
+            {85}new n2: bitstring;
+            {86}out(att, (n2,open_ch));
+            {87}in(att, (n1: bitstring,=open_ch));
+            {78}let pri_p: bitstring = kdf1(sn) in
+            {82}let dhkey_CP_1: bitstring = exp(pub_c_2,pri_p) in
+            {83}let encryption_key_2: bitstring = derive_encryption_key(dhkey_CP_1,rand_2) in
+            {84}let auth_key: bitstring = kdf2(encryption_key_2,bleAuthentication_const) in
+            {88}let encrypted_nonce2: bitstring = AES_enc(smartthings_const,auth_key,n1) in
+            {89}out(att, (encrypted_nonce2,open_ch));
+            {90}in(att, (encrypted_nonce1: bitstring,=open_ch));
+            {91}let dec_mes_1_1: bitstring = AES_dec(encrypted_nonce1,auth_key,n2) in
+            {92}event SteppEnd1;
+            {93}let =smartthings_const = dec_mes_1_1 in
+            {94}let link_key: bitstring = kdf2(encryption_key_2,n2) in
+            {95}let encrypted_sn_p: bitstring = AES_enc(sn,link_key,n2) in
+            {96}event SendSn(encrypted_sn_p);
+            {97}out(att, (encrypted_sn_p,open_ch));
+            {98}out(att, (encrypted_sn_p,open_ch));
+            {99}in(att, (encrypted_param: bitstring,=open_ch));
+            {100}let secure_param_3: bitstring = AES_dec(encrypted_param,link_key,n2) in
+            {101}let privacy_key_3: bitstring = kdf2(encryption_key_2,privacy_const) in
+            {102}let id_3: bitstring = get_id(privacy_key_3,secure_param_3,secure_param_3,secure_param_3) in
+            {103}out(sec_ch_1, (id_3,(sn,id_p)));
+            {104}event SteppEnd2
+        ) | (
+            {105}!
+            {106}in(sec_ch_1, (id_s_1: bitstring,=id_s));
+            {107}in(sec_ch_1, (id_p_1: bitstring,(sn_2: bitstring,=id_p)));
+            {108}let =id_s_1 = id_p_1 in
+            {109}event PairSuccess(sn_2)
+        )
+    )
+)
+
+-- Query not (event(PairSuccess(sn_3)) && event(Bounded(sn_3))) in process 1.
+Translating the process into Horn clauses...
+Completing...
+200 rules inserted. Base: 145 rules (52 with conclusion selected). Queue: 8 rules.
+Starting query not (event(PairSuccess(sn_3)) && event(Bounded(sn_3)))
+goal reachable: sn_p1_2 ≠ serial_number_const && begin(@p_act(@occ99_1,(AES_enc(secure_param_4,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),n2_2),n2_2),open_ch[]))) && begin(@p_act(@occ90_1,(AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),bleAuthentication_const),n2_2),open_ch[]))) && attacker(n1_2) && begin(@p_act(@occ87_1,(n1_2,open_ch[]))) && begin(@p_act(@occ81_1,(rand_3,(exp(g,pri_c),open_ch[])))) && begin(@p_act(@occ107_1,(get_id(kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),privacy_const),secure_param_4,secure_param_4,secure_param_4),(serial_number_const,id_p[])))) && begin(@p_act(@occ30_1,(serial_number_const,(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),pre_app1[])))) && attacker(sn_p1_2) && begin(@p_act(@occ16_1,(sn_p1_2,pre_app1[]))) && attacker(rand_3) && begin(@p_act(@occ6_1,(derive_hashed_sn(serial_number_const),(rand_3,pre_app1[])))) && begin(@p_act(@occ106_1,(get_id(kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),privacy_const),secure_param_4,secure_param_4,secure_param_4),id_s[]))) && begin(@p_act(@occ3_1,(serial_number_const,sn_owner[]))) -> end(PairSuccess(serial_number_const)) && end(Bounded(serial_number_const))
+Abbreviations:
+@occ99_1 = @occ99[!3 = @sid,!2 = @sid_1,!1 = @sid_2]
+pri_c = pri_c_1[rand_1 = rand_3,hashed_sn_p_1 = derive_hashed_sn(serial_number_const),sn_owner_1 = serial_number_const,!1 = @sid_3]
+secure_param_4 = secure_param_2[encryption_key_c_2 = derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),sn_p_2 = serial_number_const,sn_p1_1 = sn_p1_2,rand_1 = rand_3,hashed_sn_p_1 = derive_hashed_sn(serial_number_const),sn_owner_1 = serial_number_const,!1 = @sid_3]
+n2_2 = n2[pub_c_2 = exp(g,pri_c),rand_2 = rand_3,!3 = @sid,!2 = @sid_1,!1 = @sid_2]
+@occ90_1 = @occ90[!3 = @sid,!2 = @sid_1,!1 = @sid_2]
+@occ87_1 = @occ87[!3 = @sid,!2 = @sid_1,!1 = @sid_2]
+@occ81_1 = @occ81[!3 = @sid,!2 = @sid_1,!1 = @sid_2]
+@occ107_1 = @occ107[!4 = @sid_4,!3 = @sid_5,!2 = @sid_6,!1 = @sid_7]
+@occ30_1 = @occ30[!1 = @sid_3]
+@occ16_1 = @occ16[!1 = @sid_3]
+@occ6_1 = @occ6[!1 = @sid_3]
+@occ106_1 = @occ106[!4 = @sid_4,!3 = @sid_5,!2 = @sid_6,!1 = @sid_7]
+@occ3_1 = @occ3[!1 = @sid_3]
+
+Derivation:
+Abbreviations:
+pri_c = pri_c_1[rand_1 = rand_3,hashed_sn_p_1 = derive_hashed_sn(serial_number_const),sn_owner_1 = serial_number_const,!1 = @sid]
+secure_param_4 = secure_param_2[encryption_key_c_2 = derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),sn_p_2 = serial_number_const,sn_p1_1 = sn_p1_2,rand_1 = rand_3,hashed_sn_p_1 = derive_hashed_sn(serial_number_const),sn_owner_1 = serial_number_const,!1 = @sid]
+n2_2 = n2[pub_c_2 = exp(g,pri_c),rand_2 = rand_3,!3 = @sid_1,!2 = @sid_2,!1 = @sid_3]
+@occ30_1 = @occ30[!1 = @sid]
+@occ16_1 = @occ16[!1 = @sid]
+@occ6_1 = @occ6[!1 = @sid]
+@occ3_1 = @occ3[!1 = @sid]
+@occ99_1 = @occ99[!3 = @sid_1,!2 = @sid_2,!1 = @sid_3]
+@occ81_1 = @occ81[!3 = @sid_1,!2 = @sid_2,!1 = @sid_3]
+@occ90_1 = @occ90[!3 = @sid_1,!2 = @sid_2,!1 = @sid_3]
+@occ87_1 = @occ87[!3 = @sid_1,!2 = @sid_2,!1 = @sid_3]
+@occ107_1 = @occ107[!4 = @sid_4,!3 = @sid_5,!2 = @sid_6,!1 = @sid_7]
+@occ106_1 = @occ106[!4 = @sid_4,!3 = @sid_5,!2 = @sid_6,!1 = @sid_7]
+
+1. The message (serial_number_const,sn_owner[]) may be sent on channel sec_ch_1[] at output {76}.
+mess(sec_ch_1[],(serial_number_const,sn_owner[])).
+
+2. The event @p_act(@occ3_1,(serial_number_const,sn_owner[])) records how variables are instantiated at {3}.
+The message (serial_number_const,sn_owner[]) that may be sent on channel sec_ch_1[] by 1 may be received at input {3}.
+So event Bounded(serial_number_const) may be executed at {4}.
+end(Bounded(serial_number_const)).
+
+3. The message (serial_number_const,sn_owner[]) may be sent on channel sec_ch_1[] at output {76}.
+mess(sec_ch_1[],(serial_number_const,sn_owner[])).
+
+4. The attacker initially knows pre_app1[].
+attacker(pre_app1[]).
+
+5. We assume as hypothesis that
+attacker(rand_3).
+
+6. By 5, the attacker may know rand_3.
+By 4, the attacker may know pre_app1[].
+Using the function 2-tuple the attacker may obtain (rand_3,pre_app1[]).
+attacker((rand_3,pre_app1[])).
+
+7. Using the function serial_number_const the attacker may obtain serial_number_const.
+attacker(serial_number_const).
+
+8. By 7, the attacker may know serial_number_const.
+Using the function derive_hashed_sn the attacker may obtain derive_hashed_sn(serial_number_const).
+attacker(derive_hashed_sn(serial_number_const)).
+
+9. By 8, the attacker may know derive_hashed_sn(serial_number_const).
+By 6, the attacker may know (rand_3,pre_app1[]).
+Using the function 2-tuple the attacker may obtain (derive_hashed_sn(serial_number_const),(rand_3,pre_app1[])).
+attacker((derive_hashed_sn(serial_number_const),(rand_3,pre_app1[]))).
+
+10. We assume as hypothesis that
+attacker(sn_p1_2).
+
+11. By 10, the attacker may know sn_p1_2.
+By 4, the attacker may know pre_app1[].
+Using the function 2-tuple the attacker may obtain (sn_p1_2,pre_app1[]).
+attacker((sn_p1_2,pre_app1[])).
+
+12. By 7, the attacker may know serial_number_const.
+Using the function kdf1 the attacker may obtain kdf1(serial_number_const).
+attacker(kdf1(serial_number_const)).
+
+13. The message (serial_number_const,sn_owner[]) may be sent on channel sec_ch_1[] at output {76}.
+mess(sec_ch_1[],(serial_number_const,sn_owner[])).
+
+14. The event @p_act(@occ3_1,(serial_number_const,sn_owner[])) records how variables are instantiated at {3}.
+The message (serial_number_const,sn_owner[]) that may be sent on channel sec_ch_1[] by 13 may be received at input {3}.
+The event @p_act(@occ6_1,(derive_hashed_sn(serial_number_const),(rand_3,pre_app1[]))) records how variables are instantiated at {6}.
+The message (derive_hashed_sn(serial_number_const),(rand_3,pre_app1[])) that the attacker may have by 9 may be received at input {6}.
+So the message (derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),(exp(g,pri_c),pre_app1[])) may be sent to the attacker at output {15}.
+attacker((derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),(exp(g,pri_c),pre_app1[]))).
+
+15. By 14, the attacker may know (derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),(exp(g,pri_c),pre_app1[])).
+Using the function 2-proj-2-tuple the attacker may obtain (exp(g,pri_c),pre_app1[]).
+attacker((exp(g,pri_c),pre_app1[])).
+
+16. By 15, the attacker may know (exp(g,pri_c),pre_app1[]).
+Using the function 1-proj-2-tuple the attacker may obtain exp(g,pri_c).
+attacker(exp(g,pri_c)).
+
+17. By 16, the attacker may know exp(g,pri_c).
+By 12, the attacker may know kdf1(serial_number_const).
+Using the function exp the attacker may obtain exp(exp(g,pri_c),kdf1(serial_number_const)).
+attacker(exp(exp(g,pri_c),kdf1(serial_number_const))).
+
+18. By 17, the attacker may know exp(exp(g,pri_c),kdf1(serial_number_const)).
+By 5, the attacker may know rand_3.
+Using the function derive_encryption_key the attacker may obtain derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3).
+attacker(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3)).
+
+19. By 18, the attacker may know derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3).
+By 4, the attacker may know pre_app1[].
+Using the function 2-tuple the attacker may obtain (derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),pre_app1[]).
+attacker((derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),pre_app1[])).
+
+20. By 7, the attacker may know serial_number_const.
+By 19, the attacker may know (derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),pre_app1[]).
+Using the function 2-tuple the attacker may obtain (serial_number_const,(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),pre_app1[])).
+attacker((serial_number_const,(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),pre_app1[]))).
+
+21. The event @p_act(@occ3_1,(serial_number_const,sn_owner[])) records how variables are instantiated at {3}.
+The message (serial_number_const,sn_owner[]) that may be sent on channel sec_ch_1[] by 3 may be received at input {3}.
+The event @p_act(@occ6_1,(derive_hashed_sn(serial_number_const),(rand_3,pre_app1[]))) records how variables are instantiated at {6}.
+The message (derive_hashed_sn(serial_number_const),(rand_3,pre_app1[])) that the attacker may have by 9 may be received at input {6}.
+The event @p_act(@occ16_1,(sn_p1_2,pre_app1[])) records how variables are instantiated at {16}.
+The message (sn_p1_2,pre_app1[]) that the attacker may have by 11 may be received at input {16}.
+The event @p_act(@occ30_1,(serial_number_const,(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),pre_app1[]))) records how variables are instantiated at {30}.
+The message (serial_number_const,(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),pre_app1[])) that the attacker may have by 20 may be received at input {30}.
+We have sn_p1_2 ≠ serial_number_const.
+So the message (get_id(kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),privacy_const),secure_param_4,secure_param_4,secure_param_4),id_s[]) may be sent on channel sec_ch_1[] at output {38}.
+mess(sec_ch_1[],(get_id(kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),privacy_const),secure_param_4,secure_param_4,secure_param_4),id_s[])).
+
+22. The attacker initially knows open_ch[].
+attacker(open_ch[]).
+
+23. By 16, the attacker may know exp(g,pri_c).
+By 22, the attacker may know open_ch[].
+Using the function 2-tuple the attacker may obtain (exp(g,pri_c),open_ch[]).
+attacker((exp(g,pri_c),open_ch[])).
+
+24. By 5, the attacker may know rand_3.
+By 23, the attacker may know (exp(g,pri_c),open_ch[]).
+Using the function 2-tuple the attacker may obtain (rand_3,(exp(g,pri_c),open_ch[])).
+attacker((rand_3,(exp(g,pri_c),open_ch[]))).
+
+25. We assume as hypothesis that
+attacker(n1_2).
+
+26. By 25, the attacker may know n1_2.
+By 22, the attacker may know open_ch[].
+Using the function 2-tuple the attacker may obtain (n1_2,open_ch[]).
+attacker((n1_2,open_ch[])).
+
+27. The event @p_act(@occ81_1,(rand_3,(exp(g,pri_c),open_ch[]))) records how variables are instantiated at {81}.
+The message (rand_3,(exp(g,pri_c),open_ch[])) that the attacker may have by 24 may be received at input {81}.
+So the message (n2_2,open_ch[]) may be sent to the attacker at output {86}.
+attacker((n2_2,open_ch[])).
+
+28. By 27, the attacker may know (n2_2,open_ch[]).
+Using the function 1-proj-2-tuple the attacker may obtain n2_2.
+attacker(n2_2).
+
+29. Using the function bleAuthentication_const the attacker may obtain bleAuthentication_const.
+attacker(bleAuthentication_const).
+
+30. By 18, the attacker may know derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3).
+By 29, the attacker may know bleAuthentication_const.
+Using the function kdf2 the attacker may obtain kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),bleAuthentication_const).
+attacker(kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),bleAuthentication_const)).
+
+31. Using the function smartthings_const the attacker may obtain smartthings_const.
+attacker(smartthings_const).
+
+32. By 31, the attacker may know smartthings_const.
+By 30, the attacker may know kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),bleAuthentication_const).
+By 28, the attacker may know n2_2.
+Using the function AES_enc the attacker may obtain AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),bleAuthentication_const),n2_2).
+attacker(AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),bleAuthentication_const),n2_2)).
+
+33. By 32, the attacker may know AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),bleAuthentication_const),n2_2).
+By 22, the attacker may know open_ch[].
+Using the function 2-tuple the attacker may obtain (AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),bleAuthentication_const),n2_2),open_ch[]).
+attacker((AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),bleAuthentication_const),n2_2),open_ch[])).
+
+34. By 18, the attacker may know derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3).
+By 28, the attacker may know n2_2.
+Using the function kdf2 the attacker may obtain kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),n2_2).
+attacker(kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),n2_2)).
+
+35. The message (serial_number_const,sn_owner[]) may be sent on channel sec_ch_1[] at output {76}.
+mess(sec_ch_1[],(serial_number_const,sn_owner[])).
+
+36. The event @p_act(@occ3_1,(serial_number_const,sn_owner[])) records how variables are instantiated at {3}.
+The message (serial_number_const,sn_owner[]) that may be sent on channel sec_ch_1[] by 35 may be received at input {3}.
+The event @p_act(@occ6_1,(derive_hashed_sn(serial_number_const),(rand_3,pre_app1[]))) records how variables are instantiated at {6}.
+The message (derive_hashed_sn(serial_number_const),(rand_3,pre_app1[])) that the attacker may have by 9 may be received at input {6}.
+The event @p_act(@occ16_1,(sn_p1_2,pre_app1[])) records how variables are instantiated at {16}.
+The message (sn_p1_2,pre_app1[]) that the attacker may have by 11 may be received at input {16}.
+The event @p_act(@occ30_1,(serial_number_const,(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),pre_app1[]))) records how variables are instantiated at {30}.
+The message (serial_number_const,(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),pre_app1[])) that the attacker may have by 20 may be received at input {30}.
+We have sn_p1_2 ≠ serial_number_const.
+So the message (secure_param_4,pre_app1[]) may be sent to the attacker at output {35}.
+attacker((secure_param_4,pre_app1[])).
+
+37. By 36, the attacker may know (secure_param_4,pre_app1[]).
+Using the function 1-proj-2-tuple the attacker may obtain secure_param_4.
+attacker(secure_param_4).
+
+38. By 37, the attacker may know secure_param_4.
+By 34, the attacker may know kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),n2_2).
+By 28, the attacker may know n2_2.
+Using the function AES_enc the attacker may obtain AES_enc(secure_param_4,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),n2_2),n2_2).
+attacker(AES_enc(secure_param_4,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),n2_2),n2_2)).
+
+39. By 38, the attacker may know AES_enc(secure_param_4,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),n2_2),n2_2).
+By 22, the attacker may know open_ch[].
+Using the function 2-tuple the attacker may obtain (AES_enc(secure_param_4,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),n2_2),n2_2),open_ch[]).
+attacker((AES_enc(secure_param_4,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),n2_2),n2_2),open_ch[])).
+
+40. The event @p_act(@occ81_1,(rand_3,(exp(g,pri_c),open_ch[]))) records how variables are instantiated at {81}.
+The message (rand_3,(exp(g,pri_c),open_ch[])) that the attacker may have by 24 may be received at input {81}.
+The event @p_act(@occ87_1,(n1_2,open_ch[])) records how variables are instantiated at {87}.
+The message (n1_2,open_ch[]) that the attacker may have by 26 may be received at input {87}.
+The event @p_act(@occ90_1,(AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),bleAuthentication_const),n2_2),open_ch[])) records how variables are instantiated at {90}.
+The message (AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),bleAuthentication_const),n2_2),open_ch[]) that the attacker may have by 33 may be received at input {90}.
+The event @p_act(@occ99_1,(AES_enc(secure_param_4,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),n2_2),n2_2),open_ch[])) records how variables are instantiated at {99}.
+The message (AES_enc(secure_param_4,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),n2_2),n2_2),open_ch[]) that the attacker may have by 39 may be received at input {99}.
+So the message (get_id(kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),privacy_const),secure_param_4,secure_param_4,secure_param_4),(serial_number_const,id_p[])) may be sent on channel sec_ch_1[] at output {103}.
+mess(sec_ch_1[],(get_id(kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),privacy_const),secure_param_4,secure_param_4,secure_param_4),(serial_number_const,id_p[]))).
+
+41. The event @p_act(@occ106_1,(get_id(kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),privacy_const),secure_param_4,secure_param_4,secure_param_4),id_s[])) records how variables are instantiated at {106}.
+The message (get_id(kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),privacy_const),secure_param_4,secure_param_4,secure_param_4),id_s[]) that may be sent on channel sec_ch_1[] by 21 may be received at input {106}.
+The event @p_act(@occ107_1,(get_id(kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),privacy_const),secure_param_4,secure_param_4,secure_param_4),(serial_number_const,id_p[]))) records how variables are instantiated at {107}.
+The message (get_id(kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),rand_3),privacy_const),secure_param_4,secure_param_4,secure_param_4),(serial_number_const,id_p[])) that may be sent on channel sec_ch_1[] by 40 may be received at input {107}.
+So event PairSuccess(serial_number_const) may be executed at {109}.
+end(PairSuccess(serial_number_const)).
+
+42. By 41, end(PairSuccess(serial_number_const)).
+By 2, end(Bounded(serial_number_const)).
+The goals are reached, combined in the following fact:
+end(PairSuccess(serial_number_const)) && end(Bounded(serial_number_const)).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+new sec_ch_1: channel creating sec_ch at {1}
+
+out(sec_ch, (serial_number_const,sn_owner)) at {76} in copy a, a_1, a_2 received at {3} in copy a
+
+out(att, (~M,~M_1)) with ~M = derive_hashed_sn(serial_number_const), ~M_1 = open_ch at {80} in copy a, a_1, a_2
+
+event Bounded(serial_number_const) at {4} in copy a (goal)
+
+out(sec_ch, (serial_number_const,sn_owner)) at {76} in copy a_3, a_4, a_5 received at {3} in copy a_3
+
+out(att, (~M_2,~M_3)) with ~M_2 = derive_hashed_sn(serial_number_const), ~M_3 = open_ch at {80} in copy a_3, a_4, a_5
+
+event Bounded(serial_number_const) at {4} in copy a_3
+
+out(sec_ch, (serial_number_const,sn_owner)) at {76} in copy a_6, a_7, a_8 received at {3} in copy a_6
+
+out(att, (~M_4,~M_5)) with ~M_4 = derive_hashed_sn(serial_number_const), ~M_5 = open_ch at {80} in copy a_6, a_7, a_8
+
+event Bounded(serial_number_const) at {4} in copy a_6
+
+out(sec_ch, (serial_number_const,sn_owner)) at {76} in copy a_9, a_10, a_11 received at {3} in copy a_9
+
+out(att, (~M_6,~M_7)) with ~M_6 = derive_hashed_sn(serial_number_const), ~M_7 = open_ch at {80} in copy a_9, a_10, a_11
+
+event Bounded(serial_number_const) at {4} in copy a_9
+
+out(sec_ch, (serial_number_const,sn_owner)) at {76} in copy a_12, a_13, a_14 received at {3} in copy a_12
+
+out(att, (~M_8,~M_9)) with ~M_8 = derive_hashed_sn(serial_number_const), ~M_9 = open_ch at {80} in copy a_12, a_13, a_14
+
+event Bounded(serial_number_const) at {4} in copy a_12
+
+out(sec_ch, (serial_number_const,sn_owner)) at {76} in copy a_15, a_16, a_17 received at {3} in copy a_18
+
+event Bounded(serial_number_const) at {4} in copy a_18
+
+out(att, (~M_10,~M_11)) with ~M_10 = derive_hashed_sn(serial_number_const), ~M_11 = open_ch at {80} in copy a_15, a_16, a_17
+
+in(att, (derive_hashed_sn(serial_number_const),(a_19,pre_app1))) at {6} in copy a_18
+
+new pri_c_1: bitstring creating pri_c at {10} in copy a_18
+
+event SendPubkey(sec_ch,pri_c,exp(g,pri_c)) at {14} in copy a_18
+
+out(att, (~M_12,(~M_13,~M_14))) with ~M_12 = derive_encryption_key(exp(exp(g,kdf1(serial_number_const)),pri_c),a_19), ~M_13 = exp(g,pri_c), ~M_14 = pre_app1 at {15} in copy a_18
+
+in(att, (a_19,(~M_13,open_ch))) with ~M_13 = exp(g,pri_c) at {81} in copy a_3, a_4, a_5
+
+new n2: bitstring creating n2_2 at {85} in copy a_3, a_4, a_5
+
+out(att, (~M_15,~M_16)) with ~M_15 = n2_2, ~M_16 = open_ch at {86} in copy a_3, a_4, a_5
+
+in(att, (a_20,open_ch)) at {87} in copy a_3, a_4, a_5
+
+out(att, (~M_17,~M_18)) with ~M_17 = AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),a_19),bleAuthentication_const),a_20), ~M_18 = open_ch at {89} in copy a_3, a_4, a_5
+
+in(att, (AES_enc(smartthings_const,kdf2(~M_12,bleAuthentication_const),~M_15),open_ch)) with AES_enc(smartthings_const,kdf2(~M_12,bleAuthentication_const),~M_15) = AES_enc(smartthings_const,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),a_19),bleAuthentication_const),n2_2) at {90} in copy a_3, a_4, a_5
+
+event SteppEnd1 at {92} in copy a_3, a_4, a_5
+
+event SendSn(AES_enc(serial_number_const,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),a_19),n2_2),n2_2)) at {96} in copy a_3, a_4, a_5
+
+out(att, (~M_19,~M_20)) with ~M_19 = AES_enc(serial_number_const,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),a_19),n2_2),n2_2), ~M_20 = open_ch at {97} in copy a_3, a_4, a_5
+
+out(att, (~M_21,~M_22)) with ~M_21 = AES_enc(serial_number_const,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),a_19),n2_2),n2_2), ~M_22 = open_ch at {98} in copy a_3, a_4, a_5
+
+in(att, (a_21,pre_app1)) at {16} in copy a_18
+
+event StepsEnd1 at {17} in copy a_18
+
+out(att, (~M_23,~M_24)) with ~M_23 = unbound_const, ~M_24 = pre_app1 at {29} in copy a_18
+
+in(att, (serial_number_const,(~M_12,pre_app1))) with ~M_12 = derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),a_19) at {30} in copy a_18
+
+event StepsEnd2 at {32} in copy a_18
+
+new secure_param_2: bitstring creating secure_param_4 at {33} in copy a_18
+
+event SendSecureParam(secure_param_4) at {34} in copy a_18
+
+out(att, (~M_25,~M_26)) with ~M_25 = secure_param_4, ~M_26 = pre_app1 at {35} in copy a_18
+
+in(att, (AES_enc(~M_25,kdf2(~M_12,~M_15),~M_15),open_ch)) with AES_enc(~M_25,kdf2(~M_12,~M_15),~M_15) = AES_enc(secure_param_4,kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),a_19),n2_2),n2_2) at {99} in copy a_3, a_4, a_5
+
+out(sec_ch, (get_id(kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),a_19),privacy_const),secure_param_4,secure_param_4,secure_param_4),id_s)) at {38} in copy a_18 received at {106} in copy a_12, a_13, a_14, a_22
+
+out(sec_ch, (get_id(kdf2(derive_encryption_key(exp(exp(g,pri_c),kdf1(serial_number_const)),a_19),privacy_const),secure_param_4,secure_param_4,secure_param_4),(serial_number_const,id_p))) at {103} in copy a_3, a_4, a_5 received at {107} in copy a_12, a_13, a_14, a_22
+
+event PairSuccess(serial_number_const) at {109} in copy a_12, a_13, a_14, a_22 (goal)
+
+The event PairSuccess(serial_number_const) is executed at {109} in copy a_12, a_13, a_14, a_22.
+The event Bounded(serial_number_const) is executed at {4} in copy a.
+A trace has been found.
+RESULT not (event(PairSuccess(sn_3)) && event(Bounded(sn_3))) is false.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query not (event(PairSuccess(sn_3)) && event(Bounded(sn_3))) is false.
+
+--------------------------------------------------------------
+

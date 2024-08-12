@@ -1,0 +1,14 @@
+[1m[30mDeepSec - DEciding Equivalence Properties for SECurity protocols[0m
+    Version: 2.0.2
+    Git hash: 8ddc45ec79de5ec49810302ea7da32d3dc9f46e4
+    Git branch: master
+    Website: https://deepsec-prover.github.io
+
+
+Loading file /tmp/tmp.XFtGx87FoJ/Apple_location_unlinkability.spthy.dps...
+
+Starting verification...
+
+Starting verification of Apple_location_unlinkability.spthy.dps...
+Verifying query 1...Verifying query 1... [round 1 jobs verification:: 0% (202 jobs remaning); run time: 1s]          Verifying query 1... [round 1 jobs verification:: 30% (140 jobs remaning); run time: 2s]          Verifying query 1... [round 1 jobs verification:: 88% (23 jobs remaning); run time: 3s]           Result query 1: The two processes are [1m[32msession equivalent[0m. Verified in 3s using 9MB of memory.          
+Verification complete.

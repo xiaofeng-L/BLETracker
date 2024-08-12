@@ -1,0 +1,172 @@
+/tmp/tmp.AiACDtprp8/Samsung_location_E2E_confidentiality.spthy.gs
+Starting the transformation...
+Parsing the file...
+Writing in the output file...
+Translation complete !
+Process 0 (that is, the initial process):
+{1}new pre_app_ch1_1: channel;
+{2}new pre_app_ch2_1: channel;
+{3}new owner_account_1: bitstring;
+{4}new encryption_key_1: bitstring;
+{5}new seed_1: bitstring;
+{6}new privacyIV_1: bitstring;
+{7}new six_pin_1: bitstring;
+{8}let key_1: bitstring = SHA256(six_pin_1) in
+{9}new iv_1: bitstring;
+{10}new pri_1_1: bitstring;
+{11}let pubKey_1_1: bitstring = get_pk(pri_1_1) in
+{12}let enc_pri_1_1: bitstring = AES_enc(pri_1_1,key_1,iv_1) in
+{13}!
+(
+    {14}new rand2_1: bitstring;
+    {15}let privKey_1: bitstring = derive_key(encryption_key_1,privacy_const) in
+    {16}let signKey_1: bitstring = derive_key(encryption_key_1,signature_const) in
+    {17}let seedi_1: bitstring = (rand2_1,(seed_1,rand2_1)) in
+    {18}let privId_1: bitstring = AES_enc(seedi_1,privKey_1,privacyIV_1) in
+    {19}let signature_1: bitstring = AES_enc((privId_1,Mode_E2E),signKey_1,privacyIV_1) in
+    {20}out(att, (privId_1,(Mode_E2E,(signature_1,adv))))
+) | (
+    {21}!
+    (
+        {22}event Secret(location);
+        {23}in(att, (privId: bitstring,(E2EMode_1: bitstring,(signature: bitstring,=adv))));
+        {24}if (E2EMode_1 = Mode_E2E) then
+        (
+            {25}out(pre_app_ch2_1, (privId,tracker_ID));
+            {26}in(pre_app_ch2_1, (pubKey1_1: bitstring,=tracker_PubKey));
+            {27}let sealedbox_loc_1: bitstring = IES_enc(location,pubKey1_1) in
+            {28}out(pre_app_ch2_1, (privId,(E2EMode_1,(signature,(sealedbox_loc_1,location_report_E2E)))))
+        )
+        else
+            {29}out(pre_app_ch2_1, (privId,(E2EMode_1,(signature,(location,location_report_NoE2E)))))
+    ) | (
+        {30}!
+        (
+            {31}if (Mode_E2E = Mode_E2E) then
+            {32}in(pre_app_ch2_1, (privId_2: bitstring,=tracker_ID));
+            {33}let privKey: bitstring = derive_key(encryption_key_1,privacy_const) in
+            {34}let (r2_1_1: bitstring,(seed_adv_1: bitstring,r2_2_1: bitstring)) = AES_dec(privId_2,privKey,privacyIV_1) in
+            {35}if (seed_adv_1 = seed_1) then
+            {36}out(pre_app_ch2_1, (pubKey_1_1,tracker_PubKey));
+            {37}in(pre_app_ch2_1, (privId_3: bitstring,(E2EMode_2: bitstring,(signature_2: bitstring,(sealedbox_loc: bitstring,=location_report_E2E)))));
+            {38}let signKey: bitstring = derive_key(encryption_key_1,signature_const) in
+            {39}if (signature_2 = AES_enc((privId_3,E2EMode_2),signKey,privacyIV_1)) then
+            {40}in(pre_app_ch1_1, (owner_account2_1: bitstring,=query_location_E2E));
+            {41}if (owner_account_1 = owner_account2_1) then
+            {42}out(pre_app_ch1_1, (sealedbox_loc,((enc_pri_1_1,(pubKey_1_1,iv_1)),location_E2E_and_key_item)))
+        ) | (
+            {43}in(pre_app_ch2_1, (privId_4: bitstring,(E2EMode_3: bitstring,(signature_3: bitstring,(loc_1: bitstring,=location_report_NoE2E)))));
+            {44}let signKey_2: bitstring = derive_key(encryption_key_1,signature_const) in
+            {45}if (signature_3 = AES_enc((privId_4,E2EMode_3),signKey_2,privacyIV_1)) then
+            {46}in(pre_app_ch1_1, (owner_account2_2: bitstring,=query_location_NoE2E));
+            {47}if (owner_account_1 = owner_account2_2) then
+            {48}out(pre_app_ch1_1, (loc_1,location_NoE2E))
+        ) | (
+            {49}!
+            {50}if (Mode_E2E = Mode_E2E) then
+            (
+                {51}out(pre_app_ch1_1, (owner_account_1,query_location_E2E));
+                {52}in(pre_app_ch1_1, (sealedbox_loc_2: bitstring,((enc_pri1_1: bitstring,(pubKey1: bitstring,iv_2: bitstring)),=location_E2E_and_key_item)));
+                {53}let key_11: bitstring = SHA256(six_pin_1) in
+                {54}let pri1_1: bitstring = AES_enc(enc_pri1_1,key_11,iv_2) in
+                {55}let loc: bitstring = IES_dec(sealedbox_loc_2,pri1_1) in
+                0
+            )
+            else
+                {56}out(pre_app_ch1_1, (owner_account_1,query_location_NoE2E));
+                {57}in(pre_app_ch1_1, (loc_plain_1: bitstring,=location_NoE2E));
+                {58}let loc_2: bitstring = loc_plain_1 in
+                0
+        )
+    )
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}new pre_app_ch1_1: channel;
+{2}new pre_app_ch2_1: channel;
+{3}new owner_account_1: bitstring;
+{4}new encryption_key_1: bitstring;
+{5}new seed_1: bitstring;
+{6}new privacyIV_1: bitstring;
+{7}new six_pin_1: bitstring;
+{9}new iv_1: bitstring;
+{10}new pri_1_1: bitstring;
+{13}!
+(
+    {14}new rand2_1: bitstring;
+    {17}let seedi_1: bitstring = (rand2_1,(seed_1,rand2_1)) in
+    {15}let privKey_1: bitstring = derive_key(encryption_key_1,privacy_const) in
+    {18}let privId_1: bitstring = AES_enc(seedi_1,privKey_1,privacyIV_1) in
+    {16}let signKey_1: bitstring = derive_key(encryption_key_1,signature_const) in
+    {19}let signature_1: bitstring = AES_enc((privId_1,Mode_E2E),signKey_1,privacyIV_1) in
+    {20}out(att, (privId_1,(Mode_E2E,(signature_1,adv))))
+) | (
+    {21}!
+    (
+        {22}event Secret(location);
+        {23}in(att, (privId: bitstring,(E2EMode_1: bitstring,(signature: bitstring,=adv))));
+        {24}if (E2EMode_1 = Mode_E2E) then
+        (
+            {25}out(pre_app_ch2_1, (privId,tracker_ID));
+            {26}in(pre_app_ch2_1, (pubKey1_1: bitstring,=tracker_PubKey));
+            {27}let sealedbox_loc_1: bitstring = IES_enc(location,pubKey1_1) in
+            {28}out(pre_app_ch2_1, (privId,(E2EMode_1,(signature,(sealedbox_loc_1,location_report_E2E)))))
+        )
+        else
+            {29}out(pre_app_ch2_1, (privId,(E2EMode_1,(signature,(location,location_report_NoE2E)))))
+    ) | (
+        {30}!
+        (
+            {31}if (Mode_E2E = Mode_E2E) then
+            {32}in(pre_app_ch2_1, (privId_2: bitstring,=tracker_ID));
+            {33}let privKey: bitstring = derive_key(encryption_key_1,privacy_const) in
+            {34}let (r2_1_1: bitstring,(seed_adv_1: bitstring,r2_2_1: bitstring)) = AES_dec(privId_2,privKey,privacyIV_1) in
+            {35}if (seed_adv_1 = seed_1) then
+            {11}let pubKey_1_1: bitstring = get_pk(pri_1_1) in
+            {36}out(pre_app_ch2_1, (pubKey_1_1,tracker_PubKey));
+            {37}in(pre_app_ch2_1, (privId_3: bitstring,(E2EMode_2: bitstring,(signature_2: bitstring,(sealedbox_loc: bitstring,=location_report_E2E)))));
+            {38}let signKey: bitstring = derive_key(encryption_key_1,signature_const) in
+            {39}if (signature_2 = AES_enc((privId_3,E2EMode_2),signKey,privacyIV_1)) then
+            {40}in(pre_app_ch1_1, (owner_account2_1: bitstring,=query_location_E2E));
+            {41}if (owner_account_1 = owner_account2_1) then
+            {8}let key_1: bitstring = SHA256(six_pin_1) in
+            {12}let enc_pri_1_1: bitstring = AES_enc(pri_1_1,key_1,iv_1) in
+            {42}out(pre_app_ch1_1, (sealedbox_loc,((enc_pri_1_1,(pubKey_1_1,iv_1)),location_E2E_and_key_item)))
+        ) | (
+            {43}in(pre_app_ch2_1, (privId_4: bitstring,(E2EMode_3: bitstring,(signature_3: bitstring,(loc_1: bitstring,=location_report_NoE2E)))));
+            {44}let signKey_2: bitstring = derive_key(encryption_key_1,signature_const) in
+            {45}if (signature_3 = AES_enc((privId_4,E2EMode_3),signKey_2,privacyIV_1)) then
+            {46}in(pre_app_ch1_1, (owner_account2_2: bitstring,=query_location_NoE2E));
+            {47}if (owner_account_1 = owner_account2_2) then
+            {48}out(pre_app_ch1_1, (loc_1,location_NoE2E))
+        ) | (
+            {49}!
+            {50}if (Mode_E2E = Mode_E2E) then
+            (
+                {51}out(pre_app_ch1_1, (owner_account_1,query_location_E2E));
+                {52}in(pre_app_ch1_1, (sealedbox_loc_2: bitstring,((enc_pri1_1: bitstring,(pubKey1: bitstring,iv_2: bitstring)),=location_E2E_and_key_item)));
+                {53}let key_11: bitstring = SHA256(six_pin_1) in
+                {54}let pri1_1: bitstring = AES_enc(enc_pri1_1,key_11,iv_2) in
+                {55}let loc: bitstring = IES_dec(sealedbox_loc_2,pri1_1) in
+                0
+            )
+            else
+                {56}out(pre_app_ch1_1, (owner_account_1,query_location_NoE2E));
+                {57}in(pre_app_ch1_1, (loc_plain_1: bitstring,=location_NoE2E))
+        )
+    )
+)
+
+-- Query not attacker(location) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query not attacker(location)
+RESULT not attacker(location) is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query not attacker(location) is true.
+
+--------------------------------------------------------------
+

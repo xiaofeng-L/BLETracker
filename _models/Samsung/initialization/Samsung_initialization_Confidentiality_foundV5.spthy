@@ -1,0 +1,236 @@
+theory Samsung_SmartTag
+
+
+begin
+
+builtins: diffie-hellman
+
+functions:
+
+	sv/0 [private],
+
+	/* constant value */
+	smartthings_const/0,
+	bleAuthentication_const/0,
+	privacy_const/0,
+
+	PREDEFINED_const/0,
+	Tracker_Not_Found_const/0,
+
+	zero_const/0,
+
+
+	
+	SHA256/1,
+	AES_enc/3, AES_dec/3 [destructor],
+	
+	/* Samsung SmartTag key calculation */
+	derive_encryption_key/2,
+	kdf2/2,
+	
+	/* modify and derive private key from bt_addr */
+	kdf1/1,
+	
+	/* hash table */
+	derive_hashed_sn/1,
+	hash_table/1 [destructor],
+	
+	/* Calculate all id */
+	get_id/4
+	
+equations:
+	AES_dec(AES_enc(mes, k, v), k, v) = mes,
+	hash_table(derive_hashed_sn(x)) = x
+	
+export queries:
+"
+set preciseActions = true.
+set reconstructTrace = true.
+query attacker(sv).
+"
+	
+options: enableStateOpt, compress-events,
+translation-allow-pattern-lookups
+
+
+/* server */
+let server(~sec_ch: channel, ~sn_owner) = 
+	in(~sec_ch, <hashed_sn_p, rand, 'identity_easysetup_blob_req'>);
+
+	let sn = hash_table(hashed_sn_p) in
+	let pri_p = kdf1(sn) in
+	let pub_p = 'g' ^ pri_p in
+
+	new ~pri_c;
+	let pub_c = 'g' ^ ~pri_c in
+	let dhkey_PC = pub_p ^ ~pri_c in
+	let encryption_key = derive_encryption_key(dhkey_PC, rand) in
+
+	out(~sec_ch, <encryption_key, pub_c, 'identity_easysetup_blob_rsp'>);
+	
+
+	in(~sec_ch, <sn_p1, 'chaser_trackers_lostmessage_req'>);
+	if (sn_p1 = ~sn_owner) then (
+		out(~sec_ch, <PREDEFINED_const, 'chaser_trackers_lostmessage_rsp'>);
+		in(~sec_ch, <sn_p, encryption_key_c, 'miniature_mobile_req'>);
+		if ((sn = sn_p) & (encryption_key = encryption_key_c)) then (
+			new ~secure_param;
+			out(~sec_ch, <~secure_param, 'miniature_mobile_rsp'>);
+			
+			let privacy_key = kdf2(encryption_key, privacy_const) in
+			let id = get_id(privacy_key, ~secure_param, ~secure_param, ~secure_param) in
+			out(~sec_ch, <id, 'id_s'>)
+		)
+	)
+	else (
+		out(~sec_ch, <Tracker_Not_Found_const, 'chaser_trackers_lostmessage_rsp'>);
+		in(~sec_ch, <sn_p, encryption_key_c, 'miniature_mobile_req'>);
+		if ((sn = sn_p) & (encryption_key = encryption_key_c)) then (
+			new ~secure_param;
+			out(~sec_ch, <~secure_param, 'miniature_mobile_rsp'>);
+			
+			let privacy_key = kdf2(encryption_key, privacy_const) in
+			let id = get_id(privacy_key, ~secure_param, ~secure_param, ~secure_param) in
+			out(~sec_ch, <id, 'id_s'>)
+		)
+	)
+
+
+		
+
+let phone(~sec_ch: channel) = 
+	/* PK exchange */
+	in(<hashed_sn_p, 'hashed_SerialNumber'>);
+	new ~rand;
+	
+	
+	out(~sec_ch, <hashed_sn_p, ~rand, 'identity_easysetup_blob_req'>);
+	in(~sec_ch, <encryption_key, pub_c, 'identity_easysetup_blob_rsp'>);
+	
+	out(<~rand, pub_c, 'rand_and_pubc'>);
+
+	/* authentication */
+	let auth_key = kdf2(encryption_key, bleAuthentication_const) in
+	new ~n1;
+	out(<~n1, 'nonce_1'>);
+	
+	in(<n2, 'nonce_2'>);
+	let encrypted_nonce1 = AES_enc(smartthings_const, auth_key, n2) in
+	out(<encrypted_nonce1, 'enc_nonce_1'>);
+	
+	in(<encrypted_nonce2, 'enc_nonce_2'>);
+	let dec_mes_2 = AES_dec(encrypted_nonce2, auth_key, ~n1) in	
+	
+	if smartthings_const = dec_mes_2 then (
+		let link_key = kdf2(encryption_key, n2) in
+
+		in(<encrypted_sn_p1, 'enc_sn1'>);
+		let sn_p1 = AES_dec(encrypted_sn_p1, link_key, n2) in
+		out(~sec_ch, <sn_p1, 'chaser_trackers_lostmessage_req'>);
+
+		in(~sec_ch, <bound_status, 'chaser_trackers_lostmessage_rsp'>);
+
+		if(bound_status = Tracker_Not_Found_const) then (
+			/* id sharing */
+			in(<encrypted_sn_p, 'enc_sn'>);
+			let sn_p = AES_dec(encrypted_sn_p, link_key, n2) in
+			
+			out(~sec_ch, <sn_p, encryption_key, 'miniature_mobile_req'>);
+			in(~sec_ch, <secure_param, 'secure_param', 'miniature_mobile_rsp'>);
+			
+			let encrypted_param = AES_enc(secure_param, link_key, n2) in
+			out(<encrypted_param, 'enc_params'>);
+			
+			
+			let privacy_key = kdf2(encryption_key, privacy_const) in
+			let id = get_id(privacy_key, secure_param, secure_param, secure_param) in
+			
+			out(~sec_ch, <id, 'id_c'>)
+		)
+	)
+
+
+let tracker(~sec_ch: channel, ~sn) = 
+	let hashed_sn = derive_hashed_sn(~sn) in
+	let pri_p = kdf1(~sn) in
+	let pub_p = 'g' ^ pri_p in
+	
+	out(<hashed_sn, 'hashed_SerialNumber'>);
+	
+	in(<rand, pub_c, 'rand_and_pubc'>);
+	
+	let dhkey_CP = pub_c ^ pri_p in
+	let encryption_key = derive_encryption_key(dhkey_CP, rand) in
+	 
+	/* authentication stage 1 */
+	let auth_key = kdf2(encryption_key, bleAuthentication_const) in
+	
+	in(<n1, 'nonce_1'>);
+	new ~n2;
+	out(<~n2, 'nonce_2'>);
+	
+	in(<encrypted_nonce1, 'enc_nonce_1'>);
+	let dec_mes_1 = AES_dec(encrypted_nonce1, auth_key, ~n2) in
+
+	let encrypted_nonce2 = AES_enc(smartthings_const, auth_key, n1) in
+	out(<encrypted_nonce2, 'enc_nonce_2'>);
+	
+	if smartthings_const = dec_mes_1 then (
+		let link_key = kdf2(encryption_key, ~n2) in
+
+		let encrypted_sn_p1 = AES_enc(~sn, link_key, ~n2) in
+		out(<encrypted_sn_p1, 'enc_sn1'>);
+		
+
+		/* id sharing */
+		let encrypted_sn_p = AES_enc(~sn, link_key, ~n2) in
+		out(<encrypted_sn_p, 'enc_sn'>);
+		
+		in(<encrypted_param, 'enc_params'>);
+		let secure_param = AES_dec(encrypted_param, link_key, ~n2) in
+
+		let privacy_key = kdf2(encryption_key, privacy_const) in
+		let id = get_id(privacy_key, secure_param, secure_param, secure_param) in
+
+		event Secret(sv);
+		out(AES_enc(sv, id, zero_const))
+
+
+	)
+
+
+
+
+
+/* replication of an SmartTag to cover "mix and match" like attacks */
+process:
+	
+	new ~sec_ch : channel;
+	
+	
+	(
+		new ~sn_owner;
+		// different sn which isn't in the database.
+		new ~sn;
+		(
+		!server(~sec_ch, ~sn_owner) |
+		! phone(~sec_ch) |
+		!tracker(~sec_ch, ~sn)
+		)
+	)
+	
+
+
+
+/* implicit P4: Confidentiality of ID. From the user point of view, a com-
+pleted initialization phase ensures that the Samsung server and SmartTag 
+computed the same shared ID, and it should also provide confidentiality of 
+the shared ID. */
+lemma confidentiality [ output=[spthy] ]:
+"
+	( 
+		All x #i. (Secret(x) @ i ==> not (Ex #k. KU(x) @ k))
+	)
+"
+	
+end

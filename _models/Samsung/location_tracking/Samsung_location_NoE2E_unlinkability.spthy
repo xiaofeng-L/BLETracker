@@ -1,0 +1,132 @@
+/*
+(* For privacy, cloud is equipment to open channel for data communication between finder device and owner device. *)
+(* For security, cloud channel is private. *)
+(* If there is account verification while communicating with the cloud, then use account channel. *)
+*/
+
+
+theory Samsung_SmartTag
+
+begin
+
+functions:
+
+  //SmartTag spec
+  privacy_const/0, signature_const/0, Mode_E2E/0, Mode_NoE2E/0,
+  derive_key/2, 
+
+  pk/1,
+  AES_enc/3, AES_dec/3 [destructor],
+  IES_enc/2, IES_dec/2 [destructor],
+  SHA256/1,
+
+  location_plain/0 [private],
+  get_IDs/4, one_of/2, database_IDS/2 [destructor]
+
+
+  
+equations:
+  AES_dec(AES_enc(mes, k, v), k, v) = mes,
+  IES_dec(IES_enc(m, dhkey_ab), dhkey_ab) = m,
+  database_IDS(IDs, one_of(IDs, r)) = r
+
+
+/* Tracker */
+let tracker(~encryption_key, ~seed, ~privacyIV, ~E2EMode, ~rand2, ~poolSize) = 
+  let privKey = derive_key(~encryption_key, privacy_const) in
+  let signKey = derive_key(~encryption_key, signature_const) in
+
+
+  let IDs = get_IDs(privKey, ~seed, ~privacyIV, ~poolSize) in
+  
+  let privId = one_of(IDs, ~rand2) in
+  let signature = AES_enc(<privId, ~E2EMode>, signKey, ~privacyIV) in
+  out(<privId, ~E2EMode, signature, 'adv'>)
+
+
+/* Other participants as finder */
+let participant(~pre_app_ch2: channel) = 
+  event Secret(location_plain);
+  in(<privId, E2EMode, signature, 'adv'>);
+  if (E2EMode = Mode_NoE2E) then (
+    out(~pre_app_ch2, <privId, E2EMode, signature, location_plain, 'location_report_NoE2E'>)
+  )
+
+
+/* Other participants as finder */
+let attacker() = 
+  event Secret(location_plain);
+  in(<privId, E2EMode, signature, 'adv'>);
+  if (E2EMode = Mode_NoE2E) then (
+    out(<privId, E2EMode, signature, location_plain, 'location_report_NoE2E'>)
+  )
+
+
+/* Server */
+let server(~pre_app_ch1: channel, ~encryption_key, ~seed, ~privacyIV, ~E2EMode, ~poolSize) = 
+  if (~E2EMode = Mode_NoE2E) then (
+
+    /* finder uploads location report */
+    in(<privId, E2EMode1, signature, location, 'location_report_NoE2E'>);
+
+    out(~pre_app_ch1, <location, 'location_NoE2E'>)
+
+    
+  )
+
+
+/* P2: Unlinkability： We model the unlinkability as "Can the attacker 
+distinguish the case where all sessions of tracker 1 from the scenario 
+where each pair of sessions has a distinct tracker n?".
+
+From the attacker's perspective, the phone process is invisible. Hence, we 
+model the communication between tracker and attacker, attacker and server. 
+
+Unlimited sessions of one SmartTag. (It will be translated to three 
+sessions of one SmartTag by Sapic+.)
+Unlimited sessions of unlimited SmartTags. (It will be translated to three 
+sessions of three SmartTags by Sapic+.) */
+
+/* for the NoE2E mode */
+equivLemma:
+(
+  // Private Channel
+  new ~pre_app_ch1: channel;
+
+  new ~encryption_key;
+  new ~seed;
+  new ~privacyIV;
+  new ~poolSize;
+
+  !(
+  new ~rand2; 
+  tracker(~encryption_key, ~seed, ~privacyIV, Mode_NoE2E, ~rand2, ~poolSize) |
+  attacker() |
+  server(~pre_app_ch1, ~encryption_key, ~seed, ~privacyIV, Mode_NoE2E, ~poolSize)
+  )
+  
+)
+
+(
+  // Private Channel
+  new ~pre_app_ch1: channel;
+
+  (
+
+    !new ~encryption_key;
+    new ~seed;
+    new ~privacyIV;
+    new ~poolSize;
+    new ~rand2; 
+    
+    (
+    
+    tracker(~encryption_key, ~seed, ~privacyIV, Mode_NoE2E, ~rand2, ~poolSize) |
+    attacker() |
+    server(~pre_app_ch1, ~encryption_key, ~seed, ~privacyIV, Mode_NoE2E, ~poolSize)
+    )
+  )
+)
+
+
+end

@@ -1,0 +1,88 @@
+/tmp/tmp.zif1kmYYQ5/Samsung_location_NoE2E_confidentiality.spthy.gs
+Starting the transformation...
+Parsing the file...
+Writing in the output file...
+Translation complete !
+Process 0 (that is, the initial process):
+{1}new pre_app_ch1_1: channel;
+{2}new pre_app_ch2_1: channel;
+{3}new encryption_key_1: bitstring;
+{4}new seed_1: bitstring;
+{5}new privacyIV_1: bitstring;
+{6}!
+{7}new rand2_1: bitstring;
+(
+    {8}let privKey_1: bitstring = derive_key(encryption_key_1,privacy_const) in
+    {9}let seedi_1: bitstring = (rand2_1,(seed_1,rand2_1)) in
+    {10}let privId_1: bitstring = AES_enc(seedi_1,privKey_1,privacyIV_1) in
+    {11}out(att, (privId_1,(Mode_NoE2E,adv)))
+) | (
+    {12}!
+    (
+        {13}event Secret(location_plain);
+        {14}in(att, (privId: bitstring,(E2EMode_1: bitstring,=adv)));
+        {15}if (E2EMode_1 = Mode_NoE2E) then
+        {16}out(pre_app_ch2_1, (privId,(E2EMode_1,(location_plain,location_report_NoE2E))))
+    ) | (
+        {17}!
+        (
+            {18}if (Mode_NoE2E = Mode_NoE2E) then
+            {19}in(pre_app_ch2_1, (privId_2: bitstring,(E2EMode_2: bitstring,(location_1: bitstring,=location_report_NoE2E))));
+            {20}out(pre_app_ch1_1, (location_1,location_NoE2E))
+        ) | (
+            {21}!
+            {22}if (Mode_NoE2E = Mode_NoE2E) then
+            {23}in(pre_app_ch1_1, (location: bitstring,=location_NoE2E));
+            {24}let loc_1: bitstring = location in
+            0
+        )
+    )
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}new pre_app_ch1_1: channel;
+{2}new pre_app_ch2_1: channel;
+{3}new encryption_key_1: bitstring;
+{4}new seed_1: bitstring;
+{5}new privacyIV_1: bitstring;
+{6}!
+{7}new rand2_1: bitstring;
+(
+    {9}let seedi_1: bitstring = (rand2_1,(seed_1,rand2_1)) in
+    {8}let privKey_1: bitstring = derive_key(encryption_key_1,privacy_const) in
+    {10}let privId_1: bitstring = AES_enc(seedi_1,privKey_1,privacyIV_1) in
+    {11}out(att, (privId_1,(Mode_NoE2E,adv)))
+) | (
+    {12}!
+    (
+        {13}event Secret(location_plain);
+        {14}in(att, (privId: bitstring,(E2EMode_1: bitstring,=adv)));
+        {15}if (E2EMode_1 = Mode_NoE2E) then
+        {16}out(pre_app_ch2_1, (privId,(E2EMode_1,(location_plain,location_report_NoE2E))))
+    ) | (
+        {17}!
+        (
+            {18}if (Mode_NoE2E = Mode_NoE2E) then
+            {19}in(pre_app_ch2_1, (privId_2: bitstring,(E2EMode_2: bitstring,(location_1: bitstring,=location_report_NoE2E))));
+            {20}out(pre_app_ch1_1, (location_1,location_NoE2E))
+        ) | (
+            {21}!
+            {22}if (Mode_NoE2E = Mode_NoE2E) then
+            {23}in(pre_app_ch1_1, (location: bitstring,=location_NoE2E))
+        )
+    )
+)
+
+-- Query not attacker(location_plain) in process 1.
+Translating the process into Horn clauses...
+Completing...
+Starting query not attacker(location_plain)
+RESULT not attacker(location_plain) is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query not attacker(location_plain) is true.
+
+--------------------------------------------------------------
+

@@ -1,0 +1,121 @@
+/*
+(* For privacy, cloud is equipment to open channel for data communication between finder device and owner device. *)
+(* For security, cloud channel is private. *)
+(* If there is account verification while communicating with the cloud, then use account channel. *)
+*/
+
+
+theory Samsung_SmartTag
+
+begin
+
+functions:
+
+  //SmartTag spec
+  privacy_const/0, signature_const/0, Mode_E2E/0, Mode_NoE2E/0,
+  derive_key/2, 
+
+  pk/1,
+  AES_enc/3, AES_dec/3 [destructor],
+  IES_enc/2, IES_dec/2 [destructor],
+  SHA256/1,
+
+  location_plain/0 [private]
+
+
+  
+equations:
+  AES_dec(AES_enc(mes, k, v), k, v) = mes,
+  IES_dec(IES_enc(m, dhkey_ab), dhkey_ab) = m
+
+
+export queries:
+"
+set preciseActions = true.
+query attacker(location_plain).
+"
+
+
+
+/* Tracker */
+let tracker(~encryption_key, ~seed, ~privacyIV, ~E2EMode, ~rand2) = 
+  let privKey = derive_key(~encryption_key, privacy_const) in
+  
+  let seedi = <~rand2, ~seed, ~rand2> in
+
+  /* ignore the first8bytes and first4bytes actions */
+  let privId = AES_enc(seedi, privKey, ~privacyIV) in
+  out(<privId, ~E2EMode, 'adv'>)
+
+
+/* Other participants as finder */
+let participant(~pre_app_ch2: channel) = 
+  event Secret(location_plain);
+  in(<privId, E2EMode, 'adv'>);
+  if (E2EMode = Mode_NoE2E) then (
+    out(~pre_app_ch2, <privId, E2EMode, location_plain, 'location_report_NoE2E'>)
+  )
+
+
+/* Server */
+/* For server privacy, we output the server's acknowledge in the open channel. */
+let server(~pre_app_ch1: channel, ~pre_app_ch2: channel, ~encryption_key, ~seed, ~privacyIV, ~E2EMode) = 
+  if (~E2EMode = Mode_NoE2E) then (
+
+    /* finder uploads location report */
+    in(~pre_app_ch2, <privId, E2EMode, location, 'location_report_NoE2E'>);
+    /* for privacy */
+    out(<privId, E2EMode, location, 'location_report_NoE2E_privacy'>);
+
+    /* owner querys location report */
+    out(~pre_app_ch1, <location, 'location_NoE2E'>)
+      
+    
+  )
+
+
+/* Phone as owner */
+let phone(~pre_app_ch1: channel, ~encryption_key, ~seed, ~privacyIV, ~E2EMode) = 
+  if (~E2EMode = Mode_NoE2E) then (
+    in(~pre_app_ch1, <location, 'location_NoE2E'>);
+    let loc = location in
+    0
+  )
+
+
+/* replication of an SmartTag to cover "mix and match" like attacks */
+/* for the NoE2E mode */
+process:
+
+(
+  // Private Channel
+  new ~pre_app_ch1: channel;
+  new ~pre_app_ch2: channel;
+
+  new ~owner_account;
+  new ~encryption_key;
+  new ~seed;
+  new ~privacyIV;
+
+  (
+  !new ~rand2; 
+  tracker(~encryption_key, ~seed, ~privacyIV, Mode_NoE2E, ~rand2) |
+  !participant(~pre_app_ch2) |
+  !server(~pre_app_ch1, ~pre_app_ch2, ~encryption_key, ~seed, ~privacyIV, Mode_NoE2E) |
+  !phone(~pre_app_ch1, ~encryption_key, ~seed, ~privacyIV, Mode_NoE2E)
+  )
+  
+)
+
+
+/* P1: Confidentiality of location. Samsung stated that "All
+data in SmartThings Find is encrypted and protected, so the
+tag’s location is not revealed to anyone but you". */
+lemma confidentiality [ output=[spthy] ]:
+"
+  ( 
+    All x #i. (Secret(x) @ i ==> not (Ex #k. KU(x) @ k))
+  )
+"
+
+end

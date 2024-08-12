@@ -1,0 +1,495 @@
+maude tool: 'maude'
+ checking version: 3.1. OK.
+ checking installation: OK.
+
+theory Samsung_SmartTag begin
+
+// Function signature and definition of the equational theory E
+
+functions: AES_dec/3[destructor], AES_enc/3, Mode_E2E/0, Mode_NoE2E/0,
+           SHA256/1, derive_key/2, fst/1[destructor],
+           location_plain/0[private,destructor], pair/2, privacy_const/0,
+           signature_const/0, snd/1[destructor]
+equations:
+    AES_dec(AES_enc(mes, k, v), k, v) = mes,
+    fst(<x.1, x.2>) = x.1,
+    snd(<x.1, x.2>) = x.2
+
+heuristic: p
+
+
+
+
+
+
+
+
+
+
+
+
+
+lemma confidentiality [output=[spthy]]:
+  all-traces "∀ x #i. (Secret( x ) @ #i) ⇒ (¬(∃ #k. !KU( x ) @ #k))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ x #i. (Secret( x ) @ #i) ∧ ∃ #k. (!KU( x ) @ #k)"
+*/
+simplify
+solve( State_11111112111( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                          ~privacyIV, ~rand2, ~seed
+       ) ▶₀ #i )
+  case p_1_11111112
+  by solve( !KU( location_plain ) @ #k )
+qed
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+rule (modulo E) Init[color=#ffffff,
+                     process="new ~pre_app_ch1.1:channel;"]:
+   [
+   Fr( ~pre_app_ch1.1 ), Fr( ~pre_app_ch2.1 ), Fr( ~encryption_key.1 ),
+   Fr( ~seed.1 ), Fr( ~privacyIV.1 )
+   ]
+  --[ Init( ) ]->
+   [
+   !Semistate_111111( ~encryption_key.1, ~pre_app_ch1.1, ~pre_app_ch2.1,
+                      ~privacyIV.1, ~seed.1
+   )
+   ]
+
+  /*
+  rule (modulo AC) Init[color=#ffffff,
+                        process="new ~pre_app_ch1.1:channel;"]:
+     [
+     Fr( ~pre_app_ch1 ), Fr( ~pre_app_ch2 ), Fr( ~encryption_key ),
+     Fr( ~seed ), Fr( ~privacyIV )
+     ]
+    --[ Init( ) ]->
+     [
+     !Semistate_111111( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                        ~privacyIV, ~seed
+     )
+     ]
+  */
+
+rule (modulo E) p_1_11111[color=#ffffff, process="!"]:
+   [
+   !Semistate_111111( ~encryption_key.1, ~pre_app_ch1.1, ~pre_app_ch2.1,
+                      ~privacyIV.1, ~seed.1
+   ),
+   Fr( ~rand2.1 )
+   ]
+  -->
+   [
+   !Semistate_111111121( ~encryption_key.1, ~pre_app_ch1.1, ~pre_app_ch2.1,
+                         ~privacyIV.1, ~rand2.1, ~seed.1
+   ),
+   Out( <
+         AES_enc(<~rand2.1, ~seed.1, ~rand2.1>,
+                 derive_key(~encryption_key.1, privacy_const), ~privacyIV.1), 
+         Mode_NoE2E, 'adv'>
+   )
+   ]
+
+  /*
+  rule (modulo AC) p_1_11111[color=#ffffff, process="!"]:
+     [
+     !Semistate_111111( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                        ~privacyIV, ~seed
+     ),
+     Fr( ~rand2 )
+     ]
+    -->
+     [
+     !Semistate_111111121( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                           ~privacyIV, ~rand2, ~seed
+     ),
+     Out( <
+           AES_enc(<~rand2, ~seed, ~rand2>,
+                   derive_key(~encryption_key, privacy_const), ~privacyIV), 
+           Mode_NoE2E, 'adv'>
+     )
+     ]
+  */
+
+rule (modulo E) eventSecretlocationplain_0_11111112111[color=#794080,
+                                                       process="event Secret( location_plain );"]:
+   [
+   State_11111112111( ~encryption_key.1, ~pre_app_ch1.1, ~pre_app_ch2.1,
+                      ~privacyIV.1, ~rand2.1, ~seed.1
+   ),
+   In( <privId.2, E2EMode.1, 'adv'> )
+   ]
+  --[ Secret( location_plain ) ]->
+   [
+   State_1111111211111( ~encryption_key.1, ~pre_app_ch1.1, ~pre_app_ch2.1,
+                        ~privacyIV.1, ~rand2.1, ~seed.1, E2EMode.1, privId.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) eventSecretlocationplain_0_11111112111[color=#794080,
+                                                          process="event Secret( location_plain );"]:
+     [
+     State_11111112111( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                        ~privacyIV, ~rand2, ~seed
+     ),
+     In( <privId, E2EMode, 'adv'> )
+     ]
+    --[ Secret( location_plain ) ]->
+     [
+     State_1111111211111( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                          ~privacyIV, ~rand2, ~seed, E2EMode, privId
+     )
+     ]
+  */
+
+restriction Restr_ifEEModeModeNoEE_0_1111111211111_1:
+  "∀ x #NOW.
+    (Restr_ifEEModeModeNoEE_0_1111111211111_1( x ) @ #NOW) ⇒
+    (x = Mode_NoE2E)"
+  // safety formula
+
+rule (modulo E) ifEEModeModeNoEE_0_1111111211111[color=#794080,
+                                                 process="if E2EMode.1 = Mode_NoE2E"]:
+   [
+   State_1111111211111( ~encryption_key.1, ~pre_app_ch1.1, ~pre_app_ch2.1,
+                        ~privacyIV.1, ~rand2.1, ~seed.1, E2EMode.1, privId.2
+   )
+   ]
+  --[ Restr_ifEEModeModeNoEE_0_1111111211111_1( E2EMode.1 ) ]->
+   [
+   Message( ~pre_app_ch2.1,
+            <privId.2, E2EMode.1, location_plain, 'location_report_NoE2E'>
+   ),
+   Semistate_111111121111111( ~encryption_key.1, ~pre_app_ch1.1,
+                              ~pre_app_ch2.1, ~privacyIV.1, ~rand2.1, ~seed.1, E2EMode.1, privId.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) ifEEModeModeNoEE_0_1111111211111[color=#794080,
+                                                    process="if E2EMode.1 = Mode_NoE2E"]:
+     [
+     State_1111111211111( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                          ~privacyIV, ~rand2, ~seed, E2EMode, privId
+     )
+     ]
+    --[ Restr_ifEEModeModeNoEE_0_1111111211111_1( E2EMode ) ]->
+     [
+     Message( ~pre_app_ch2,
+              <privId, E2EMode, location_plain, 'location_report_NoE2E'>
+     ),
+     Semistate_111111121111111( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                                ~privacyIV, ~rand2, ~seed, E2EMode, privId
+     )
+     ]
+  */
+
+rule (modulo E) p_1_11111112[color=#ffffff, process="!"]:
+   [
+   !Semistate_111111121( ~encryption_key.1, ~pre_app_ch1.1, ~pre_app_ch2.1,
+                         ~privacyIV.1, ~rand2.1, ~seed.1
+   )
+   ]
+  -->
+   [
+   !Semistate_11111112121( ~encryption_key.1, ~pre_app_ch1.1,
+                           ~pre_app_ch2.1, ~privacyIV.1, ~rand2.1, ~seed.1
+   ),
+   State_11111112111( ~encryption_key.1, ~pre_app_ch1.1, ~pre_app_ch2.1,
+                      ~privacyIV.1, ~rand2.1, ~seed.1
+   )
+   ]
+
+  /*
+  rule (modulo AC) p_1_11111112[color=#ffffff, process="!"]:
+     [
+     !Semistate_111111121( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                           ~privacyIV, ~rand2, ~seed
+     )
+     ]
+    -->
+     [
+     !Semistate_11111112121( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                             ~privacyIV, ~rand2, ~seed
+     ),
+     State_11111112111( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                        ~privacyIV, ~rand2, ~seed
+     )
+     ]
+  */
+
+restriction Restr_ifModeNoEEModeNoEE_0_1111111212111_1:
+  "∀ #NOW.
+    (Restr_ifModeNoEEModeNoEE_0_1111111212111_1( ) @ #NOW) ⇒
+    (Mode_NoE2E = Mode_NoE2E)"
+  // safety formula
+
+rule (modulo E) ifModeNoEEModeNoEE_0_1111111212111[color=#658040,
+                                                   process="if Mode_NoE2E = Mode_NoE2E"]:
+   [
+   State_1111111212111( ~encryption_key.1, ~pre_app_ch1.1, ~pre_app_ch2.1,
+                        ~privacyIV.1, ~rand2.1, ~seed.1
+   ),
+   Message( ~pre_app_ch2.1, x.2 )
+   ]
+  --[ Restr_ifModeNoEEModeNoEE_0_1111111212111_1( ) ]->
+   [
+   Let_111111121211111( x.2, ~encryption_key.1, ~pre_app_ch1.1,
+                        ~pre_app_ch2.1, ~privacyIV.1, ~rand2.1, ~seed.1
+   ),
+   Ack( ~pre_app_ch2.1, x.2 )
+   ]
+
+  /*
+  rule (modulo AC) ifModeNoEEModeNoEE_0_1111111212111[color=#658040,
+                                                      process="if Mode_NoE2E = Mode_NoE2E"]:
+     [
+     State_1111111212111( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                          ~privacyIV, ~rand2, ~seed
+     ),
+     Message( ~pre_app_ch2, x )
+     ]
+    --[ Restr_ifModeNoEEModeNoEE_0_1111111212111_1( ) ]->
+     [
+     Let_111111121211111( x, ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                          ~privacyIV, ~rand2, ~seed
+     ),
+     Ack( ~pre_app_ch2, x )
+     ]
+  */
+
+rule (modulo E) inpreappchchannelprivIdEEModelocationlocationreportNoEE_1_11111112121111[color=#658040,
+                                                                                         process="in(~pre_app_ch2.1:channel,<privId.3, E2EMode.2, location.1, 'location_report_NoE2E'>);"]:
+   [
+   Let_111111121211111( <privId.3, E2EMode.2, location.1, 
+                         'location_report_NoE2E'>,
+                        ~encryption_key.1, ~pre_app_ch1.1, ~pre_app_ch2.1, ~privacyIV.1,
+                        ~rand2.1, ~seed.1
+   )
+   ]
+  -->
+   [
+   State_111111121211111( ~encryption_key.1, ~pre_app_ch1.1, ~pre_app_ch2.1,
+                          ~privacyIV.1, ~rand2.1, ~seed.1, location.1, E2EMode.2, privId.3
+   )
+   ]
+
+  // loop breaker: [0]
+  /*
+  rule (modulo AC) inpreappchchannelprivIdEEModelocationlocationreportNoEE_1_11111112121111[color=#658040,
+                                                                                            process="in(~pre_app_ch2.1:channel,<privId.3, E2EMode.2, location.1, 'location_report_NoE2E'>);"]:
+     [
+     Let_111111121211111( <privId, E2EMode, location, 'location_report_NoE2E'
+                          >,
+                          ~encryption_key, ~pre_app_ch1, ~pre_app_ch2, ~privacyIV, ~rand2, ~seed
+     )
+     ]
+    -->
+     [
+     State_111111121211111( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                            ~privacyIV, ~rand2, ~seed, location, E2EMode, privId
+     )
+     ]
+    // loop breaker: [0]
+  */
+
+rule (modulo E) outpreappchchannellocationlocationNoEE_0_111111121211111[color=#658040,
+                                                                         process="out(~pre_app_ch1.1:channel,<location.1, 'location_NoE2E'>);"]:
+   [
+   State_111111121211111( ~encryption_key.1, ~pre_app_ch1.1, ~pre_app_ch2.1,
+                          ~privacyIV.1, ~rand2.1, ~seed.1, location.1, E2EMode.2, privId.3
+   )
+   ]
+  -->
+   [
+   Message( ~pre_app_ch1.1, <location.1, 'location_NoE2E'> ),
+   Semistate_1111111212111111( ~encryption_key.1, ~pre_app_ch1.1,
+                               ~pre_app_ch2.1, ~privacyIV.1, ~rand2.1, ~seed.1, location.1, E2EMode.2,
+                               privId.3
+   )
+   ]
+
+  /*
+  rule (modulo AC) outpreappchchannellocationlocationNoEE_0_111111121211111[color=#658040,
+                                                                            process="out(~pre_app_ch1.1:channel,<location.1, 'location_NoE2E'>);"]:
+     [
+     State_111111121211111( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                            ~privacyIV, ~rand2, ~seed, location, E2EMode, privId
+     )
+     ]
+    -->
+     [
+     Message( ~pre_app_ch1, <location, 'location_NoE2E'> ),
+     Semistate_1111111212111111( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                                 ~privacyIV, ~rand2, ~seed, location, E2EMode, privId
+     )
+     ]
+  */
+
+rule (modulo E) p_1_1111111212[color=#ffffff, process="!"]:
+   [
+   !Semistate_11111112121( ~encryption_key.1, ~pre_app_ch1.1,
+                           ~pre_app_ch2.1, ~privacyIV.1, ~rand2.1, ~seed.1
+   )
+   ]
+  -->
+   [
+   !Semistate_1111111212121( ~encryption_key.1, ~pre_app_ch1.1,
+                             ~pre_app_ch2.1, ~privacyIV.1, ~rand2.1, ~seed.1
+   ),
+   State_1111111212111( ~encryption_key.1, ~pre_app_ch1.1, ~pre_app_ch2.1,
+                        ~privacyIV.1, ~rand2.1, ~seed.1
+   )
+   ]
+
+  /*
+  rule (modulo AC) p_1_1111111212[color=#ffffff, process="!"]:
+     [
+     !Semistate_11111112121( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                             ~privacyIV, ~rand2, ~seed
+     )
+     ]
+    -->
+     [
+     !Semistate_1111111212121( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                               ~privacyIV, ~rand2, ~seed
+     ),
+     State_1111111212111( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                          ~privacyIV, ~rand2, ~seed
+     )
+     ]
+  */
+
+rule (modulo E) p_1_111111121212[color=#ffffff, process="!"]:
+   [
+   !Semistate_1111111212121( ~encryption_key.1, ~pre_app_ch1.1,
+                             ~pre_app_ch2.1, ~privacyIV.1, ~rand2.1, ~seed.1
+   )
+   ]
+  -->
+   [
+   State_11111112121211( ~encryption_key.1, ~pre_app_ch1.1, ~pre_app_ch2.1,
+                         ~privacyIV.1, ~rand2.1, ~seed.1
+   )
+   ]
+
+  /*
+  rule (modulo AC) p_1_111111121212[color=#ffffff, process="!"]:
+     [
+     !Semistate_1111111212121( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                               ~privacyIV, ~rand2, ~seed
+     )
+     ]
+    -->
+     [
+     State_11111112121211( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                           ~privacyIV, ~rand2, ~seed
+     )
+     ]
+  */
+
+restriction Restr_ifModeNoEEModeNoEE_0_11111112121211_1:
+  "∀ #NOW.
+    (Restr_ifModeNoEEModeNoEE_0_11111112121211_1( ) @ #NOW) ⇒
+    (Mode_NoE2E = Mode_NoE2E)"
+  // safety formula
+
+rule (modulo E) ifModeNoEEModeNoEE_0_11111112121211[color=#804640,
+                                                    process="if Mode_NoE2E = Mode_NoE2E"]:
+   [
+   State_11111112121211( ~encryption_key.1, ~pre_app_ch1.1, ~pre_app_ch2.1,
+                         ~privacyIV.1, ~rand2.1, ~seed.1
+   ),
+   Message( ~pre_app_ch1.1, x.2 )
+   ]
+  --[ Restr_ifModeNoEEModeNoEE_0_11111112121211_1( ) ]->
+   [
+   Let_1111111212121111( x.2, ~encryption_key.1, ~pre_app_ch1.1,
+                         ~pre_app_ch2.1, ~privacyIV.1, ~rand2.1, ~seed.1
+   ),
+   Ack( ~pre_app_ch1.1, x.2 )
+   ]
+
+  /*
+  rule (modulo AC) ifModeNoEEModeNoEE_0_11111112121211[color=#804640,
+                                                       process="if Mode_NoE2E = Mode_NoE2E"]:
+     [
+     State_11111112121211( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                           ~privacyIV, ~rand2, ~seed
+     ),
+     Message( ~pre_app_ch1, x )
+     ]
+    --[ Restr_ifModeNoEEModeNoEE_0_11111112121211_1( ) ]->
+     [
+     Let_1111111212121111( x, ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                           ~privacyIV, ~rand2, ~seed
+     ),
+     Ack( ~pre_app_ch1, x )
+     ]
+  */
+
+rule (modulo E) inpreappchchannellocationlocationNoEE_1_111111121212111[color=#804640,
+                                                                        process="in(~pre_app_ch1.1:channel,<location.2, 'location_NoE2E'>);"]:
+   [
+   Let_1111111212121111( <location.2, 'location_NoE2E'>, ~encryption_key.1,
+                         ~pre_app_ch1.1, ~pre_app_ch2.1, ~privacyIV.1, ~rand2.1, ~seed.1
+   )
+   ]
+  -->
+   [
+   State_1111111212121111( ~encryption_key.1, ~pre_app_ch1.1,
+                           ~pre_app_ch2.1, ~privacyIV.1, ~rand2.1, ~seed.1, location.2
+   )
+   ]
+
+  /*
+  rule (modulo AC) inpreappchchannellocationlocationNoEE_1_111111121212111[color=#804640,
+                                                                           process="in(~pre_app_ch1.1:channel,<location.2, 'location_NoE2E'>);"]:
+     [
+     Let_1111111212121111( <location, 'location_NoE2E'>, ~encryption_key,
+                           ~pre_app_ch1, ~pre_app_ch2, ~privacyIV, ~rand2, ~seed
+     )
+     ]
+    -->
+     [
+     State_1111111212121111( ~encryption_key, ~pre_app_ch1, ~pre_app_ch2,
+                             ~privacyIV, ~rand2, ~seed, location
+     )
+     ]
+  */
+
+restriction single_session:
+  "∀ #i #j. ((Init( ) @ #i) ∧ (Init( ) @ #j)) ⇒ (#i = #j)"
+  // safety formula
+
+/* All well-formedness checks were successful. */
+
+end
+
+==============================================================================
+summary of summaries:
+
+analyzed: ./_models/Samsung/location_tracking/Samsung_location_NoE2E_confidentiality.spthy
+
+  confidentiality (all-traces): verified (3 steps)
+
+==============================================================================

@@ -1,0 +1,103 @@
+/tmp/tmp.WGBxkcY0nO/P9_fixed_MI4_Apple_location_server_privacy.spthy.gs
+Starting the transformation...
+Parsing the file...
+Writing in the output file...
+Translation complete !
+Process 0 (that is, the initial process):
+{1}new sec_ch_1: channel;
+{2}!
+(
+    {3}out(att, (get_pk(di),adv))
+) | (
+    {4}!
+    (
+        {5}in(att, (Pi_1: bitstring,=adv));
+        {6}out(sec_ch_1, (Pi_1,pubkey_query));
+        {7}in(sec_ch_1, (status_pk_1: bitstring,(pk_tracker_1: bitstring,=pubkey_query)));
+        {8}if (status_pk_1 = validate_const) then
+        {9}let enc_loc_1: bitstring = IES_enc(location,pk_tracker_1) in
+        {10}event Secret(location);
+        {11}let index_1: bitstring = SHA256(pk_tracker_1) in
+        {12}out(att, (enc_loc_1,(index_1,location_report)));
+        {13}out(sec_ch_1, (enc_loc_1,(index_1,location_report)))
+    ) | (
+        {14}!
+        (
+            {15}in(sec_ch_1, (pk_tracker: bitstring,=pubkey_query));
+            {16}if (pk_tracker = get_pk(di)) then
+            (
+                {17}out(sec_ch_1, (validate_const,(get_pk(di),pubkey_query)));
+                {18}in(sec_ch_1, (enc_loc: bitstring,(index: bitstring,=location_report)));
+                {19}in(sec_ch_1, (index1_1: bitstring,=query_by_index));
+                {20}if (index = index1_1) then
+                {21}out(sec_ch_1, (enc_loc,(index,location_report_index)))
+            )
+            else
+                {22}out(sec_ch_1, (unvalidate_const,pubkey_query))
+        ) | (
+            {23}!
+            {24}let index_2: bitstring = SHA256(get_pk(di)) in
+            {25}out(sec_ch_1, (index_2,query_by_index));
+            {26}in(sec_ch_1, (enc_loc_2: bitstring,(index1: bitstring,=location_report_index)));
+            {27}let loc_1: bitstring = IES_dec(enc_loc_2,di) in
+            0
+        )
+    )
+)
+
+--  Process 1 (that is, process 0, with let moved downwards):
+{1}new sec_ch_1: channel;
+{2}!
+(
+    {3}out(att, (get_pk(di),adv))
+) | (
+    {4}!
+    (
+        {5}in(att, (Pi_1: bitstring,=adv));
+        {6}out(sec_ch_1, (Pi_1,pubkey_query));
+        {7}in(sec_ch_1, (status_pk_1: bitstring,(pk_tracker_1: bitstring,=pubkey_query)));
+        {8}if (status_pk_1 = validate_const) then
+        {10}event Secret(location);
+        {11}let index_1: bitstring = SHA256(pk_tracker_1) in
+        {9}let enc_loc_1: bitstring = IES_enc(location,pk_tracker_1) in
+        {12}out(att, (enc_loc_1,(index_1,location_report)));
+        {13}out(sec_ch_1, (enc_loc_1,(index_1,location_report)))
+    ) | (
+        {14}!
+        (
+            {15}in(sec_ch_1, (pk_tracker: bitstring,=pubkey_query));
+            {16}if (pk_tracker = get_pk(di)) then
+            (
+                {17}out(sec_ch_1, (validate_const,(get_pk(di),pubkey_query)));
+                {18}in(sec_ch_1, (enc_loc: bitstring,(index: bitstring,=location_report)));
+                {19}in(sec_ch_1, (index1_1: bitstring,=query_by_index));
+                {20}if (index = index1_1) then
+                {21}out(sec_ch_1, (enc_loc,(index,location_report_index)))
+            )
+            else
+                {22}out(sec_ch_1, (unvalidate_const,pubkey_query))
+        ) | (
+            {23}!
+            {24}let index_2: bitstring = SHA256(get_pk(di)) in
+            {25}out(sec_ch_1, (index_2,query_by_index));
+            {26}in(sec_ch_1, (enc_loc_2: bitstring,(index1: bitstring,=location_report_index)));
+            {27}let loc_1: bitstring = IES_dec(enc_loc_2,di) in
+            0
+        )
+    )
+)
+
+-- Query not attacker(location) in process 1.
+Translating the process into Horn clauses...
+Completing...
+ok, secrecy assumption verified: fact unreachable attacker(di)
+Starting query not attacker(location)
+RESULT not attacker(location) is true.
+
+--------------------------------------------------------------
+Verification summary:
+
+Query not attacker(location) is true.
+
+--------------------------------------------------------------
+

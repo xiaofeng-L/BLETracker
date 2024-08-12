@@ -1,0 +1,113 @@
+theory Apple_AirTag
+
+begin
+
+
+functions: 
+	/* KDF: derive symmetric key. ANSI_X_963_KDF_SHA256 */
+	kdf/2, update_const/0, diversify_const/0,
+
+	/* P-224 Curve */
+	add/2, mul/2, gen/0,
+	IES_enc/2, IES_dec/2 [destructor],
+	get_sk/1 [private],
+	u/1, v/1,
+
+  	/* Hash function */
+	SHA256/1,
+
+	location/0 [private]
+equations:
+	IES_dec(IES_enc(m, pk), get_sk(pk)) = m
+	
+
+
+options: enableStateOpt, compress-events,
+translation-allow-pattern-lookups
+
+
+
+/* Tracker */
+let tracker(~Pi_0, ~SKSi_0) = 
+	out(<~Pi_0, 'adv'>)
+
+
+/* Attacker */
+let attacker() = 
+	event Secret(location);
+  	in(<Pi, 'adv'>);
+	let sealedbox_loc = IES_enc(location, Pi) in
+	let index = SHA256(Pi) in
+	out(<sealedbox_loc, index, 'location_report'>)
+
+
+
+/* Server */
+let server(~pre_app_ch1: channel) = 
+	in(<sealedbox_loc, index, 'location_report'>);
+	/* for privacy */
+	out(<sealedbox_loc, index, 'location_report'>);
+
+		out(~pre_app_ch1, <sealedbox_loc, index, 'location_report_index'>)
+	
+
+
+/* P11: Unlinkability： We model the unlinkability as "Can the attacker 
+distinguish the case where all sessions of tracker 1 from the scenario 
+where each pair of sessions has a distinct tracker n?".
+
+From the attacker's perspective, the phone process is invisible. Hence, we 
+model the communication between tracker and attacker, attacker and server. 
+
+Three consecutive sessions of an AirTag.
+Unlimited sessions of unlimited AirTags. (It will be translated to three 
+sessions if three AirTags by Sapic+.) */
+
+equivLemma:
+(	
+	(
+		new ~pre_app_ch1: channel;
+		new ~P;
+		new ~SKS;
+		let SKSi_0 = kdf(~SKS, update_const) in
+		let ui_0 = u(kdf(SKSi_0, diversify_const)) in
+  		let vi_0 = v(kdf(SKSi_0, diversify_const)) in
+		let Pi_0 = add(mul(ui_0, ~P), mul(vi_0, gen)) in
+
+		let SKSi_1 = kdf(SKSi_0, update_const) in
+		let ui_1 = u(kdf(SKSi_1, diversify_const)) in
+  		let vi_1 = v(kdf(SKSi_1, diversify_const)) in
+		let Pi_1 = add(mul(ui_1, Pi_0), mul(vi_1, gen)) in
+
+		let SKSi_2 = kdf(SKSi_1, update_const) in
+		let ui_2 = u(kdf(SKSi_2, diversify_const)) in
+  		let vi_2 = v(kdf(SKSi_2, diversify_const)) in
+		let Pi_2 = add(mul(ui_2, Pi_1), mul(vi_2, gen)) in
+		tracker(Pi_0, SKSi_0) | 
+		attacker() |
+		server(~pre_app_ch1) |
+		tracker(Pi_1, SKSi_1) | 
+		attacker() |
+		server(~pre_app_ch1) |
+		tracker(Pi_2, SKSi_2) | 
+		attacker() |
+		server(~pre_app_ch1)
+	)
+)
+
+(	
+	!(
+		new ~pre_app_ch1: channel;
+		new ~P;
+		new ~SKS;
+		let SKSi_0 = kdf(~SKS, update_const) in
+		let ui_0 = u(kdf(SKSi_0, diversify_const)) in
+    	let vi_0 = v(kdf(SKSi_0, diversify_const)) in
+		let Pi_0 = add(mul(ui_0, ~P), mul(vi_0, gen)) in
+		
+		tracker(Pi_0, SKSi_0) | 
+		attacker() |
+		server(~pre_app_ch1)
+	)
+)
+end

@@ -1,0 +1,119 @@
+theory Apple_AirTag
+
+begin
+
+functions: 
+	/* KDF: derive symmetric key. ANSI_X_963_KDF_SHA256 */
+	kdf/2, update_const/0, diversify_const/0, zero_const/0,
+
+	/* P-224 Curve */
+	add/2, mul/2, gen/0,
+
+	validate_const/0,
+	unvalidate_const/0,
+
+  	/* Hash function */
+	SHA256/1,
+
+	get_pk/1,
+	IES_enc/2, IES_dec/2 [destructor],
+
+	location/0 [private],
+	di/0 [private]
+equations:
+	IES_dec(IES_enc(m, get_pk(sk)), sk) = m
+	
+export queries:
+"
+set preciseActions = true.
+not attacker(di).
+query attacker(location).
+"
+
+
+/* Tracker */
+let tracker(~Pi_0) = 
+	out(<~Pi_0, 'adv'>)
+
+
+/* Other Participants */
+let participant(~sec_ch: channel) = 
+	in(<Pi, 'adv'>);
+	/* fixed */
+	out(~sec_ch, <Pi, 'pubkey_query'>);
+	in(~sec_ch, <status_pk, pk_tracker, 'pubkey_query'>);
+	if (status_pk = validate_const) then (
+
+		let enc_loc = IES_enc(location, pk_tracker) in
+		event Secret(location);
+		let index = SHA256(pk_tracker) in
+		out(<enc_loc, index, 'location_report'>);
+		out(~sec_ch, <enc_loc, index, 'location_report'>)
+	)
+
+
+
+
+/* Server */
+/* For server privacy, we output the server's acknowledge in the open channel. */
+/* fixed: server knows the public key generated during the initialization phase, 
+then server will validate the public key. */
+let server(~sec_ch: channel, ~Pi_0) = 
+	/* fixed */
+	in(~sec_ch, <pk_tracker, 'pubkey_query'>);
+	if (pk_tracker = ~Pi_0) then (
+		out(~sec_ch, <validate_const, ~Pi_0, 'pubkey_query'>);
+
+		in(~sec_ch, <enc_loc, index, 'location_report'>);
+		
+
+		in(~sec_ch, <index1, 'query_by_index'>);
+		if (index = index1) then (
+			out(~sec_ch, <enc_loc, index, 'location_report_index'>)
+		)
+	) else (
+		out(~sec_ch, <unvalidate_const, 'pubkey_query'>)
+	)
+
+	
+
+
+/* phone */
+let phone(~sec_ch: channel, ~di, ~Pi_0) = 
+	let index = SHA256(~Pi_0) in
+	out(~sec_ch, <index, 'query_by_index'>);
+	in(~sec_ch, <enc_loc, index1, 'location_report_index'>);
+	let loc = IES_dec(enc_loc, ~di) in
+	0
+
+
+	
+/* replication of an AirTag to cover "mix and match" like attacks */
+process:
+	/* For privacy, cloud is equipment to open channel for data communication between finder device and owner device. */
+	/* For security, cloud channel is private. */
+	
+
+	new ~sec_ch: channel;
+
+	(
+	!tracker(get_pk(di)) | 
+	!participant(~sec_ch) |
+	!server(~sec_ch, get_pk(di)) |
+	!phone(~sec_ch, ~di, get_pk(di))
+	)
+	
+
+/* P9: Confidentiality of location: Apple server receives en-
+crypted location data from Finder devices and temporarily
+stores it. Only the owner devices can decrypt and read raw
+locations from the encrypted data. Apple cannot read this in-
+formation. */	
+lemma confidentiality [ output=[spthy] ]:
+"
+	( 
+		All x #i. (Secret(x) @ i ==> not (Ex #k. KU(x) @ k))
+	)
+"
+
+end
